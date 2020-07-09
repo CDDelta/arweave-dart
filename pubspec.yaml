@@ -1,0 +1,16 @@
+name: arweave
+description:
+version: 0.1.0
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+
+dependencies:
+  json_annotation: ^3.0.1
+  http: ^0.12.1
+  meta: 1.1.8
+  crypto: ^2.1.5
+
+dev_dependencies:
+  json_serializable: ^3.3.0
+  build_runner: ^1.10.0
+  test: ^1.15.2
