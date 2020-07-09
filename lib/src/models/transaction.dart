@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart';
 
 import '../utils.dart';
@@ -8,36 +10,77 @@ part 'transaction.g.dart';
 @JsonSerializable()
 class Transaction {
   @JsonKey(defaultValue: 1)
-  int format;
-  final String id;
+  int get format => _format;
+  int _format;
+
+  String get id => _id;
+  String _id;
+
   @JsonKey(name: 'last_tx')
-  final String lastTx;
-  final String owner;
-  final List<Tag> tags;
-  final String target;
-  final String quantity;
-  String data;
+  String get lastTx => _lastTx;
+  String _lastTx;
+
+  String get owner => _owner;
+  String _owner;
+
+  List<Tag> get tags => _tags;
+  List<Tag> _tags;
+
+  String get target => _target;
+  String _target;
+
+  String get quantity => _quantity;
+  String _quantity;
+
+  String get data => _data;
+  String _data;
+
   @JsonKey(name: 'data_size')
-  final String dataSize;
+  String get dataSize => _dataSize;
+  String _dataSize;
+
   @JsonKey(name: 'data_root')
-  final String dataRoot;
-  final String reward;
-  final String signature;
+  String get dataRoot => _dataRoot;
+  String _dataRoot;
+
+  String get reward => _reward;
+  String _reward;
+
+  String get signature => _signature;
+  String _signature;
 
   Transaction({
-    this.format,
-    this.id,
-    this.lastTx,
-    this.owner,
-    this.tags,
-    this.target,
-    this.quantity,
-    this.data,
-    this.dataSize,
-    this.dataRoot,
-    this.reward,
-    this.signature,
-  });
+    int format,
+    String id,
+    String lastTx,
+    String owner,
+    List<Tag> tags,
+    String target,
+    String quantity,
+    String data,
+    String dataSize,
+    String dataRoot,
+    String reward,
+    String signature,
+  })  : _format = format,
+        _id = id,
+        _lastTx = lastTx,
+        _owner = owner,
+        _tags = tags,
+        _target = target,
+        _quantity = quantity,
+        _data = data,
+        _dataSize = dataSize,
+        _dataRoot = dataRoot,
+        _reward = reward,
+        _signature = signature;
+
+  void setSignature(String signature, String id) {
+    this._signature = signature;
+    this._id = id;
+  }
+
+  Future<Uint8List> getSignatureData() {}
 
   void addTag(String name, String value) {
     this.tags.add(Tag(stringToBase64(name), stringToBase64(value)));
@@ -46,30 +89,4 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) =>
       _$TransactionFromJson(json);
   Map<String, dynamic> toJson() => _$TransactionToJson(this);
-}
-
-class CreateTransactionInterface {
-  final int format;
-  final String lastTx;
-  final String owner;
-  final List<Tag> tags;
-  final String target;
-  final String quantity;
-  final String data;
-  final String dataSize;
-  final String dataRoot;
-  final String reward;
-
-  CreateTransactionInterface({
-    this.format,
-    this.lastTx,
-    this.owner,
-    this.tags,
-    this.target,
-    this.quantity,
-    this.data,
-    this.dataRoot,
-    this.dataSize,
-    this.reward,
-  }) : assert(data != null || !(target != null && quantity != null));
 }

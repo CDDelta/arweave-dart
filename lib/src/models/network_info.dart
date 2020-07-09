@@ -4,17 +4,30 @@ part 'network_info.g.dart';
 
 @JsonSerializable()
 class NetworkInfo {
-  String hostNetwork;
-  int version;
-  int release;
-  int height;
-  String current;
-  int blocks;
-  int peers;
-  int queueLength;
-  int nodeStateLatency;
+  @JsonKey(name: 'hosnetworkt')
+  final String hostNetwork;
+  final int version;
+  final int release;
+  final int height;
+  final String current;
+  final int blocks;
+  final int peers;
+  @JsonKey(name: 'queue_length')
+  final int queueLength;
+  @JsonKey(name: 'node_state_latency')
+  final int nodeStateLatency;
 
-  NetworkInfo();
+  NetworkInfo({
+    this.hostNetwork,
+    this.version,
+    this.release,
+    this.height,
+    this.current,
+    this.blocks,
+    this.peers,
+    this.queueLength,
+    this.nodeStateLatency,
+  });
 
   factory NetworkInfo.fromJson(Map<String, dynamic> json) =>
       _$NetworkInfoFromJson(json);

@@ -15,10 +15,12 @@ class ArweaveWallets {
   Future<String> getLastTransactionId(String address) =>
       this._api.get('wallet/$address/last_tx').then((res) => res.body);
 
-  Future<Map<String, String>> generate() {}
+  Future<Map<String, String>> generate() {
+    // TODO: IMPLEMENT
+  }
 
   String jwkToAddress(Map<String, String> jwk) => ownerToAddress(jwk['n']);
 
   String ownerToAddress(String owner) =>
-      base64Encode(sha256.convert(base64Decode(owner)).bytes);
+      base64.encode(sha256.convert(base64.decode(owner)).bytes);
 }

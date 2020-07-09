@@ -12,6 +12,12 @@ void main() {
     client = getArweaveClient();
   });
 
+  test('get transaction status', () async {
+    final status = await client.transactions.getStatus(liveDataTxId);
+    expect(status.status, equals(200));
+    expect(status.confirmed, isNotNull);
+  });
+
   test('get transaction data', () async {
     final txRawData = await client.transactions.getData(liveDataTxId);
     expect(txRawData, contains("CjwhRE9DVFlQRSBodG1sPgo"));

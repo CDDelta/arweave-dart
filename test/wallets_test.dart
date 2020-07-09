@@ -17,12 +17,21 @@ void main() {
     client = getArweaveClient();
   });
 
-  test('get wallet info', () async {
+  test('get wallet balance', () async {
     final balance = await client.wallets.getBalance(liveAddress);
-    final lastTxId = await client.wallets.getLastTransactionId(liveAddress);
-
     expect(balance, equals(liveAddressBalance));
+  });
+
+  test('get wallet last transaction id', () async {
+    final lastTxId = await client.wallets.getLastTransactionId(liveAddress);
     expect(lastTxId, equals(liveTxid));
+  });
+
+  test('generate wallet', () async {
+    final wallet = await client.wallets.generate();
+
+    expect(wallet['kty'], equals('RSA'));
+    expect(wallet['e'], equals('AQAB'));
   });
 
   test('resolve address from jwk', () async {
