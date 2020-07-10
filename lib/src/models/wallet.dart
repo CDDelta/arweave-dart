@@ -16,16 +16,15 @@ class Wallet {
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     final modulus = decodeBase64ToBigInt(jwk['n']);
-    final exponent = decodeBase64ToBigInt(jwk['e']);
 
     return Wallet(
       publicKey: RSAPublicKey(
         modulus,
-        exponent,
+        decodeBase64ToBigInt(jwk['e']),
       ),
       privateKey: RSAPrivateKey(
         modulus,
-        exponent,
+        decodeBase64ToBigInt(jwk['d']),
         decodeBase64ToBigInt(jwk['p']),
         decodeBase64ToBigInt(jwk['q']),
       ),
