@@ -23,13 +23,13 @@ void main() {
     transaction.addTag("test-tag-3", "test-value-3");
 
     expect(transaction.data, equals('dGVzdA'));
-    expect(transaction.lastTx, matches(r'/^[a-z0-9-_]{64}$/i'));
-    expect(transaction.reward, matches(r'/^[0-9]+$/'));
+    expect(transaction.lastTx, matches(r'^[a-z0-9-_]{64}$'));
+    expect(transaction.reward, matches(r'^[0-9]+$'));
 
     await client.transactions.sign(transaction, wallet);
 
-    expect(transaction.signature, matches(r'/^[a-z0-9-_]{64}$/i'));
-    expect(transaction.id, matches(digestRegex));
+    expect(transaction.signature, matches(r'^[a-z0-9-_]{64}$'));
+    expect(transaction.id, matches(digestPattern));
 
     expect(await client.transactions.verify(transaction), isTrue);
 
@@ -41,11 +41,12 @@ void main() {
     final wallet = await client.wallets.generate();
 
     final transaction = await client.createTransaction(
-        Transaction(
-          target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-          quantity: 'artoWInston',
-        ),
-        wallet);
+      Transaction(
+        target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
+        quantity: 'artoWInston',
+      ),
+      wallet,
+    );
 
     expect(transaction.quantity, equals('1500000000000'));
     expect(transaction.target,

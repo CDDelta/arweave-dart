@@ -17,6 +17,13 @@ void main() {
     client = getArweaveClient();
   });
 
+  test('decode and encode wallet', () async {
+    final jwk = json
+        .decode(await new File('test/fixtures/test-key.json').readAsString());
+    expect(Wallet.fromJwk(jwk).toJwk(), equals(jwk));
+  });
+
+  final jwkFieldPattern = RegExp(r'^[a-z0-9-_]{683}$', caseSensitive: false);
   test('generate wallet', () async {
     final walletA = await client.wallets.generate();
     final walletB = await client.wallets.generate();
@@ -25,11 +32,11 @@ void main() {
     expect(walletJwk['kty'], equals('RSA'));
     expect(walletJwk['e'], equals('AQAB'));
 
-    expect(walletJwk['n'], matches(r'/^[a-z0-9-_]{683}$/i'));
-    expect(walletJwk['d'], matches(r'/^[a-z0-9-_]{683}$/i'));
+    expect(walletJwk['n'], matches(jwkFieldPattern));
+    expect(walletJwk['d'], matches(jwkFieldPattern));
 
-    expect(walletA.address, matches(digestRegex));
-    expect(walletB.address, matches(digestRegex));
+    expect(walletA.address, matches(digestPattern));
+    expect(walletB.address, matches(digestPattern));
 
     expect(walletA.address, isNot(equals(walletB.address)));
   });

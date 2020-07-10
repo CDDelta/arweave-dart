@@ -1,6 +1,6 @@
 import 'package:arweave/arweave.dart';
 
-const digestRegex = r'/^[a-z0-9-_]{43}$/i';
+final digestPattern = RegExp(r'^[a-z0-9-_]{43}$', caseSensitive: false);
 
 Arweave getArweaveClient() => Arweave(
       host: 'arweave.net',
