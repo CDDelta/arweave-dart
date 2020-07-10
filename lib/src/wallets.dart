@@ -1,10 +1,16 @@
 import 'dart:core';
+import 'dart:math';
+import 'dart:typed_data';
 
-import './api.dart';
+import 'package:crypto/crypto.dart';
+import 'package:pointycastle/export.dart';
+
+import 'api.dart';
 import 'models/models.dart';
+import 'utils.dart';
 
-final keyLength = BigInt.from(4096);
-final publicExponent = BigInt.from(0x10001);
+final keyLength = 4096;
+final publicExponent = BigInt.from(65537);
 
 class ArweaveWallets {
   final ArweaveApi _api;
@@ -21,10 +27,23 @@ class ArweaveWallets {
       this._api.get('wallet/$address/last_tx').then((res) => res.body);
 
   Future<Wallet> generate() async {
-    throw UnimplementedError();
+    final secureRandom = FortunaRandom();
+    final seedSource = Random.secure();
+    final seeds = <int>[];
+    for (int i = 0; i < 32; i++) {
+      seeds.add(seedSource.nextInt(255));
+    }
+    secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
+
+    final keyGen = RSAKeyGenerator()
+      ..init(ParametersWithRandom(
+          RSAKeyGeneratorParameters(publicExponent, keyLength, 64),
+          secureRandom));
+
+    final pair = keyGen.generateKeyPair();
+    return Wallet(publicKey: pair.publicKey, privateKey: pair.privateKey);
   }
 
-  String ownerToAddress(String owner) {
-    throw UnimplementedError();
-  }
+  String ownerToAddress(String owner) =>
+      encodeBytesToBase64(sha256.convert(decodeBase64ToBytes(owner)).bytes);
 }

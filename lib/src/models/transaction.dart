@@ -100,7 +100,7 @@ class Transaction {
 
   /// Encodes the buffer as base64 on the transaction and recalculates the `dataRoot` and `dataSize`.
   void setDataWithBuffer(Uint8List buffer) {
-    _data = base64Url.encode(buffer);
+    _data = encodeBytesToBase64(buffer);
     _dataBuffer = buffer;
     _dataSize = buffer.length.toString();
   }
@@ -122,21 +122,21 @@ class Transaction {
 
         buffers.addAll([
           utf8.encode(format.toString()),
-          base64.decode(owner),
-          base64.decode(target),
+          decodeBase64ToBytes(owner),
+          decodeBase64ToBytes(target),
           utf8.encode(quantity.toString()),
           utf8.encode(reward.toString()),
-          base64.decode(lastTx),
+          decodeBase64ToBytes(lastTx),
         ]);
 
         buffers.addAll(tags.expand((t) => [
-              base64.decode(t.name),
-              base64.decode(t.value),
+              decodeBase64ToBytes(t.name),
+              decodeBase64ToBytes(t.value),
             ]));
 
         buffers.addAll([
           utf8.encode(dataSize),
-          base64.decode(dataRoot),
+          decodeBase64ToBytes(dataRoot),
         ]);
 
         return null;
@@ -146,7 +146,7 @@ class Transaction {
   }
 
   void addTag(String name, String value) {
-    this.tags.add(Tag(stringToBase64(name), stringToBase64(value)));
+    this.tags.add(Tag(encodeStringToBase64(name), encodeStringToBase64(value)));
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>

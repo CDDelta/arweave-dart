@@ -35,17 +35,17 @@ void main() {
   });
 
   test('get wallet info', () async {
+    expect(await client.wallets.getBalance(liveAddress),
+        equals(liveAddressBalance));
+    expect(await client.wallets.getLastTransactionId(liveAddress),
+        equals(liveTxid));
+
     final newWallet = await client.wallets.generate();
     final newWalletAddress = newWallet.address;
 
     expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
     expect(await client.wallets.getLastTransactionId(newWalletAddress),
         equals(''));
-
-    expect(await client.wallets.getBalance(liveAddress),
-        equals(liveAddressBalance));
-    expect(await client.wallets.getLastTransactionId(liveAddress),
-        equals(liveTxid));
   });
 
   test('resolve address from wallet', () async {
