@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart';
 
 import './api.dart';
-import '../arweave.dart';
 import 'models/models.dart';
 
 class ArweaveTransactions {
@@ -25,13 +24,9 @@ class ArweaveTransactions {
     final res = await this._api.get('tx/$id');
 
     if (res.statusCode == 200) {
-      final txJson = json.decode(res.body);
-
-      var transaction = Transaction.fromJson(txJson);
-      if (transaction.format >= 2 && transaction.dataSize != '0') {
-        txJson['data'] = await getData(id);
-        return Transaction.fromJson(txJson);
-      }
+      final transaction = Transaction.fromJson(json.decode(res.body));
+      if (transaction.format >= 2 && transaction.dataSize != '0')
+        transaction.setData(await getData(id), computeDataDetails: false);
 
       return transaction;
     }
@@ -72,13 +67,9 @@ class ArweaveTransactions {
         },
       );
 
-  Future<void> sign(Transaction transaction, Map<String, String> jwk) {
-    // TODO: IMPLEMENT
-  }
+  Future<void> sign(Transaction transaction, Map<String, String> jwk) {}
 
-  Future<bool> verify(Transaction transaction) {
-    // TODO: IMPLEMENT
-  }
+  Future<bool> verify(Transaction transaction) {}
 
   Future<Response> post(Transaction transaction) =>
       this._api.post('tx', body: json.encode(transaction));

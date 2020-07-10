@@ -73,7 +73,17 @@ class Transaction {
         _dataSize = dataSize,
         _dataRoot = dataRoot,
         _reward = reward,
-        _signature = signature;
+        _signature = signature {
+    if (data != null && (dataSize == null || dataRoot == null)) setData(data);
+  }
+
+  void setLastTx(String lastTx) => _lastTx = lastTx;
+
+  void setOwner(String owner) => _owner = owner;
+
+  void setData(String data, {bool computeDataDetails = true}) {}
+
+  void setReward(String reward) => _reward = reward;
 
   void setSignature(String signature, String id) {
     this._signature = signature;

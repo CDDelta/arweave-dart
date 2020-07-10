@@ -17,21 +17,37 @@ void main() {
     client = getArweaveClient();
   });
 
-  test('get wallet balance', () async {
-    final balance = await client.wallets.getBalance(liveAddress);
-    expect(balance, equals(liveAddressBalance));
-  });
-
-  test('get wallet last transaction id', () async {
-    final lastTxId = await client.wallets.getLastTransactionId(liveAddress);
-    expect(lastTxId, equals(liveTxid));
-  });
-
   test('generate wallet', () async {
-    final wallet = await client.wallets.generate();
+    final walletA = await client.wallets.generate();
+    final walletB = await client.wallets.generate();
 
-    expect(wallet['kty'], equals('RSA'));
-    expect(wallet['e'], equals('AQAB'));
+    expect(walletA['kty'], equals('RSA'));
+    expect(walletA['e'], equals('AQAB'));
+
+    expect(walletA['n'], matches(r'/^[a-z0-9-_]{683}$/i'));
+    expect(walletA['d'], matches(r'/^[a-z0-9-_]{683}$/i'));
+
+    final addressA = client.wallets.jwkToAddress(walletA);
+    final addressB = client.wallets.jwkToAddress(walletB);
+
+    expect(addressA, matches(digestRegex));
+    expect(addressB, matches(digestRegex));
+
+    expect(addressA, isNot(equals(addressB)));
+  });
+
+  test('get wallet info', () async {
+    final newWallet = await client.wallets.generate();
+    final newWalletAddress = await client.wallets.jwkToAddress(newWallet);
+
+    expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
+    expect(await client.wallets.getLastTransactionId(newWalletAddress),
+        equals(''));
+
+    expect(await client.wallets.getBalance(liveAddress),
+        equals(liveAddressBalance));
+    expect(await client.wallets.getLastTransactionId(liveAddress),
+        equals(liveTxid));
   });
 
   test('resolve address from jwk', () async {

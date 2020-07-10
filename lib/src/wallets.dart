@@ -15,9 +15,7 @@ class ArweaveWallets {
   Future<String> getLastTransactionId(String address) =>
       this._api.get('wallet/$address/last_tx').then((res) => res.body);
 
-  Future<Map<String, String>> generate() {
-    // TODO: IMPLEMENT
-  }
+  Future<Map<String, String>> generate() {}
 
   String jwkToAddress(Map<String, String> jwk) => ownerToAddress(jwk['n']);
 

@@ -26,7 +26,28 @@ class Arweave {
     this._network = ArweaveNetwork(api);
   }
 
-  Future<Transaction> createTransaction(Map<String, String> jwk) {}
+  Future<Transaction> createTransaction(
+      Transaction transaction, Map<String, String> jwk) async {
+    if (transaction.data != null &&
+        !(transaction.target != null && transaction.quantity != null)) {
+      // TODO: THrow err
+    }
+
+    if (transaction.owner == null) transaction.setOwner(jwk['n']);
+
+    if (transaction.lastTx == null)
+      transaction.setLastTx(await transactions.getTransactionAnchor());
+
+    if (transaction.reward == null) {
+      final length = transaction.data != null ? 'bytelength' : 0;
+      transaction.setReward(await transactions.getPrice(
+        byteSize: length,
+        targetAddress: transaction.target,
+      ));
+    }
+
+    return transaction;
+  }
 
   Future<List<String>> arql(Map<String, dynamic> query) =>
       transactions.arql(query);
