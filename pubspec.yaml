@@ -7,7 +7,7 @@ environment:
 dependencies:
   json_annotation: ^3.0.1
   http: ^0.12.1
-  meta: 1.1.8
+  meta: ^1.1.8
   crypto: ^2.1.5
 
 dev_dependencies:

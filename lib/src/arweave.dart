@@ -27,13 +27,13 @@ class Arweave {
   }
 
   Future<Transaction> createTransaction(
-      Transaction transaction, Map<String, String> jwk) async {
+      Transaction transaction, Wallet wallet) async {
     if (transaction.data != null &&
         !(transaction.target != null && transaction.quantity != null)) {
       // TODO: THrow err
     }
 
-    if (transaction.owner == null) transaction.setOwner(jwk['n']);
+    if (transaction.owner == null) transaction.setOwner(wallet.owner);
 
     if (transaction.lastTx == null)
       transaction.setLastTx(await transactions.getTransactionAnchor());

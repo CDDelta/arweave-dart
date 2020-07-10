@@ -21,24 +21,22 @@ void main() {
     final walletA = await client.wallets.generate();
     final walletB = await client.wallets.generate();
 
-    expect(walletA['kty'], equals('RSA'));
-    expect(walletA['e'], equals('AQAB'));
+    final walletJwk = walletA.toJwk();
+    expect(walletJwk['kty'], equals('RSA'));
+    expect(walletJwk['e'], equals('AQAB'));
 
-    expect(walletA['n'], matches(r'/^[a-z0-9-_]{683}$/i'));
-    expect(walletA['d'], matches(r'/^[a-z0-9-_]{683}$/i'));
+    expect(walletJwk['n'], matches(r'/^[a-z0-9-_]{683}$/i'));
+    expect(walletJwk['d'], matches(r'/^[a-z0-9-_]{683}$/i'));
 
-    final addressA = client.wallets.jwkToAddress(walletA);
-    final addressB = client.wallets.jwkToAddress(walletB);
+    expect(walletA.address, matches(digestRegex));
+    expect(walletB.address, matches(digestRegex));
 
-    expect(addressA, matches(digestRegex));
-    expect(addressB, matches(digestRegex));
-
-    expect(addressA, isNot(equals(addressB)));
+    expect(walletA.address, isNot(equals(walletB.address)));
   });
 
   test('get wallet info', () async {
     final newWallet = await client.wallets.generate();
-    final newWalletAddress = await client.wallets.jwkToAddress(newWallet);
+    final newWalletAddress = newWallet.address;
 
     expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
     expect(await client.wallets.getLastTransactionId(newWalletAddress),
@@ -50,13 +48,12 @@ void main() {
         equals(liveTxid));
   });
 
-  test('resolve address from jwk', () async {
-    final jwk = json
-        .decode(await new File('test/fixtures/test-key.json').readAsString());
+  test('resolve address from wallet', () async {
+    final wallet = Wallet.fromJwk(json
+        .decode(await new File('test/fixtures/test-key.json').readAsString()));
 
-    final address = client.wallets.ownerToAddress(jwk);
-
-    expect(address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
+    expect(
+        wallet.address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
   });
 
   test('resolve address from owner', () async {

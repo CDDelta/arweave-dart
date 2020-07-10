@@ -67,7 +67,7 @@ class ArweaveTransactions {
         },
       );
 
-  Future<void> sign(Transaction transaction, Map<String, String> jwk) {}
+  Future<void> sign(Transaction transaction, Wallet wallet) {}
 
   Future<bool> verify(Transaction transaction) {}
 
