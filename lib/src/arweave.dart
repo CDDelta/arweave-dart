@@ -17,10 +17,12 @@ class Arweave {
   ArweaveNetwork get network => _network;
   ArweaveNetwork _network;
 
-  Arweave({ApiConfig config = null}) {
-    if (config == null) config = ApiConfig();
-
-    this._api = ArweaveApi(config: config);
+  Arweave({
+    String host,
+    String protocol,
+    int port,
+  }) {
+    this._api = ArweaveApi(host: host, protocol: protocol, port: port);
     this._wallets = ArweaveWallets(api);
     this._transactions = ArweaveTransactions(api);
     this._network = ArweaveNetwork(api);
