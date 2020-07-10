@@ -51,4 +51,8 @@ class Arweave {
 
   Future<List<String>> arql(Map<String, dynamic> query) =>
       transactions.arql(query);
+
+  BigInt arToWinston(BigInt ar) => ar * BigInt.from(10).pow(12);
+
+  BigInt winstonToAr(BigInt winston) => winston ~/ BigInt.from(10).pow(12);
 }

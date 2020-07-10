@@ -43,7 +43,7 @@ void main() {
     final transaction = await client.createTransaction(
       Transaction(
         target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-        quantity: 'artoWInston',
+        quantity: client.arToWinston(BigInt.from(1.5)).toString(),
       ),
       wallet,
     );
