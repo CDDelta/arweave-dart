@@ -1,5 +1,6 @@
 import 'package:arweave/src/utils.dart';
 import 'package:crypto/crypto.dart';
+import 'package:ninja/ninja.dart' as ninja;
 import 'package:pointycastle/export.dart';
 
 class Wallet {
@@ -13,6 +14,12 @@ class Wallet {
   Wallet({RSAPublicKey publicKey, RSAPrivateKey privateKey})
       : _publicKey = publicKey,
         _privateKey = privateKey;
+
+  List<int> sign(List<int> message) => ninja.RSAPrivateKey.fromPrimaries(
+        _privateKey.p,
+        _privateKey.q,
+        publicExponent: _publicKey.e,
+      ).signPss(message).toList();
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     final modulus = decodeBase64ToBigInt(jwk['n']);

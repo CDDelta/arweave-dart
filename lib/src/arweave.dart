@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'api.dart';
 import 'models/models.dart';
 import 'network.dart';
@@ -29,18 +31,18 @@ class Arweave {
   }
 
   Future<Transaction> createTransaction(
-      Transaction transaction, Wallet wallet) async {
-    assert(transaction.data != null &&
-        !(transaction.target != null && transaction.quantity != null));
-
-    throw UnimplementedError();
+    Transaction transaction,
+    Wallet wallet,
+  ) async {
+    assert(transaction.data != null ||
+        (transaction.target != null && transaction.quantity != null));
 
     if (transaction.owner == null) transaction.setOwner(wallet.owner);
 
     if (transaction.lastTx == null)
       transaction.setLastTx(await transactions.getTransactionAnchor());
 
-    if (transaction.reward == null)
+    if (transaction.reward == null && transaction.data != null)
       transaction.setReward(await transactions.getPrice(
         byteSize: int.parse(transaction.dataSize),
         targetAddress: transaction.target,
@@ -52,7 +54,7 @@ class Arweave {
   Future<List<String>> arql(Map<String, dynamic> query) =>
       transactions.arql(query);
 
-  BigInt arToWinston(BigInt ar) => ar * BigInt.from(10).pow(12);
+  double arToWinston(double ar) => ar * pow(10.0, 12);
 
-  BigInt winstonToAr(BigInt winston) => winston ~/ BigInt.from(10).pow(12);
+  double winstonToAr(double winston) => winston / pow(10.0, 12);
 }

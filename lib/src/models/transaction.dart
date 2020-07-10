@@ -86,6 +86,9 @@ class Transaction {
         setData(data);
       else if (dataBuffer != null) setDataWithBuffer(dataBuffer);
     }
+
+    if (_tags == null) _tags = [];
+    ;
   }
 
   void setLastTx(String lastTx) => _lastTx = lastTx;
@@ -94,8 +97,8 @@ class Transaction {
 
   /// Sets the data on the transaction and recalculates the `dataRoot` and `dataSize`.
   void setData(String data) {
-    _data = data;
-    _dataSize = utf8.encode(data).length.toString();
+    _data = encodeStringToBase64(data);
+    _dataSize = utf8.encode(_data).length.toString();
   }
 
   /// Encodes the buffer as base64 on the transaction and recalculates the `dataRoot` and `dataSize`.

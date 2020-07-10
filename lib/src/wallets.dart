@@ -9,9 +9,6 @@ import 'api.dart';
 import 'models/models.dart';
 import 'utils.dart';
 
-final keyLength = 4096;
-final publicExponent = BigInt.from(65537);
-
 class ArweaveWallets {
   final ArweaveApi _api;
 
@@ -36,12 +33,22 @@ class ArweaveWallets {
     secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
 
     final keyGen = RSAKeyGenerator()
-      ..init(ParametersWithRandom(
-          RSAKeyGeneratorParameters(publicExponent, keyLength, 64),
-          secureRandom));
+      ..init(
+        ParametersWithRandom(
+          RSAKeyGeneratorParameters(
+            publicExponent,
+            keyLength,
+            64,
+          ),
+          secureRandom,
+        ),
+      );
 
     final pair = keyGen.generateKeyPair();
-    return Wallet(publicKey: pair.publicKey, privateKey: pair.privateKey);
+    return Wallet(
+      publicKey: pair.publicKey,
+      privateKey: pair.privateKey,
+    );
   }
 
   String ownerToAddress(String owner) =>

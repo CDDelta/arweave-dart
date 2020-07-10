@@ -12,6 +12,9 @@ void main() {
     client = getArweaveClient();
   });
 
+  final transactionFieldPattern =
+      RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
+  final rewardPattern = RegExp(r'^[0-9]+$', caseSensitive: false);
   test('create and sign data transaction', () async {
     final wallet = await client.wallets.generate();
 
@@ -23,12 +26,12 @@ void main() {
     transaction.addTag("test-tag-3", "test-value-3");
 
     expect(transaction.data, equals('dGVzdA'));
-    expect(transaction.lastTx, matches(r'^[a-z0-9-_]{64}$'));
-    expect(transaction.reward, matches(r'^[0-9]+$'));
+    expect(transaction.lastTx, matches(transactionFieldPattern));
+    expect(transaction.reward, matches(rewardPattern));
 
     await client.transactions.sign(transaction, wallet);
 
-    expect(transaction.signature, matches(r'^[a-z0-9-_]{64}$'));
+    expect(transaction.signature, matches(transactionFieldPattern));
     expect(transaction.id, matches(digestPattern));
 
     expect(await client.transactions.verify(transaction), isTrue);
@@ -43,7 +46,7 @@ void main() {
     final transaction = await client.createTransaction(
       Transaction(
         target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-        quantity: client.arToWinston(BigInt.from(1.5)).toString(),
+        quantity: client.arToWinston(1.5).toStringAsFixed(0),
       ),
       wallet,
     );
@@ -51,6 +54,13 @@ void main() {
     expect(transaction.quantity, equals('1500000000000'));
     expect(transaction.target,
         equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
+
+    await client.transactions.sign(transaction, wallet);
+
+    expect(transaction.signature, matches(transactionFieldPattern));
+    expect(transaction.id, matches(digestPattern));
+
+    expect(await client.transactions.verify(transaction), isTrue);
   });
 
   test('get transaction status', () async {

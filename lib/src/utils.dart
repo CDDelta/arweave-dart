@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-List<int> decodeBase64ToBytes(String base64) => base64Url
-    .decode(base64 + List.filled((4 - base64.length % 4) % 4, '=').join());
+final keyLength = 4096;
+final publicExponent = BigInt.from(65537);
+
+List<int> decodeBase64ToBytes(String base64) =>
+    base64Url.decode(base64Url.normalize(base64));
 
 String decodeBase64ToString(String base64) =>
     utf8.decode(decodeBase64ToBytes(base64));

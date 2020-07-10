@@ -10,6 +10,7 @@ dependencies:
   meta: ^1.1.8
   crypto: ^2.1.5
   pointycastle: ^1.0.2
+  ninja: ^3.0.0
 
 dev_dependencies:
   json_serializable: ^3.3.0

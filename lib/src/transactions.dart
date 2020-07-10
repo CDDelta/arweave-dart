@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:arweave/src/utils.dart';
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart';
+import 'package:ninja/ninja.dart' as ninja;
 
 import './api.dart';
 import 'models/models.dart';
@@ -65,12 +68,31 @@ class ArweaveTransactions {
         },
       );
 
-  Future<void> sign(Transaction transaction, Wallet wallet) {
-    throw UnimplementedError();
+  Future<void> sign(Transaction transaction, Wallet wallet) async {
+    final signatureData = await transaction.getSignatureData();
+    final rawSignature = wallet.sign(signatureData);
+
+    final id = encodeBytesToBase64(sha256.convert(rawSignature).bytes);
+
+    transaction.setSignature(encodeBytesToBase64(rawSignature), id);
   }
 
-  Future<bool> verify(Transaction transaction) {
-    throw UnimplementedError();
+  Future<bool> verify(Transaction transaction) async {
+    final signatureData = await transaction.getSignatureData();
+    final claimedSignatureRaw = decodeBase64ToBytes(transaction.signature);
+
+    final expectedId =
+        encodeBytesToBase64(sha256.convert(claimedSignatureRaw).bytes);
+
+    if (transaction.id != expectedId) return false;
+
+    return ninja.RSAPublicKey(
+      decodeBase64ToBigInt(transaction.owner),
+      publicExponent,
+    ).verifySsaPss(
+      signatureData,
+      claimedSignatureRaw,
+    );
   }
 
   Future<Response> post(Transaction transaction) =>
