@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:arweave/arweave.dart';
 import 'package:test/test.dart';
 
@@ -35,7 +33,7 @@ void main() {
 
     expect(await client.transactions.verify(transaction), isTrue);
 
-    transaction.setData('123', computeDataDetails: false);
+    transaction.addTag('k', 'v');
     expect(await client.transactions.verify(transaction), isFalse);
   });
 
@@ -61,11 +59,8 @@ void main() {
   });
 
   test('get transaction data', () async {
-    final txRawData = await client.transactions.getData(liveDataTxId);
-    expect(txRawData, contains("CjwhRE9DVFlQRSBodG1sPgo"));
-
-    final txDecodedData = base64.decode(txRawData);
-    expect(txDecodedData, contains([10, 60, 33, 68]));
+    final txData = await client.transactions.getData(liveDataTxId);
+    expect(txData, contains("CjwhRE9DVFlQRSBodG1sPgo"));
   });
 
   test('search transactions', () async {

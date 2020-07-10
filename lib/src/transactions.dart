@@ -20,16 +20,13 @@ class ArweaveTransactions {
     return this._api.get(endpoint).then((res) => res.body);
   }
 
+  /// Get a transaction by its ID.
+  /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
   Future<Transaction> get(String id) async {
     final res = await this._api.get('tx/$id');
 
-    if (res.statusCode == 200) {
-      final transaction = Transaction.fromJson(json.decode(res.body));
-      if (transaction.format >= 2 && transaction.dataSize != '0')
-        transaction.setData(await getData(id), computeDataDetails: false);
-
-      return transaction;
-    }
+    if (res.statusCode == 200)
+      return Transaction.fromJson(json.decode(res.body));
 
     // TODO: Throw on other status codes
     return null;
@@ -46,6 +43,7 @@ class ArweaveTransactions {
         return TransactionStatus(status: res.statusCode);
       });
 
+  /// Get the raw Base64 decoded data from a transaction.
   Future<String> getData(String id) => this._api.get('tx/$id/data').then(
         (res) {
           if (res.statusCode == 200) return res.body;
@@ -67,9 +65,13 @@ class ArweaveTransactions {
         },
       );
 
-  Future<void> sign(Transaction transaction, Wallet wallet) {}
+  Future<void> sign(Transaction transaction, Wallet wallet) {
+    throw UnimplementedError();
+  }
 
-  Future<bool> verify(Transaction transaction) {}
+  Future<bool> verify(Transaction transaction) {
+    throw UnimplementedError();
+  }
 
   Future<Response> post(Transaction transaction) =>
       this._api.post('tx', body: json.encode(transaction));

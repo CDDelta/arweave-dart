@@ -30,23 +30,21 @@ class Arweave {
 
   Future<Transaction> createTransaction(
       Transaction transaction, Wallet wallet) async {
-    if (transaction.data != null &&
-        !(transaction.target != null && transaction.quantity != null)) {
-      // TODO: THrow err
-    }
+    assert(transaction.data != null &&
+        !(transaction.target != null && transaction.quantity != null));
+
+    throw UnimplementedError();
 
     if (transaction.owner == null) transaction.setOwner(wallet.owner);
 
     if (transaction.lastTx == null)
       transaction.setLastTx(await transactions.getTransactionAnchor());
 
-    if (transaction.reward == null) {
-      final length = transaction.data != null ? 'bytelength' : 0;
+    if (transaction.reward == null)
       transaction.setReward(await transactions.getPrice(
-        byteSize: length,
+        byteSize: int.parse(transaction.dataSize),
         targetAddress: transaction.target,
       ));
-    }
 
     return transaction;
   }
