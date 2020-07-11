@@ -4,10 +4,10 @@ import 'package:arweave/src/models/models.dart';
 
 import 'api.dart';
 
-class ArweaveNetwork {
+class ArweaveNetworkApi {
   final ArweaveApi _api;
 
-  ArweaveNetwork(ArweaveApi api) : this._api = api;
+  ArweaveNetworkApi(ArweaveApi api) : this._api = api;
 
   Future<NetworkInfo> getInfo() => this._api.get('info').then(
         (res) => NetworkInfo.fromJson(

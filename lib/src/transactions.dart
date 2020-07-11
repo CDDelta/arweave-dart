@@ -8,10 +8,10 @@ import 'package:ninja/ninja.dart' as ninja;
 import './api.dart';
 import 'models/models.dart';
 
-class ArweaveTransactions {
+class ArweaveTransactionsApi {
   final ArweaveApi _api;
 
-  ArweaveTransactions(ArweaveApi api) : this._api = api;
+  ArweaveTransactionsApi(ArweaveApi api) : this._api = api;
 
   Future<String> getTransactionAnchor() =>
       this._api.get('tx_anchor').then((res) => res.body);

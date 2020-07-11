@@ -9,10 +9,10 @@ import 'api.dart';
 import 'models/models.dart';
 import 'utils.dart';
 
-class ArweaveWallets {
+class ArweaveWalletsApi {
   final ArweaveApi _api;
 
-  ArweaveWallets(ArweaveApi api) : this._api = api;
+  ArweaveWalletsApi(ArweaveApi api) : this._api = api;
 
   /// Get the balance for a given wallet.
   /// Unknown wallet addresses will simply return 0.

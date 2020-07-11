@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'api.dart';
+import 'id.dart';
 import 'models/models.dart';
 import 'network.dart';
 import 'transactions.dart';
@@ -10,14 +11,17 @@ class Arweave {
   ArweaveApi get api => _api;
   ArweaveApi _api;
 
-  ArweaveWallets get wallets => _wallets;
-  ArweaveWallets _wallets;
+  ArweaveWalletsApi get wallets => _wallets;
+  ArweaveWalletsApi _wallets;
 
-  ArweaveTransactions get transactions => _transactions;
-  ArweaveTransactions _transactions;
+  ArweaveTransactionsApi get transactions => _transactions;
+  ArweaveTransactionsApi _transactions;
 
-  ArweaveNetwork get network => _network;
-  ArweaveNetwork _network;
+  ArweaveIdApi get id => _id;
+  ArweaveIdApi _id;
+
+  ArweaveNetworkApi get network => _network;
+  ArweaveNetworkApi _network;
 
   Arweave({
     String host,
@@ -25,9 +29,10 @@ class Arweave {
     int port,
   }) {
     this._api = ArweaveApi(host: host, protocol: protocol, port: port);
-    this._wallets = ArweaveWallets(api);
-    this._transactions = ArweaveTransactions(api);
-    this._network = ArweaveNetwork(api);
+    this._wallets = ArweaveWalletsApi(api);
+    this._transactions = ArweaveTransactionsApi(api);
+    this._id = ArweaveIdApi(transactions);
+    this._network = ArweaveNetworkApi(api);
   }
 
   Future<Transaction> createTransaction(
