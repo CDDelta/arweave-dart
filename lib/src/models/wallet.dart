@@ -50,5 +50,10 @@ class Wallet {
         'd': encodeBigIntToBase64(_privateKey.d),
         'p': encodeBigIntToBase64(_privateKey.p),
         'q': encodeBigIntToBase64(_privateKey.q),
+        'dp': encodeBigIntToBase64(
+            _privateKey.d % (_privateKey.p - BigInt.from(1))),
+        'dq': encodeBigIntToBase64(
+            _privateKey.d % (_privateKey.q - BigInt.from(1))),
+        'qi': encodeBigIntToBase64(_privateKey.q.modInverse(_privateKey.p)),
       };
 }
