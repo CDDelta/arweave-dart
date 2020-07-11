@@ -1,4 +1,4 @@
-name: CI
+name: build
 
 on:
   push:
@@ -18,5 +18,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: pub get
+    - name: Build
+      run: pub run build_runner build
     - name: Run tests
       run: pub run test
