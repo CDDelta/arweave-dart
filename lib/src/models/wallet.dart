@@ -19,7 +19,12 @@ class Wallet {
         _privateKey.p,
         _privateKey.q,
         publicExponent: _publicKey.e,
-      ).signPss(message).toList();
+      )
+          .signPss(
+            message,
+            saltLength: 0,
+          )
+          .toList();
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     final modulus = decodeBase64ToBigInt(jwk['n']);

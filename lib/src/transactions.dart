@@ -79,10 +79,10 @@ class ArweaveTransactions {
 
   Future<bool> verify(Transaction transaction) async {
     final signatureData = await transaction.getSignatureData();
-    final claimedSignatureRaw = decodeBase64ToBytes(transaction.signature);
+    final claimedRawSignature = decodeBase64ToBytes(transaction.signature);
 
     final expectedId =
-        encodeBytesToBase64(sha256.convert(claimedSignatureRaw).bytes);
+        encodeBytesToBase64(sha256.convert(claimedRawSignature).bytes);
 
     if (transaction.id != expectedId) return false;
 
@@ -90,8 +90,9 @@ class ArweaveTransactions {
       decodeBase64ToBigInt(transaction.owner),
       publicExponent,
     ).verifySsaPss(
+      claimedRawSignature,
       signatureData,
-      claimedSignatureRaw,
+      saltLength: 0,
     );
   }
 

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../utils.dart';
@@ -36,17 +36,9 @@ class Transaction {
   String get data => _data;
   String _data;
 
-  @JsonKey(ignore: true)
-  Uint8List get dataBuffer => _dataBuffer;
-  Uint8List _dataBuffer;
-
   @JsonKey(name: 'data_size')
   String get dataSize => _dataSize;
   String _dataSize;
-
-  @JsonKey(name: 'data_root')
-  String get dataRoot => _dataRoot;
-  String _dataRoot;
 
   String get reward => _reward;
   String _reward;
@@ -55,7 +47,7 @@ class Transaction {
   String _signature;
 
   Transaction({
-    int format,
+    int format = 1,
     String id,
     String lastTx,
     String owner,
@@ -63,7 +55,7 @@ class Transaction {
     String target,
     String quantity,
     String data,
-    Uint8List dataBuffer,
+    List<int> dataBytes,
     String dataSize,
     String dataRoot,
     String reward,
@@ -77,14 +69,13 @@ class Transaction {
         _quantity = quantity,
         _data = data,
         _dataSize = dataSize,
-        _dataRoot = dataRoot,
         _reward = reward,
         _signature = signature,
-        assert(!(data != null && dataBuffer != null)) {
-    if (dataSize == null || dataRoot == null) {
+        assert(!(data != null && dataBytes != null)) {
+    if (dataSize == null) {
       if (data != null)
         setData(data);
-      else if (dataBuffer != null) setDataWithBuffer(dataBuffer);
+      else if (dataBytes != null) setDataWithBytes(dataBytes);
     }
 
     if (_tags == null) _tags = [];
@@ -95,17 +86,14 @@ class Transaction {
 
   void setOwner(String owner) => _owner = owner;
 
-  /// Sets the data on the transaction and recalculates the `dataRoot` and `dataSize`.
   void setData(String data) {
     _data = encodeStringToBase64(data);
     _dataSize = utf8.encode(_data).length.toString();
   }
 
-  /// Encodes the buffer as base64 on the transaction and recalculates the `dataRoot` and `dataSize`.
-  void setDataWithBuffer(Uint8List buffer) {
-    _data = encodeBytesToBase64(buffer);
-    _dataBuffer = buffer;
-    _dataSize = buffer.length.toString();
+  void setDataWithBytes(List<int> bytes) {
+    _data = encodeBytesToBase64(bytes);
+    _dataSize = bytes.length.toString();
   }
 
   void setReward(String reward) => _reward = reward;
@@ -115,34 +103,28 @@ class Transaction {
     this._id = id;
   }
 
-  Future<Uint8List> getSignatureData() {
+  Future<List<int>> getSignatureData() async {
     switch (format) {
       case 1:
-        throw UnimplementedError(
-            'Getting signature data for transaction format 1 is currently unimplemented.');
-      case 2:
-        final buffers = <Uint8List>[];
-
-        buffers.addAll([
-          utf8.encode(format.toString()),
+        final buffers = <Iterable<int>>[
           decodeBase64ToBytes(owner),
-          decodeBase64ToBytes(target),
+          if (target != null) decodeBase64ToBytes(target),
+          if (data != null) decodeBase64ToBytes(data),
           utf8.encode(quantity.toString()),
           utf8.encode(reward.toString()),
           decodeBase64ToBytes(lastTx),
-        ]);
+          tags
+              .expand((t) => [
+                    decodeBase64ToBytes(t.name),
+                    decodeBase64ToBytes(t.value),
+                  ])
+              .expand((t) => t),
+        ];
 
-        buffers.addAll(tags.expand((t) => [
-              decodeBase64ToBytes(t.name),
-              decodeBase64ToBytes(t.value),
-            ]));
-
-        buffers.addAll([
-          utf8.encode(dataSize),
-          decodeBase64ToBytes(dataRoot),
-        ]);
-
-        return null;
+        return sha256.convert(buffers.expand((b) => b).toList()).bytes;
+      case 2:
+        throw UnimplementedError(
+            'Transaction format 2 is currently unsupported.');
       default:
         throw Exception('Unexpected transaction format!');
     }
