@@ -16,61 +16,53 @@ void main() {
       RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
   final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
   final rewardPattern = RegExp(r'^[0-9]+$', caseSensitive: false);
-  test(
-    'create and sign data transaction',
-    () async {
-      final wallet = await client.wallets.generate();
+  test('create and sign data transaction', () async {
+    final wallet = await client.wallets.generate();
 
-      final transaction =
-          await client.createTransaction(Transaction(data: 'test'), wallet);
+    final transaction =
+        await client.createTransaction(Transaction(data: 'test'), wallet);
 
-      transaction.addTag("test-tag-1", "test-value-1");
-      transaction.addTag("test-tag-2", "test-value-2");
-      transaction.addTag("test-tag-3", "test-value-3");
+    transaction.addTag("test-tag-1", "test-value-1");
+    transaction.addTag("test-tag-2", "test-value-2");
+    transaction.addTag("test-tag-3", "test-value-3");
 
-      expect(transaction.data, equals('dGVzdA'));
-      expect(transaction.lastTx, matches(transactionFieldPattern));
-      expect(transaction.reward, matches(rewardPattern));
+    expect(transaction.data, equals('dGVzdA'));
+    expect(transaction.lastTx, matches(transactionFieldPattern));
+    expect(transaction.reward, matches(rewardPattern));
 
-      await client.transactions.sign(transaction, wallet);
+    await client.transactions.sign(transaction, wallet);
 
-      expect(transaction.signature, matches(signaturePattern));
-      expect(transaction.id, matches(digestPattern));
+    expect(transaction.signature, matches(signaturePattern));
+    expect(transaction.id, matches(digestPattern));
 
-      expect(await client.transactions.verify(transaction), isTrue);
+    expect(await client.transactions.verify(transaction), isTrue);
 
-      transaction.addTag('k', 'v');
-      expect(await client.transactions.verify(transaction), isFalse);
-    },
-    timeout: Timeout.factor(2),
-  );
+    transaction.addTag('k', 'v');
+    expect(await client.transactions.verify(transaction), isFalse);
+  });
 
-  test(
-    'create and sign AR transaction',
-    () async {
-      final wallet = await client.wallets.generate();
+  test('create and sign AR transaction', () async {
+    final wallet = await getTestWallet();
 
-      final transaction = await client.createTransaction(
-        Transaction(
-          target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-          quantity: client.arToWinston(1.5).toStringAsFixed(0),
-        ),
-        wallet,
-      );
+    final transaction = await client.createTransaction(
+      Transaction(
+        target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
+        quantity: client.arToWinston(1.5).toStringAsFixed(0),
+      ),
+      wallet,
+    );
 
-      expect(transaction.quantity, equals('1500000000000'));
-      expect(transaction.target,
-          equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
+    expect(transaction.quantity, equals('1500000000000'));
+    expect(transaction.target,
+        equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
 
-      await client.transactions.sign(transaction, wallet);
+    await client.transactions.sign(transaction, wallet);
 
-      expect(transaction.signature, matches(signaturePattern));
-      expect(transaction.id, matches(digestPattern));
+    expect(transaction.signature, matches(signaturePattern));
+    expect(transaction.id, matches(digestPattern));
 
-      expect(await client.transactions.verify(transaction), isTrue);
-    },
-    timeout: Timeout.factor(2),
-  );
+    expect(await client.transactions.verify(transaction), isTrue);
+  });
 
   test('get and verify transaction', () async {
     final transaction = await client.transactions.get(liveDataTxId);
