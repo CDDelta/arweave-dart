@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../utils.dart';
@@ -106,22 +106,18 @@ class Transaction {
   Future<List<int>> getSignatureData() async {
     switch (format) {
       case 1:
-        final buffers = <Iterable<int>>[
-          decodeBase64ToBytes(owner),
-          if (target != null) decodeBase64ToBytes(target),
-          if (data != null) decodeBase64ToBytes(data),
-          utf8.encode(quantity.toString()),
-          utf8.encode(reward.toString()),
-          decodeBase64ToBytes(lastTx),
-          tags
-              .expand((t) => [
-                    decodeBase64ToBytes(t.name),
-                    decodeBase64ToBytes(t.value),
-                  ])
-              .expand((t) => t),
-        ];
+        var buffer = decodeBase64ToBytes(owner) +
+            decodeBase64ToBytes(target) +
+            decodeBase64ToBytes(data) +
+            utf8.encode(quantity.toString()) +
+            utf8.encode(reward.toString()) +
+            decodeBase64ToBytes(lastTx) +
+            tags
+                .expand((t) =>
+                    decodeBase64ToBytes(t.name) + decodeBase64ToBytes(t.value))
+                .toList();
 
-        return sha256.convert(buffers.expand((b) => b).toList()).bytes;
+        return Uint8List.fromList(buffer);
       case 2:
         throw UnimplementedError(
             'Transaction format 2 is currently unsupported.');
