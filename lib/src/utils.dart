@@ -4,7 +4,7 @@ import 'dart:typed_data';
 final keyLength = 4096;
 final publicExponent = BigInt.from(65537);
 
-List<int> decodeBase64ToBytes(String base64) =>
+Uint8List decodeBase64ToBytes(String base64) =>
     base64Url.decode(base64Url.normalize(base64));
 
 String decodeBase64ToString(String base64) =>
@@ -26,7 +26,7 @@ String encodeBytesToBase64(List<int> bytes) =>
     base64Url.encode(bytes).replaceAll('=', '');
 
 final _byteMask = BigInt.from(0xff);
-List<int> encodeBigIntToBytes(BigInt bigInt) {
+Uint8List encodeBigIntToBytes(BigInt bigInt) {
   int size = (bigInt.bitLength + 7) >> 3;
   var result = new Uint8List(size);
   for (int i = 0; i < size; i++) {
