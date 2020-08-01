@@ -52,13 +52,13 @@ class Transaction {
     String lastTx,
     String owner,
     List<Tag> tags,
-    String target,
-    String quantity,
-    String data,
+    String target = "",
+    String quantity = "0",
+    String data = "",
     List<int> dataBytes,
-    String dataSize,
+    String dataSize = "0",
     String dataRoot,
-    String reward,
+    String reward = "0",
     String signature,
   })  : _format = format,
         _id = id,
@@ -72,7 +72,7 @@ class Transaction {
         _reward = reward,
         _signature = signature,
         assert(!(data != null && dataBytes != null)) {
-    if (dataSize == null) {
+    if (dataSize == "0") {
       if (data != null)
         setData(data);
       else if (dataBytes != null) setDataWithBytes(dataBytes);
