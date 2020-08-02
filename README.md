@@ -5,7 +5,7 @@
 Dart package for interfacing with the Arweave network, modelled after [arweave-js](https://github.com/ArweaveTeam/arweave-js).
 
 ## Usage
-`arweave-dart` is currently not available on [pub.dev](https://pub.dev) but you can use this package by referencing this repository in your `pubspec.yaml` like so:
+This package is currently not available on [pub.dev](https://pub.dev) but you can use it by referencing this repository in your `pubspec.yaml` like so:
 ```yaml
 dependencies:
   arweave:
