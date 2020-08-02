@@ -2,6 +2,3 @@
 .dart_tool/
 .packages
 build/
-
-# Generated code
-*.g.dart

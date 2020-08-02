@@ -9,8 +9,10 @@ dependencies:
   http: ^0.12.1
   meta: ^1.1.8
   crypto: ^2.1.5
-  pointycastle: ^1.0.2
-  ninja: ^3.0.0
+  pointycastle:
+    git:
+      url: https://github.com/CDDelta/pc-dart.git
+      ref: rsa-pss
 
 dev_dependencies:
   json_serializable: ^3.3.0

@@ -17,7 +17,7 @@ void main() {
   final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
   final rewardPattern = RegExp(r'^[0-9]+$', caseSensitive: false);
   test('create and sign data transaction', () async {
-    final wallet = await client.wallets.generate();
+    final wallet = await getTestWallet();
 
     final transaction =
         await client.createTransaction(Transaction(data: 'test'), wallet);

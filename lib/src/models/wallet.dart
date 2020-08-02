@@ -1,6 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:arweave/src/utils.dart';
 import 'package:crypto/crypto.dart';
-import 'package:ninja/ninja.dart' as ninja;
 import 'package:pointycastle/export.dart';
 
 class Wallet {
@@ -15,16 +16,18 @@ class Wallet {
       : _publicKey = publicKey,
         _privateKey = privateKey;
 
-  List<int> sign(List<int> message) => ninja.RSAPrivateKey.fromPrimaries(
-        _privateKey.p,
-        _privateKey.q,
-        publicExponent: _publicKey.e,
-      )
-          .signPss(
-            message,
-            saltLength: 0,
-          )
-          .toList();
+  PSSSignature sign(Uint8List message) {
+    var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+      ..init(
+        true,
+        ParametersWithSalt(
+          PrivateKeyParameter<RSAPrivateKey>(_privateKey),
+          null,
+        ),
+      );
+
+    return signer.generateSignature(message);
+  }
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     final modulus = decodeBase64ToBigInt(jwk['n']);

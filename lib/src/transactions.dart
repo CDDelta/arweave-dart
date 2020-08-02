@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:arweave/src/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart';
-import 'package:ninja/ninja.dart' as ninja;
+import 'package:pointycastle/export.dart';
 
 import './api.dart';
 import 'models/models.dart';
@@ -72,9 +72,9 @@ class ArweaveTransactionsApi {
     final signatureData = await transaction.getSignatureData();
     final rawSignature = wallet.sign(signatureData);
 
-    final id = encodeBytesToBase64(sha256.convert(rawSignature).bytes);
+    final id = encodeBytesToBase64(sha256.convert(rawSignature.bytes).bytes);
 
-    transaction.setSignature(encodeBytesToBase64(rawSignature), id);
+    transaction.setSignature(encodeBytesToBase64(rawSignature.bytes), id);
   }
 
   Future<bool> verify(Transaction transaction) async {
@@ -86,14 +86,22 @@ class ArweaveTransactionsApi {
 
     if (transaction.id != expectedId) return false;
 
-    return ninja.RSAPublicKey(
-      decodeBase64ToBigInt(transaction.owner),
-      publicExponent,
-    ).verifySsaPss(
-      claimedRawSignature,
-      signatureData,
-      saltLength: 0,
-    );
+    var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+      ..init(
+        false,
+        ParametersWithSalt(
+          PublicKeyParameter<RSAPublicKey>(
+            RSAPublicKey(
+              decodeBase64ToBigInt(transaction.owner),
+              publicExponent,
+            ),
+          ),
+          null,
+        ),
+      );
+
+    return signer.verifySignature(
+        signatureData, PSSSignature(claimedRawSignature));
   }
 
   Future<Response> post(Transaction transaction) =>
