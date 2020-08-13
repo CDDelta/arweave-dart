@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pointycastle/export.dart';
 
 import '../utils.dart';
 import 'tag.dart';
+import 'wallet.dart';
 
 part 'transaction.g.dart';
 
@@ -128,6 +131,42 @@ class Transaction {
 
   void addTag(String name, String value) {
     this.tags.add(Tag(encodeStringToBase64(name), encodeStringToBase64(value)));
+  }
+
+  Future<void> sign(Wallet wallet) async {
+    final signatureData = await getSignatureData();
+    final rawSignature = wallet.sign(signatureData);
+
+    final id = encodeBytesToBase64(sha256.convert(rawSignature.bytes).bytes);
+
+    setSignature(encodeBytesToBase64(rawSignature.bytes), id);
+  }
+
+  Future<bool> verify() async {
+    final signatureData = await getSignatureData();
+    final claimedRawSignature = decodeBase64ToBytes(signature);
+
+    final expectedId =
+        encodeBytesToBase64(sha256.convert(claimedRawSignature).bytes);
+
+    if (id != expectedId) return false;
+
+    var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+      ..init(
+        false,
+        ParametersWithSalt(
+          PublicKeyParameter<RSAPublicKey>(
+            RSAPublicKey(
+              decodeBase64ToBigInt(owner),
+              publicExponent,
+            ),
+          ),
+          null,
+        ),
+      );
+
+    return signer.verifySignature(
+        signatureData, PSSSignature(claimedRawSignature));
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>

@@ -30,15 +30,15 @@ void main() {
     expect(transaction.lastTx, matches(transactionFieldPattern));
     expect(transaction.reward, matches(rewardPattern));
 
-    await client.transactions.sign(transaction, wallet);
+    await transaction.sign(wallet);
 
     expect(transaction.signature, matches(signaturePattern));
     expect(transaction.id, matches(digestPattern));
 
-    expect(await client.transactions.verify(transaction), isTrue);
+    expect(await transaction.verify(), isTrue);
 
     transaction.addTag('k', 'v');
-    expect(await client.transactions.verify(transaction), isFalse);
+    expect(await transaction.verify(), isFalse);
   });
 
   test('create and sign AR transaction', () async {
@@ -56,17 +56,17 @@ void main() {
     expect(transaction.target,
         equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
 
-    await client.transactions.sign(transaction, wallet);
+    await transaction.sign(wallet);
 
     expect(transaction.signature, matches(signaturePattern));
     expect(transaction.id, matches(digestPattern));
 
-    expect(await client.transactions.verify(transaction), isTrue);
+    expect(await transaction.verify(), isTrue);
   });
 
   test('get and verify transaction', () async {
     final transaction = await client.transactions.get(liveDataTxId);
-    expect(await client.transactions.verify(transaction), isTrue);
+    expect(transaction.verify(), isTrue);
   });
 
   test('get transaction status', () async {
