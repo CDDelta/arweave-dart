@@ -10,7 +10,7 @@ void main() {
     client = getArweaveClient();
   });
 
-  /*group('AR', () {
+  /*group('AR:', () {
     group('format winston as AR', () {
       test('smaller than one AR', () {
         expect(client.winstonToAr(BigInt.from(1)), equals('0.000000000001'));

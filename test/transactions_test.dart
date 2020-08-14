@@ -12,7 +12,7 @@ void main() {
     client = getArweaveClient();
   });
 
-  group('transactions', () {
+  group('transactions:', () {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);

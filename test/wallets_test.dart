@@ -17,7 +17,7 @@ void main() {
     client = getArweaveClient();
   });
 
-  group('wallets', () {
+  group('wallets:', () {
     test('decode and encode wallet', () async {
       final jwk = json
           .decode(await new File('test/fixtures/test-key.json').readAsString());

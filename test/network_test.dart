@@ -10,7 +10,7 @@ void main() {
     client = getArweaveClient();
   });
 
-  group('network', () {
+  group('network:', () {
     test('get info', () async {
       final info = await client.network.getInfo();
       expect(info.height, greaterThan(0));
