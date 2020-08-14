@@ -16,7 +16,6 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
-    final rewardPattern = RegExp(r'^[0-9]+$', caseSensitive: false);
     test('create and sign data transaction', () async {
       final wallet = await getTestWallet();
 
@@ -29,6 +28,7 @@ void main() {
 
       expect(transaction.data, equals('dGVzdA'));
       expect(transaction.lastTx, matches(transactionFieldPattern));
+      expect(transaction.reward.toInt(), greaterThan(0));
 
       await transaction.sign(wallet);
 

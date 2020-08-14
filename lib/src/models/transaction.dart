@@ -74,10 +74,10 @@ class Transaction {
         _owner = owner,
         _tags = tags,
         _target = target,
-        _quantity = quantity,
+        _quantity = quantity ?? BigInt.zero,
         _data = data,
         _dataSize = dataSize,
-        _reward = reward,
+        _reward = reward ?? BigInt.zero,
         _signature = signature,
         assert(!(data.isNotEmpty && dataBytes != null)) {
     if (dataSize == "0") {

@@ -47,7 +47,7 @@ class Arweave {
     if (transaction.lastTx == null)
       transaction.setLastTx(await transactions.getTransactionAnchor());
 
-    if (transaction.reward == "0" && transaction.data.isNotEmpty)
+    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty)
       transaction.setReward(await transactions.getPrice(
         byteSize: int.parse(transaction.dataSize),
         targetAddress: transaction.target,
