@@ -29,7 +29,6 @@ void main() {
 
       expect(transaction.data, equals('dGVzdA'));
       expect(transaction.lastTx, matches(transactionFieldPattern));
-      expect(transaction.reward, matches(rewardPattern));
 
       await transaction.sign(wallet);
 
