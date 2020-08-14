@@ -11,8 +11,8 @@ dependencies:
   crypto: ^2.1.5
   pointycastle:
     git:
-      url: https://github.com/CDDelta/pc-dart.git
-      ref: rsa-pss
+      url: https://github.com/bcgit/pc-dart.git
+      ref: 52e6c64b5b511fb54c7baba271ce8b3efb5289bf
 
 dev_dependencies:
   json_serializable: ^3.3.0
