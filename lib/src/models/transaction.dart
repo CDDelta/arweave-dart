@@ -74,7 +74,7 @@ class Transaction {
         _dataSize = dataSize,
         _reward = reward,
         _signature = signature,
-        assert(!(data != null && dataBytes != null)) {
+        assert(!(data.isNotEmpty && dataBytes != null)) {
     if (dataSize == "0") {
       if (data != null)
         setData(data);
