@@ -11,6 +11,9 @@ import 'wallet.dart';
 
 part 'transaction.g.dart';
 
+String _bigIntToString(BigInt v) => v.toString();
+BigInt _stringToBigInt(String v) => BigInt.parse(v);
+
 @JsonSerializable()
 class Transaction {
   @JsonKey(defaultValue: 1)
@@ -33,8 +36,9 @@ class Transaction {
   String get target => _target;
   String _target;
 
-  String get quantity => _quantity;
-  String _quantity;
+  @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
+  BigInt get quantity => _quantity;
+  BigInt _quantity;
 
   String get data => _data;
   String _data;
@@ -43,8 +47,9 @@ class Transaction {
   String get dataSize => _dataSize;
   String _dataSize;
 
-  String get reward => _reward;
-  String _reward;
+  @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
+  BigInt get reward => _reward;
+  BigInt _reward;
 
   String get signature => _signature;
   String _signature;
@@ -56,12 +61,12 @@ class Transaction {
     String owner,
     List<Tag> tags,
     String target = "",
-    String quantity = "0",
+    BigInt quantity,
     String data = "",
     List<int> dataBytes,
     String dataSize = "0",
     String dataRoot,
-    String reward = "0",
+    BigInt reward,
     String signature,
   })  : _format = format,
         _id = id,
@@ -99,7 +104,7 @@ class Transaction {
     _dataSize = bytes.length.toString();
   }
 
-  void setReward(String reward) => _reward = reward;
+  void setReward(BigInt reward) => _reward = reward;
 
   void setSignature(String signature, String id) {
     this._signature = signature;

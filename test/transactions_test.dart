@@ -47,12 +47,11 @@ void main() {
     final transaction = await client.createTransaction(
       Transaction(
         target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-        quantity: client.arToWinston(1.5).toStringAsFixed(0),
+        quantity: BigInt.parse('1500000000000'),
       ),
       wallet,
     );
 
-    expect(transaction.quantity, equals('1500000000000'));
     expect(transaction.target,
         equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
 

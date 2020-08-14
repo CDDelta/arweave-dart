@@ -16,10 +16,10 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
         ?.map((e) => e == null ? null : Tag.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     target: json['target'] as String,
-    quantity: json['quantity'] as String,
+    quantity: _stringToBigInt(json['quantity'] as String),
     data: json['data'] as String,
     dataSize: json['data_size'] as String,
-    reward: json['reward'] as String,
+    reward: _stringToBigInt(json['reward'] as String),
     signature: json['signature'] as String,
   );
 }
@@ -32,9 +32,9 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'owner': instance.owner,
       'tags': instance.tags,
       'target': instance.target,
-      'quantity': instance.quantity,
+      'quantity': _bigIntToString(instance.quantity),
       'data': instance.data,
       'data_size': instance.dataSize,
-      'reward': instance.reward,
+      'reward': _bigIntToString(instance.reward),
       'signature': instance.signature,
     };

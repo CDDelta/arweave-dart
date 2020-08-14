@@ -13,11 +13,11 @@ class ArweaveTransactionsApi {
   Future<String> getTransactionAnchor() =>
       this._api.get('tx_anchor').then((res) => res.body);
 
-  Future<String> getPrice({int byteSize, String targetAddress = null}) {
+  Future<BigInt> getPrice({int byteSize, String targetAddress = null}) {
     final endpoint = targetAddress != null
         ? 'price/$byteSize/$targetAddress'
         : 'price/$byteSize';
-    return this._api.get(endpoint).then((res) => res.body);
+    return this._api.get(endpoint).then((res) => BigInt.parse(res.body));
   }
 
   /// Get a transaction by its ID.
