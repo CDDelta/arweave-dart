@@ -10,13 +10,15 @@ void main() {
     client = getArweaveClient();
   });
 
-  test('get info', () async {
-    final info = await client.network.getInfo();
-    expect(info.height, greaterThan(0));
-  });
+  group('network', () {
+    test('get info', () async {
+      final info = await client.network.getInfo();
+      expect(info.height, greaterThan(0));
+    });
 
-  test('get peers', () async {
-    final peers = await client.network.getPeers();
-    expect(peers, isNotNull);
+    test('get peers', () async {
+      final peers = await client.network.getPeers();
+      expect(peers, isNotNull);
+    });
   });
 }

@@ -17,58 +17,60 @@ void main() {
     client = getArweaveClient();
   });
 
-  test('decode and encode wallet', () async {
-    final jwk = json
-        .decode(await new File('test/fixtures/test-key.json').readAsString());
-    expect(Wallet.fromJwk(jwk).toJwk(), equals(jwk));
-  });
+  group('wallets', () {
+    test('decode and encode wallet', () async {
+      final jwk = json
+          .decode(await new File('test/fixtures/test-key.json').readAsString());
+      expect(Wallet.fromJwk(jwk).toJwk(), equals(jwk));
+    });
 
-  final jwkFieldPattern = RegExp(r'^[a-z0-9-_]{683}$', caseSensitive: false);
-  test('generate wallet', () async {
-    final walletA = await client.wallets.generate();
-    final walletB = await client.wallets.generate();
+    final jwkFieldPattern = RegExp(r'^[a-z0-9-_]{683}$', caseSensitive: false);
+    test('generate wallet', () async {
+      final walletA = await client.wallets.generate();
+      final walletB = await client.wallets.generate();
 
-    final walletJwk = walletA.toJwk();
-    expect(walletJwk['kty'], equals('RSA'));
-    expect(walletJwk['e'], equals('AQAB'));
+      final walletJwk = walletA.toJwk();
+      expect(walletJwk['kty'], equals('RSA'));
+      expect(walletJwk['e'], equals('AQAB'));
 
-    expect(walletJwk['n'], matches(jwkFieldPattern));
-    expect(walletJwk['d'], matches(jwkFieldPattern));
+      expect(walletJwk['n'], matches(jwkFieldPattern));
+      expect(walletJwk['d'], matches(jwkFieldPattern));
 
-    expect(walletA.address, matches(digestPattern));
-    expect(walletB.address, matches(digestPattern));
+      expect(walletA.address, matches(digestPattern));
+      expect(walletB.address, matches(digestPattern));
 
-    expect(walletA.address, isNot(equals(walletB.address)));
-  });
+      expect(walletA.address, isNot(equals(walletB.address)));
+    });
 
-  test('get wallet info', () async {
-    expect(await client.wallets.getBalance(liveAddress),
-        equals(liveAddressBalance));
-    expect(await client.wallets.getLastTransactionId(liveAddress),
-        equals(liveTxid));
+    test('get wallet info', () async {
+      expect(await client.wallets.getBalance(liveAddress),
+          equals(liveAddressBalance));
+      expect(await client.wallets.getLastTransactionId(liveAddress),
+          equals(liveTxid));
 
-    final newWallet = await client.wallets.generate();
-    final newWalletAddress = newWallet.address;
+      final newWallet = await client.wallets.generate();
+      final newWalletAddress = newWallet.address;
 
-    expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
-    expect(await client.wallets.getLastTransactionId(newWalletAddress),
-        equals(''));
-  });
+      expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
+      expect(await client.wallets.getLastTransactionId(newWalletAddress),
+          equals(''));
+    });
 
-  test('resolve address from wallet', () async {
-    final wallet = Wallet.fromJwk(json
-        .decode(await new File('test/fixtures/test-key.json').readAsString()));
+    test('resolve address from wallet', () async {
+      final wallet = Wallet.fromJwk(json.decode(
+          await new File('test/fixtures/test-key.json').readAsString()));
 
-    expect(
-        wallet.address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
-  });
+      expect(wallet.address,
+          equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
+    });
 
-  test('resolve address from owner', () async {
-    final jwk = json
-        .decode(await new File('test/fixtures/test-key.json').readAsString());
+    test('resolve address from owner', () async {
+      final jwk = json
+          .decode(await new File('test/fixtures/test-key.json').readAsString());
 
-    final address = client.wallets.ownerToAddress(jwk['n']);
+      final address = client.wallets.ownerToAddress(jwk['n']);
 
-    expect(address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
+      expect(address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
+    });
   });
 }
