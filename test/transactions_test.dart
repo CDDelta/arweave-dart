@@ -66,7 +66,7 @@ void main() {
 
   test('get and verify transaction', () async {
     final transaction = await client.transactions.get(liveDataTxId);
-    expect(transaction.verify(), isTrue);
+    expect(await transaction.verify(), isTrue);
   });
 
   test('get transaction status', () async {
