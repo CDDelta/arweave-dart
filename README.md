@@ -45,11 +45,9 @@ void main() {
 
 ### Utilities
 
-Dart's Base64 encoder/decoder is incompatible with Arweave's returned Base64 content, so `arweave-dart` exposes utilities for working with Base64 from Arweave.
+Dart's Base64 encoder/decoder is incompatible with Arweave's returned Base64 content, so `arweave-dart` exposes utilities for working with Base64 from Arweave. It also includes other utilities for AR/Winston conversions etc.
 
-It also includes other utilities for AR/Winston conversions etc.
-
-To use them, import them like so:
+To use these utilities, import them like so:
 
 ```dart
 import 'package:arweave/utils.dart' as arweaveUtils;
