@@ -7,7 +7,7 @@ Dart package for interfacing with the Arweave network, modelled after [arweave-j
 
 ## Installation
 
-This package is currently not available on [pub.dev](https://pub.dev) but you can use it by referencing this repository in your `pubspec.yaml` like so:
+`arweave-dart` is currently not available on [pub.dev](https://pub.dev) but you can use it by referencing this repository in your `pubspec.yaml` like so:
 
 ```yaml
 dependencies:
@@ -45,7 +45,7 @@ void main() {
 
 ### Utilities
 
-This package exposes various utilities for Base64 encoding/decoding, AR/Winston formatting etc. To use them, import them like so:
+`arweave-dart` exposes various utilities for Base64 encoding/decoding, AR/Winston formatting etc. To use them, import them like so:
 
 ```dart
 import 'package:arweave/utils.dart' as arweaveUtils;
