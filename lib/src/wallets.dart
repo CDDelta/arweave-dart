@@ -2,7 +2,6 @@ import 'dart:core';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 
 import 'api.dart';
@@ -50,7 +49,4 @@ class ArweaveWalletsApi {
       privateKey: pair.privateKey,
     );
   }
-
-  String ownerToAddress(String owner) =>
-      encodeBytesToBase64(sha256.convert(decodeBase64ToBytes(owner)).bytes);
 }

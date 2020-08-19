@@ -67,14 +67,5 @@ void main() {
       expect(wallet.address,
           equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
     });
-
-    test('resolve address from owner', () async {
-      final jwk = json
-          .decode(await new File('test/fixtures/test-key.json').readAsString());
-
-      final address = client.wallets.ownerToAddress(jwk['n']);
-
-      expect(address, equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
-    });
   });
 }

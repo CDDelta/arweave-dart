@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 final keyLength = 4096;
 final publicExponent = BigInt.from(65537);
 
@@ -78,3 +80,6 @@ String winstonToAr(BigInt winston) {
 
   return bit;
 }
+
+String ownerToAddress(String owner) =>
+    encodeBytesToBase64(sha256.convert(decodeBase64ToBytes(owner)).bytes);

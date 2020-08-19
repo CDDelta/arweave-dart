@@ -1,13 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:arweave/src/utils.dart';
-import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 
 class Wallet {
   String get owner => encodeBigIntToBase64(_publicKey.n);
-  String get address => encodeBytesToBase64(
-      sha256.convert(encodeBigIntToBytes(_publicKey.n)).bytes);
+  String get address => ownerToAddress(owner);
 
   RSAPublicKey _publicKey;
   RSAPrivateKey _privateKey;
