@@ -39,6 +39,22 @@ Uint8List encodeBigIntToBytes(BigInt bigInt) {
 String encodeBigIntToBase64(BigInt bigInt) =>
     encodeBytesToBase64(encodeBigIntToBytes(bigInt));
 
+BigInt arToWinston(String ar) {
+  if (ar.startsWith('.') || ar.endsWith('.'))
+    throw ArgumentError('AR format is invalid.');
+
+  if (ar.contains('.')) {
+    final decimalPoint = ar.lastIndexOf('.');
+    ar = ar.substring(0, decimalPoint) +
+        ar.substring(decimalPoint + 1, ar.length).padRight(12, '0');
+  } else {
+    // If the string does not contain a decimal point the AR value is at least 1.
+    ar = ar + '000000000000';
+  }
+
+  return BigInt.parse(ar);
+}
+
 String winstonToAr(BigInt winston) {
   var bit = winston.toString().padLeft(12, '0');
 

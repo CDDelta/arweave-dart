@@ -1,4 +1,5 @@
 import 'package:arweave/arweave.dart';
+import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -47,7 +48,7 @@ void main() {
       final transaction = await client.createTransaction(
         Transaction(
           target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-          quantity: BigInt.parse('1500000000000'),
+          quantity: utils.arToWinston('1.5'),
         ),
         wallet,
       );
@@ -59,6 +60,7 @@ void main() {
 
       expect(transaction.signature, matches(signaturePattern));
       expect(transaction.id, matches(digestPattern));
+      expect(transaction.quantity, equals(BigInt.from(1500000000000)));
 
       expect(await transaction.verify(), isTrue);
     });

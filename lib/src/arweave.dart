@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'api.dart';
 import 'id.dart';
 import 'models/models.dart';
@@ -58,6 +56,4 @@ class Arweave {
 
   Future<List<String>> arql(Map<String, dynamic> query) =>
       transactions.arql(query);
-
-  double arToWinston(double ar) => ar * pow(10.0, 12);
 }
