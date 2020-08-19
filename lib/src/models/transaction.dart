@@ -81,7 +81,7 @@ class Transaction {
         _signature = signature,
         assert(!(data.isNotEmpty && dataBytes != null)) {
     if (dataSize == "0") {
-      if (data != null)
+      if (data.isNotEmpty)
         setData(data);
       else if (dataBytes != null) setDataWithBytes(dataBytes);
     }
