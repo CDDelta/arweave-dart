@@ -38,3 +38,27 @@ Uint8List encodeBigIntToBytes(BigInt bigInt) {
 
 String encodeBigIntToBase64(BigInt bigInt) =>
     encodeBytesToBase64(encodeBigIntToBytes(bigInt));
+
+String winstonToAr(BigInt winston) {
+  var bit = winston.toString().padLeft(12, '0');
+
+  // The Winston amount is less than 1 AR.
+  if (bit.length == 12)
+    bit = '0.' + bit;
+  else
+    bit = bit.substring(0, bit.length - 12) +
+        '.' +
+        bit.substring(bit.length - 12, bit.length);
+
+  // Trim trailing zeroes.
+  while (bit.endsWith('0')) {
+    bit = bit.substring(0, bit.length - 1);
+
+    if (bit.endsWith('.')) {
+      bit = bit.substring(0, bit.length - 1);
+      break;
+    }
+  }
+
+  return bit;
+}

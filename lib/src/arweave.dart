@@ -60,6 +60,4 @@ class Arweave {
       transactions.arql(query);
 
   double arToWinston(double ar) => ar * pow(10.0, 12);
-
-  double winstonToAr(double winston) => winston / pow(10.0, 12);
 }

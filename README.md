@@ -25,7 +25,7 @@ dependencies:
       ref: some-branch
 ```
 
-## Usage
+## Initialisation
 
 Once you have the package, you can create an instance of the client like so:
 
@@ -39,6 +39,16 @@ void main() {
     port: 443,
   );
 }
+```
+
+## Usage
+
+### Utilities
+
+This package exposes various utilities for Base64 encoding/decoding, AR/Winston formatting etc. To use them, import them like so:
+
+```dart
+import 'package:arweave/utils.dart' as arweaveUtils;
 ```
 
 ## Development
