@@ -96,7 +96,7 @@ class Transaction {
 
   void setData(String data) {
     _data = encodeStringToBase64(data);
-    _dataSize = ascii.encode(_data).length.toString();
+    _dataSize = utf8.encode(data).length.toString();
   }
 
   void setDataWithBytes(List<int> bytes) {
