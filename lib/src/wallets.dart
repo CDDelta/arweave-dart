@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
-import 'api.dart';
+import 'api/api.dart';
 import 'models/models.dart';
 import 'utils.dart';
 

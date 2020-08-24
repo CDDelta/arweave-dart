@@ -7,7 +7,7 @@ Dart package for interfacing with the Arweave network, modelled after [arweave-j
 
 ## Installation
 
-`arweave-dart` is currently not available on [pub.dev](https://pub.dev) but you can use it by referencing this repository in your `pubspec.yaml` like so:
+`arweave-dart` is currently not available on [pub.dev](https://pub.dev) but you can use it by referencing this repository in your `pubspec.yaml` as shown below:
 
 ```yaml
 dependencies:
@@ -15,7 +15,7 @@ dependencies:
     git: https://github.com/CDDelta/arweave-dart.git
 ```
 
-You can optionally pin your dependency to a specific commit, branch, or tag to avoid possible breaking changes like so:
+You can optionally pin your dependency to a specific commit, branch, or tag to avoid possible breaking changes:
 
 ```yaml
 dependencies:
@@ -27,18 +27,22 @@ dependencies:
 
 ## Initialisation
 
-Once you have the package, you can create an instance of the client like so:
+Once you have the package, you can create an instance of the client with its default configuration:
 
 ```dart
 import 'package:arweave/arweave.dart';
 
 void main() {
-  var client = Arweave(
-    host: 'arweave.net',
-    protocol: "https",
-    port: 443,
-  );
+  var client = Arweave();
 }
+```
+
+This will create an instance of the client that connects to the `arweave.net` gateway or if you're running on the web, this will detect the origin you're hosting on and use that as the gateway to connect to.
+
+You can optionally choose to provide your own gateway url:
+
+```dart
+Arweave(gatewayUrl: Uri.parse('https://arweave.dev'));
 ```
 
 ## Usage

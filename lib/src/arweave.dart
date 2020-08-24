@@ -1,4 +1,4 @@
-import 'api.dart';
+import 'api/api.dart';
 import 'id.dart';
 import 'models/models.dart';
 import 'network.dart';
@@ -22,15 +22,13 @@ class Arweave {
   ArweaveNetworkApi _network;
 
   Arweave({
-    String host,
-    String protocol,
-    int port,
+    Uri gatewayUrl,
   }) {
-    this._api = ArweaveApi(host: host, protocol: protocol, port: port);
-    this._wallets = ArweaveWalletsApi(api);
-    this._transactions = ArweaveTransactionsApi(api);
-    this._id = ArweaveIdApi(transactions);
-    this._network = ArweaveNetworkApi(api);
+    _api = ArweaveApi(gatewayUrl: gatewayUrl);
+    _wallets = ArweaveWalletsApi(api);
+    _transactions = ArweaveTransactionsApi(api);
+    _id = ArweaveIdApi(transactions);
+    _network = ArweaveNetworkApi(api);
   }
 
   Future<Transaction> createTransaction(

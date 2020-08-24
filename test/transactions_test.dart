@@ -7,11 +7,7 @@ import 'utils.dart';
 const liveDataTxId = "bNbA3TEQVL60xlgCcqdz4ZPHFZ711cZ3hmkpGttDt_U";
 
 void main() {
-  Arweave client;
-
-  setUp(() {
-    client = getArweaveClient();
-  });
+  final client = Arweave();
 
   group('transactions:', () {
     final transactionFieldPattern =

@@ -1,14 +1,8 @@
 import 'package:arweave/arweave.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
-
 void main() {
-  Arweave client;
-
-  setUp(() {
-    client = getArweaveClient();
-  });
+  final client = Arweave();
 
   group('network:', () {
     test('get info', () async {

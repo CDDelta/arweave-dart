@@ -11,11 +11,7 @@ const liveAddress = "9_666Wkk2GzL0LGd3xhb0jY7HqNy71BaV4sULQlJsBQ";
 const liveTxid = "CE-1SFiXqWUEu0aSTebE6LC0-5JBAc3IAehYGwdF5iI";
 
 void main() {
-  Arweave client;
-
-  setUp(() {
-    client = getArweaveClient();
-  });
+  final client = Arweave();
 
   group('wallets:', () {
     test('decode and encode wallet', () async {

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:arweave/src/models/models.dart';
 
-import 'api.dart';
+import 'api/api.dart';
 
 class ArweaveNetworkApi {
   final ArweaveApi _api;
