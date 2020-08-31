@@ -12,7 +12,7 @@ dependencies:
   pointycastle:
     git:
       url: https://github.com/bcgit/pc-dart.git
-      ref: 52e6c64b5b511fb54c7baba271ce8b3efb5289bf
+      ref: 0d595c65e76a678ba57fe9eb14cabbcc938ebdb0
 
 dev_dependencies:
   json_serializable: ^3.3.0
