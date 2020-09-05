@@ -54,6 +54,10 @@ class Transaction {
   String get signature => _signature;
   String _signature;
 
+  /// Constructs a transaction from the specified parameters.
+  ///
+  /// [Transaction.withStringData()] and [Transaction.withBlobData()] is the recommended way to construct data transactions.
+  /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   Transaction({
     int format = 1,
     String id,
@@ -63,7 +67,6 @@ class Transaction {
     String target = "",
     BigInt quantity,
     String data = "",
-    List<int> dataBytes,
     String dataSize = "0",
     String dataRoot,
     BigInt reward,
@@ -78,31 +81,77 @@ class Transaction {
         _data = data,
         _dataSize = dataSize,
         _reward = reward ?? BigInt.zero,
-        _signature = signature,
-        assert(!(data.isNotEmpty && dataBytes != null)) {
-    if (dataSize == "0") {
-      if (data.isNotEmpty)
-        setData(data);
-      else if (dataBytes != null) setDataWithBytes(dataBytes);
-    }
-
-    if (_tags == null) _tags = [];
-    ;
+        _signature = signature {
+    _tags = _tags ?? [];
   }
+
+  /// Constructs a transaction with the specified string data encoded to Base64 and computed data size.
+  factory Transaction.withStringData({
+    int format = 1,
+    String owner,
+    List<Tag> tags,
+    String target = "",
+    BigInt quantity,
+    String data,
+    BigInt reward,
+  }) =>
+      Transaction.withBase64Data(
+        format: format,
+        owner: owner,
+        tags: tags,
+        target: target,
+        quantity: quantity,
+        data: encodeStringToBase64(data),
+        dataSize: utf8.encode(data).length.toString(),
+        reward: reward,
+      );
+
+  /// Constructs a transaction with the specified blob data encoded to Base64 and computed data size.
+  factory Transaction.withBlobData({
+    int format = 1,
+    String owner,
+    List<Tag> tags,
+    String target = "",
+    BigInt quantity,
+    Uint8List data,
+    BigInt reward,
+  }) =>
+      Transaction.withBase64Data(
+        format: format,
+        owner: owner,
+        tags: tags,
+        target: target,
+        quantity: quantity,
+        data: encodeBytesToBase64(data),
+        dataSize: data.lengthInBytes.toString(),
+        reward: reward,
+      );
+
+  /// Constructs a transaction with the specified Base64 data.
+  factory Transaction.withBase64Data({
+    int format = 1,
+    String owner,
+    List<Tag> tags,
+    String target = "",
+    BigInt quantity,
+    String data,
+    String dataSize,
+    BigInt reward,
+  }) =>
+      Transaction(
+        format: format,
+        owner: owner,
+        tags: tags,
+        target: target,
+        quantity: quantity,
+        data: data,
+        dataSize: dataSize,
+        reward: reward,
+      );
 
   void setLastTx(String lastTx) => _lastTx = lastTx;
 
   void setOwner(String owner) => _owner = owner;
-
-  void setData(String data) {
-    _data = encodeStringToBase64(data);
-    _dataSize = utf8.encode(data).length.toString();
-  }
-
-  void setDataWithBytes(List<int> bytes) {
-    _data = encodeBytesToBase64(bytes);
-    _dataSize = bytes.length.toString();
-  }
 
   void setReward(BigInt reward) => _reward = reward;
 

@@ -16,8 +16,8 @@ void main() {
     test('create and sign data transaction', () async {
       final wallet = await getTestWallet();
 
-      final transaction =
-          await client.createTransaction(Transaction(data: 'test'), wallet);
+      final transaction = await client.createTransaction(
+          Transaction.withStringData(data: 'test'), wallet);
 
       transaction.addTag("test-tag-1", "test-value-1");
       transaction.addTag("test-tag-2", "test-value-2");
