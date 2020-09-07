@@ -9,7 +9,6 @@ dependencies:
   http: ^0.12.1
   meta: ^1.1.8
   crypto: ^2.1.5
-  merkletree: ^1.0.3
   pointycastle:
     git:
       url: https://github.com/bcgit/pc-dart.git

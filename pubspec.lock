@@ -36,13 +36,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  buffer:
-    dependency: transitive
-    description:
-      name: buffer
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.7"
   build:
     dependency: transitive
     description:
@@ -260,13 +253,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.9"
-  merkletree:
-    dependency: "direct main"
-    description:
-      name: merkletree
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.3"
   meta:
     dependency: "direct main"
     description:

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/src/crypto/crypto.dart';
+import 'package:arweave/src/crypto/merkle.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pointycastle/export.dart';
@@ -182,6 +183,10 @@ class Transaction {
 
         return Uint8List.fromList(buffer);
       case 2:
+        final chunks =
+            await generateTransactionChunks(decodeBase64ToBytes(data));
+        _dataRoot = encodeBytesToBase64(chunks.dataRoot);
+
         return deepHash([
           utf8.encode(format.toString()),
           decodeBase64ToBytes(owner),
