@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:arweave/src/crypto/crypto.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pointycastle/export.dart';
@@ -47,6 +48,10 @@ class Transaction {
   String get dataSize => _dataSize;
   String _dataSize;
 
+  @JsonKey(name: 'data_root')
+  String get dataRoot => _dataRoot;
+  String _dataRoot;
+
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get reward => _reward;
   BigInt _reward;
@@ -80,6 +85,7 @@ class Transaction {
         _quantity = quantity ?? BigInt.zero,
         _data = data,
         _dataSize = dataSize,
+        _dataRoot = dataRoot,
         _reward = reward ?? BigInt.zero,
         _signature = signature {
     _tags = _tags ?? [];
@@ -176,6 +182,25 @@ class Transaction {
 
         return Uint8List.fromList(buffer);
       case 2:
+        return deepHash([
+          utf8.encode(format.toString()),
+          decodeBase64ToBytes(owner),
+          decodeBase64ToBytes(target),
+          utf8.encode(quantity.toString()),
+          utf8.encode(reward.toString()),
+          decodeBase64ToBytes(lastTx),
+          tags
+              .map(
+                (t) => [
+                  decodeBase64ToBytes(t.name),
+                  decodeBase64ToBytes(t.value),
+                ],
+              )
+              .toList(),
+          utf8.encode(dataSize.toString()),
+          utf8.encode(dataRoot.toString()),
+        ]);
+
         throw UnimplementedError(
             'Transaction format 2 is currently unsupported.');
       default:

@@ -13,7 +13,7 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
-    test('create and sign data transaction', () async {
+    test('create and sign v1 data transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.createTransaction(
@@ -59,6 +59,29 @@ void main() {
       expect(transaction.quantity, equals(BigInt.from(1500000000000)));
 
       expect(await transaction.verify(), isTrue);
+    });
+
+    test('sign v2 transaction', () async {
+      final wallet = await getTestWallet();
+      final signedV2Tx =
+          await getTestTransaction('test/fixtures/signed_v2_tx.json');
+      final unsignedV2Tx =
+          await getTestTransaction('test/fixtures/unsigned_v2_tx.json');
+
+      final data = utils.decodeBase64ToBytes(unsignedV2Tx.data);
+
+      final tx = await client.createTransaction(
+        Transaction.withBlobData(
+          format: 2,
+          data: data,
+          reward: utils.arToWinston('100'),
+        ),
+        wallet,
+      );
+      await tx.sign(wallet);
+
+      expect(tx.dataRoot, signedV2Tx.dataRoot);
+      expect(tx.signature, signedV2Tx.signature);
     });
 
     test('get and verify transaction', () async {
