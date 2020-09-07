@@ -60,4 +60,7 @@ import 'package:arweave/utils.dart' as arweaveUtils;
 ## Development
 
 To rebuild the generated code (eg. for JSON serialisation) run:
-`dart pub run build_runner build`
+
+```shell
+dart pub run build_runner build
+```

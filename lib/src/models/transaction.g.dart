@@ -19,6 +19,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
     quantity: _stringToBigInt(json['quantity'] as String),
     data: json['data'] as String,
     dataSize: json['data_size'] as String,
+    dataRoot: json['data_root'] as String,
     reward: _stringToBigInt(json['reward'] as String),
     signature: json['signature'] as String,
   );
@@ -35,6 +36,7 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'quantity': _bigIntToString(instance.quantity),
       'data': instance.data,
       'data_size': instance.dataSize,
+      'data_root': instance.dataRoot,
       'reward': _bigIntToString(instance.reward),
       'signature': instance.signature,
     };
