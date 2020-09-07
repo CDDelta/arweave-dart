@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'transaction_status.g.dart';
+part 'transaction_info.g.dart';
 
 @JsonSerializable()
 class TransactionStatus {
@@ -29,4 +29,31 @@ class TransactionConfimedData {
   factory TransactionConfimedData.fromJson(Map<String, dynamic> json) =>
       _$TransactionConfimedDataFromJson(json);
   Map<String, dynamic> toJson() => _$TransactionConfimedDataToJson(this);
+}
+
+@JsonSerializable()
+class TransactionOffsetResponse {
+  final String size;
+  final String offset;
+
+  TransactionOffsetResponse({this.size, this.offset});
+
+  factory TransactionOffsetResponse.fromJson(Map<String, dynamic> json) =>
+      _$TransactionOffsetResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$TransactionOffsetResponseToJson(this);
+}
+
+@JsonSerializable()
+class TransactionChunkResponse {
+  final String chunk;
+  @JsonKey(name: 'data_path')
+  final String dataPath;
+  @JsonKey(name: 'tx_path')
+  final String txPath;
+
+  TransactionChunkResponse({this.chunk, this.dataPath, this.txPath});
+
+  factory TransactionChunkResponse.fromJson(Map<String, dynamic> json) =>
+      _$TransactionChunkResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$TransactionChunkResponseToJson(this);
 }
