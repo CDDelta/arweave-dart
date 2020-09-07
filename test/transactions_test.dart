@@ -16,8 +16,8 @@ void main() {
     test('create and sign data transaction', () async {
       final wallet = await getTestWallet();
 
-      final transaction = await client.createTransaction(
-          Transaction.withStringData(data: 'test'), wallet);
+      final transaction = await client.transactions
+          .prepare(Transaction.withStringData(data: 'test'), wallet);
 
       transaction.addTag("test-tag-1", "test-value-1");
       transaction.addTag("test-tag-2", "test-value-2");
@@ -41,7 +41,7 @@ void main() {
     test('create and sign AR transaction', () async {
       final wallet = await getTestWallet();
 
-      final transaction = await client.createTransaction(
+      final transaction = await client.transactions.prepare(
         Transaction(
           target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
           quantity: utils.arToWinston('1.5'),
