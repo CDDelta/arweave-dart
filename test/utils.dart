@@ -7,6 +7,6 @@ final digestPattern = RegExp(r'^[a-z0-9-_]{43}$', caseSensitive: false);
 
 Future<Wallet> getTestWallet() async => Wallet.fromJwk(
       json.decode(
-        await new File('test/fixtures/test-key.json').readAsString(),
+        await File('test/fixtures/test-key.json').readAsString(),
       ),
     );
