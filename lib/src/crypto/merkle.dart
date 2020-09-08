@@ -19,7 +19,7 @@ class Chunk {
 }
 
 abstract class MerkleNode {
-  final Uint8List id;
+  final List<int> id;
   final int maxByteRange;
 
   MerkleNode(this.id, this.maxByteRange);
@@ -31,19 +31,19 @@ class BranchNode extends MerkleNode {
   final MerkleNode rightChild;
 
   BranchNode(
-    Uint8List id,
-    this.byteRange,
-    int maxByteRange,
-    this.leftChild,
-    this.rightChild,
-  ) : super(id, maxByteRange);
+      {List<int> id,
+      this.byteRange,
+      int maxByteRange,
+      this.leftChild,
+      this.rightChild})
+      : super(id, maxByteRange);
 }
 
 class LeafNode extends MerkleNode {
-  final Uint8List dataHash;
+  final List<int> dataHash;
   final int minByteRange;
 
-  LeafNode(Uint8List id, this.dataHash, this.minByteRange, int maxByteRange)
+  LeafNode({List<int> id, this.dataHash, this.minByteRange, int maxByteRange})
       : super(id, maxByteRange);
 }
 
@@ -63,7 +63,7 @@ Future<MerkleNode> generateTree(Uint8List data) async {
   return _buildLayers(leaves);
 }
 
-/// Generates the data_root, chunks & proofs needed for a transaction.
+/// Generates the data root, chunks & proofs needed for a transaction.
 ///
 /// This also checks if the last chunk is a zero-length
 /// chunk and discards that chunk and proof if so.
@@ -75,6 +75,7 @@ Future<TransactionChunksWithProofs> generateTransactionChunks(
   final root = await _buildLayers(leaves);
   final proofs = await _generateProofs(root);
 
+  // Discard the last chunk & proof if it's zero length.
   if (chunks.last.maxByteRange - chunks.last.minByteRange == 0) {
     chunks.removeLast();
     proofs.removeLast();
@@ -117,13 +118,13 @@ Future<List<Chunk>> _chunkData(Uint8List data) async {
 Future<List<LeafNode>> _generateLeaves(List<Chunk> chunks) async => chunks
     .map(
       (c) => LeafNode(
-        sha256
+        id: sha256
             .convert(sha256.convert(c.dataHash).bytes +
                 sha256.convert(_intToBuffer(c.maxByteRange)).bytes)
             .bytes,
-        c.dataHash,
-        c.minByteRange,
-        c.maxByteRange,
+        dataHash: c.dataHash,
+        minByteRange: c.minByteRange,
+        maxByteRange: c.maxByteRange,
       ),
     )
     .toList();
@@ -143,10 +144,26 @@ Future<MerkleNode> _buildLayers(List<MerkleNode> nodes, [int level = 0]) async {
   final nextLayer = <MerkleNode>[];
 
   for (var i = 0; i < nodes.length; i += 2)
-    nextLayer.add(
-        await _hashBranch(nodes[i], i + 1 < nodes.length ? nodes[i] : null));
+    nextLayer.add(await _hashBranch(
+        nodes[i], i + 1 < nodes.length ? nodes[i + 1] : null));
 
   return _buildLayers(nextLayer, level + 1);
+}
+
+Future<MerkleNode> _hashBranch(MerkleNode left, MerkleNode right) async {
+  if (right == null) return left;
+
+  return BranchNode(
+    id: sha256
+        .convert(sha256.convert(left.id).bytes +
+            sha256.convert(right.id).bytes +
+            sha256.convert(_intToBuffer(left.maxByteRange)).bytes)
+        .bytes,
+    byteRange: left.maxByteRange,
+    maxByteRange: right.maxByteRange,
+    leftChild: left,
+    rightChild: right,
+  );
 }
 
 class Proof {
@@ -159,31 +176,20 @@ class Proof {
 /// Recursively search through all branches of the tree,
 /// and generate a proof for each leaf node.
 List<Proof> _generateProofs(MerkleNode root) {
-  final proofs = _resolveBranchProofs(root);
+  List<Object> proofs = _resolveBranchProofs(root);
 
-  final expandProofs = (Iterable<Object> proofs) => proofs.map((p) {
-        if (p is Iterable)
-          return p.expand((p) => p);
-        else
-          return p;
+  flatten(Iterable iter) => iter.fold([], (List xs, s) {
+        s is Iterable ? xs.addAll(flatten(s)) : xs.add(s);
+        return xs;
       });
 
   // Flatten the Merkle proofs.
-  return expandProofs(proofs)
-      .expand((p) {
-        if (p is Iterable)
-          return expandProofs(p);
-        else
-          return [p];
-      })
-      .expand((p) => p)
-      .toList()
-      .cast<Proof>();
+  return flatten(proofs).cast<Proof>().toList();
 }
 
 List<Object> _resolveBranchProofs(MerkleNode node,
-    [Uint8List proof, depth = 0]) {
-  proof = proof ?? Uint8List(0);
+    [List<int> proof, depth = 0]) {
+  proof = proof ?? <int>[];
 
   if (node is LeafNode)
     return [
@@ -194,31 +200,17 @@ List<Object> _resolveBranchProofs(MerkleNode node,
       )
     ];
   else if (node is BranchNode) {
-    final partialProof = Uint8List.fromList(proof +
+    final partialProof = proof +
         node.leftChild.id +
         node.rightChild.id +
-        _intToBuffer(node.byteRange));
+        _intToBuffer(node.byteRange);
     return [
       _resolveBranchProofs(node.leftChild, partialProof, depth + 1),
       _resolveBranchProofs(node.rightChild, partialProof, depth + 1),
     ];
   }
-}
 
-Future<MerkleNode> _hashBranch(MerkleNode left, MerkleNode right) async {
-  if (right == null) return left;
-
-  return BranchNode(
-    sha256
-        .convert(sha256.convert(left.id).bytes +
-            sha256.convert(right.id).bytes +
-            sha256.convert(_intToBuffer(left.maxByteRange)).bytes)
-        .bytes,
-    left.maxByteRange,
-    right.maxByteRange,
-    left,
-    right,
-  );
+  throw ArgumentError('Unexpected node type');
 }
 
 Uint8List _intToBuffer(int note) {
