@@ -70,7 +70,7 @@ void main() {
 
       final data = utils.decodeBase64ToBytes(unsignedV2Tx.data);
 
-      final tx = await client.createTransaction(
+      final tx = await client.transactions.prepare(
         Transaction.withBlobData(
           format: 2,
           data: data,
