@@ -38,23 +38,18 @@ void main() {
       expect(walletA.address, isNot(equals(walletB.address)));
     });
 
-    test(
-      'get wallet info',
-      () async {
-        expect(await client.wallets.getBalance(liveAddress),
-            equals(liveAddressBalance));
-        expect(await client.wallets.getLastTransactionId(liveAddress),
-            equals(liveTxid));
+    test('get wallet info', () async {
+      expect(await client.wallets.getBalance(liveAddress),
+          equals(liveAddressBalance));
+      expect(await client.wallets.getLastTransactionId(liveAddress),
+          equals(liveTxid));
 
-        final newWallet = await client.wallets.generate();
-        final newWalletAddress = newWallet.address;
+      final fakeWallet = await getTestWallet();
 
-        expect(await client.wallets.getBalance(newWalletAddress), equals('0'));
-        expect(await client.wallets.getLastTransactionId(newWalletAddress),
-            equals(''));
-      },
-      timeout: Timeout.factor(2),
-    );
+      expect(await client.wallets.getBalance(fakeWallet.address), equals('0'));
+      expect(await client.wallets.getLastTransactionId(fakeWallet.address),
+          equals(''));
+    });
 
     test('resolve address from wallet', () async {
       final wallet = Wallet.fromJwk(json
