@@ -42,6 +42,7 @@ class Transaction {
   BigInt get quantity => _quantity;
   BigInt _quantity;
 
+  /// The unencoded data associated with this transaction.
   Uint8List get data => _data;
   Uint8List _data;
 

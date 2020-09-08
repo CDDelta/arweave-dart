@@ -4,6 +4,7 @@ import 'package:http/http.dart';
 
 import 'api/api.dart';
 import 'models/models.dart';
+import 'utils.dart';
 
 class ArweaveTransactionsApi {
   final ArweaveApi _api;
@@ -21,6 +22,7 @@ class ArweaveTransactionsApi {
   }
 
   /// Get a transaction by its ID.
+  ///
   /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
   Future<Transaction> get(String id) async {
     final res = await this._api.get('tx/$id');
@@ -95,6 +97,12 @@ class ArweaveTransactionsApi {
     return transaction;
   }
 
-  Future<Response> post(Transaction transaction) =>
-      this._api.post('tx', body: json.encode(transaction));
+  Future<Response> post(Transaction transaction) {
+    if (transaction.format != 1)
+      throw ArgumentError('Only transaction format v1 can be posted.');
+
+    final txJson = transaction.toJson();
+    txJson['data'] = encodeBytesToBase64(transaction.data);
+    return _api.post('tx', body: txJson);
+  }
 }
