@@ -65,6 +65,30 @@ class ArweaveTransactionsApi {
         },
       );
 
+  Future<Transaction> prepare(
+    Transaction transaction, [
+    Wallet wallet,
+  ]) async {
+    assert(transaction.data != null ||
+        (transaction.target != null && transaction.quantity != null));
+
+    if (transaction.owner == null && wallet != null)
+      transaction.setOwner(wallet.owner);
+
+    if (transaction.lastTx == null)
+      transaction.setLastTx(await getTransactionAnchor());
+
+    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty)
+      transaction.setReward(
+        await getPrice(
+          byteSize: int.parse(transaction.dataSize),
+          targetAddress: transaction.target,
+        ),
+      );
+
+    return transaction;
+  }
+
   Future<Response> post(Transaction transaction) =>
       this._api.post('tx', body: json.encode(transaction));
 }

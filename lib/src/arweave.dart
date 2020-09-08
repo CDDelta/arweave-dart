@@ -1,7 +1,6 @@
 import 'api/api.dart';
 import 'chunks.dart';
 import 'id.dart';
-import 'models/models.dart';
 import 'network.dart';
 import 'transactions.dart';
 import 'wallets.dart';
@@ -35,28 +34,4 @@ class Arweave {
     _network = ArweaveNetworkApi(api);
     _chunks = ArweaveChunksApi(api);
   }
-
-  Future<Transaction> createTransaction(
-    Transaction transaction,
-    Wallet wallet,
-  ) async {
-    assert(transaction.data != null ||
-        (transaction.target != null && transaction.quantity != null));
-
-    if (transaction.owner == null) transaction.setOwner(wallet.owner);
-
-    if (transaction.lastTx == null)
-      transaction.setLastTx(await transactions.getTransactionAnchor());
-
-    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty)
-      transaction.setReward(await transactions.getPrice(
-        byteSize: int.parse(transaction.dataSize),
-        targetAddress: transaction.target,
-      ));
-
-    return transaction;
-  }
-
-  Future<List<String>> arql(Map<String, dynamic> query) =>
-      transactions.arql(query);
 }
