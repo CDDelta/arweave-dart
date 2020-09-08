@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arweave/arweave.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
@@ -23,7 +25,7 @@ void main() {
       transaction.addTag("test-tag-2", "test-value-2");
       transaction.addTag("test-tag-3", "test-value-3");
 
-      expect(transaction.data, equals('dGVzdA'));
+      expect(utf8.decode(transaction.data), equals('test'));
       expect(transaction.lastTx, matches(transactionFieldPattern));
       expect(transaction.reward.toInt(), greaterThan(0));
 
@@ -68,16 +70,17 @@ void main() {
       final unsignedV2Tx =
           await getTestTransaction('test/fixtures/unsigned_v2_tx.json');
 
-      final data = utils.decodeBase64ToBytes(unsignedV2Tx.data);
-
       final tx = await client.transactions.prepare(
         Transaction.withBlobData(
           format: 2,
-          data: data,
+          data: unsignedV2Tx.data,
           reward: utils.arToWinston('100'),
         ),
         wallet,
       );
+
+      tx.setLastTx('');
+
       await tx.sign(wallet);
 
       expect(tx.dataRoot, signedV2Tx.dataRoot);

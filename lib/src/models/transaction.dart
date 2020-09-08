@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/src/crypto/crypto.dart';
-import 'package:arweave/src/crypto/merkle.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pointycastle/export.dart';
 
 import '../utils.dart';
 import 'tag.dart';
+import 'transaction_chunk.dart';
 import 'wallet.dart';
 
 part 'transaction.g.dart';
@@ -42,8 +42,8 @@ class Transaction {
   BigInt get quantity => _quantity;
   BigInt _quantity;
 
-  String get data => _data;
-  String _data;
+  Uint8List get data => _data;
+  Uint8List _data;
 
   @JsonKey(name: 'data_size')
   String get dataSize => _dataSize;
@@ -60,10 +60,11 @@ class Transaction {
   String get signature => _signature;
   String _signature;
 
-  /// Constructs a transaction from the specified parameters.
-  ///
-  /// [Transaction.withStringData()] and [Transaction.withBlobData()] is the recommended way to construct data transactions.
-  /// This constructor will not compute the data size or encode incoming data to Base64 for you.
+  @JsonKey(ignore: true)
+  TransactionChunksWithProofs chunks;
+
+  /// This constructor is reserved for JSON serialisation.
+  /// [Transaction.withStringData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
   Transaction({
     int format = 1,
     String id,
@@ -72,7 +73,8 @@ class Transaction {
     List<Tag> tags,
     String target = "",
     BigInt quantity,
-    String data = "",
+    String data,
+    Uint8List dataBytes,
     String dataSize = "0",
     String dataRoot,
     BigInt reward,
@@ -84,7 +86,9 @@ class Transaction {
         _tags = tags,
         _target = target,
         _quantity = quantity ?? BigInt.zero,
-        _data = data,
+        _data = data != null
+            ? decodeBase64ToBytes(data)
+            : (dataBytes ?? Uint8List(0)),
         _dataSize = dataSize,
         _dataRoot = dataRoot,
         _reward = reward ?? BigInt.zero,
@@ -102,14 +106,13 @@ class Transaction {
     String data,
     BigInt reward,
   }) =>
-      Transaction.withBase64Data(
+      Transaction.withBlobData(
         format: format,
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: encodeStringToBase64(data),
-        dataSize: utf8.encode(data).length.toString(),
+        data: utf8.encode(data),
         reward: reward,
       );
 
@@ -123,36 +126,14 @@ class Transaction {
     Uint8List data,
     BigInt reward,
   }) =>
-      Transaction.withBase64Data(
-        format: format,
-        owner: owner,
-        tags: tags,
-        target: target,
-        quantity: quantity,
-        data: encodeBytesToBase64(data),
-        dataSize: data.lengthInBytes.toString(),
-        reward: reward,
-      );
-
-  /// Constructs a transaction with the specified Base64 data.
-  factory Transaction.withBase64Data({
-    int format = 1,
-    String owner,
-    List<Tag> tags,
-    String target = "",
-    BigInt quantity,
-    String data,
-    String dataSize,
-    BigInt reward,
-  }) =>
       Transaction(
         format: format,
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: data,
-        dataSize: dataSize,
+        dataBytes: data,
+        dataSize: data.lengthInBytes.toString(),
         reward: reward,
       );
 
@@ -162,31 +143,56 @@ class Transaction {
 
   void setReward(BigInt reward) => _reward = reward;
 
+  Future<void> prepareChunks() async {
+    if (chunks != null) return;
+
+    if (data.isNotEmpty) {
+      chunks = await generateTransactionChunks(data);
+      _dataRoot = encodeBytesToBase64(chunks.dataRoot);
+    } else {
+      chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
+    }
+  }
+
+  /// Returns a chunk in a format suitable for posting to /chunk.
+  TransactionChunk getChunk(int index) {
+    if (chunks == null) throw StateError('Chunks have not been prepared.');
+
+    final proof = chunks.proofs[index];
+    final chunk = chunks.chunks[index];
+
+    return TransactionChunk(
+      dataRoot: dataRoot,
+      dataSize: dataSize,
+      dataPath: encodeBytesToBase64(proof.proof),
+      offset: proof.offset.toString(),
+      chunk: encodeBytesToBase64(
+          Uint8List.sublistView(data, chunk.minByteRange, chunk.maxByteRange)),
+    );
+  }
+
   void setSignature(String signature, String id) {
     this._signature = signature;
     this._id = id;
   }
 
-  Future<List<int>> getSignatureData() async {
+  Future<Uint8List> getSignatureData() async {
     switch (format) {
       case 1:
-        var buffer = decodeBase64ToBytes(owner) +
-            decodeBase64ToBytes(target) +
-            decodeBase64ToBytes(data) +
-            utf8.encode(quantity.toString()) +
-            utf8.encode(reward.toString()) +
-            decodeBase64ToBytes(lastTx) +
-            tags
-                .expand((t) =>
-                    decodeBase64ToBytes(t.name) + decodeBase64ToBytes(t.value))
-                .toList();
-
-        return Uint8List.fromList(buffer);
+        return Uint8List.fromList(
+          decodeBase64ToBytes(owner) +
+              decodeBase64ToBytes(target) +
+              data +
+              utf8.encode(quantity.toString()) +
+              utf8.encode(reward.toString()) +
+              decodeBase64ToBytes(lastTx) +
+              tags
+                  .expand((t) =>
+                      decodeBase64ToBytes(t.name) +
+                      decodeBase64ToBytes(t.value))
+                  .toList(),
+        );
       case 2:
-        final chunks =
-            await generateTransactionChunks(decodeBase64ToBytes(data));
-        _dataRoot = encodeBytesToBase64(chunks.dataRoot);
-
         return deepHash([
           utf8.encode(format.toString()),
           decodeBase64ToBytes(owner),
@@ -202,12 +208,9 @@ class Transaction {
                 ],
               )
               .toList(),
-          utf8.encode(dataSize.toString()),
-          utf8.encode(dataRoot.toString()),
+          utf8.encode(dataSize),
+          decodeBase64ToBytes(dataRoot),
         ]);
-
-        throw UnimplementedError(
-            'Transaction format 2 is currently unsupported.');
       default:
         throw Exception('Unexpected transaction format!');
     }

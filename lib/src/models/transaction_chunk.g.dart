@@ -1,42 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'transaction_info.dart';
+part of 'transaction_chunk.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-TransactionStatus _$TransactionStatusFromJson(Map<String, dynamic> json) {
-  return TransactionStatus(
-    status: json['status'] as int,
-    confirmed: json['confirmed'] == null
-        ? null
-        : TransactionConfimedData.fromJson(
-            json['confirmed'] as Map<String, dynamic>),
+TransactionChunk _$TransactionChunkFromJson(Map<String, dynamic> json) {
+  return TransactionChunk(
+    dataRoot: json['data_root'] as String,
+    dataSize: json['data_size'] as String,
+    dataPath: json['data_path'] as String,
+    offset: json['offset'] as String,
+    chunk: json['chunk'] as String,
   );
 }
 
-Map<String, dynamic> _$TransactionStatusToJson(TransactionStatus instance) =>
+Map<String, dynamic> _$TransactionChunkToJson(TransactionChunk instance) =>
     <String, dynamic>{
-      'status': instance.status,
-      'confirmed': instance.confirmed,
-    };
-
-TransactionConfimedData _$TransactionConfimedDataFromJson(
-    Map<String, dynamic> json) {
-  return TransactionConfimedData(
-    blockIndepHash: json['block_indep_hash'] as String,
-    blockHeight: json['block_height'] as int,
-    numberOfConfirmations: json['number_of_confirmations'] as int,
-  );
-}
-
-Map<String, dynamic> _$TransactionConfimedDataToJson(
-        TransactionConfimedData instance) =>
-    <String, dynamic>{
-      'block_indep_hash': instance.blockIndepHash,
-      'block_height': instance.blockHeight,
-      'number_of_confirmations': instance.numberOfConfirmations,
+      'data_root': instance.dataRoot,
+      'data_size': instance.dataSize,
+      'data_path': instance.dataPath,
+      'offset': instance.offset,
+      'chunk': instance.chunk,
     };
 
 TransactionOffsetResponse _$TransactionOffsetResponseFromJson(
