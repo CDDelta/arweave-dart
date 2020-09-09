@@ -1,4 +1,5 @@
 import 'api/api.dart';
+import 'chunks.dart';
 import 'id.dart';
 import 'network.dart';
 import 'transactions.dart';
@@ -20,6 +21,9 @@ class Arweave {
   ArweaveNetworkApi get network => _network;
   ArweaveNetworkApi _network;
 
+  ArweaveChunksApi get chunks => _chunks;
+  ArweaveChunksApi _chunks;
+
   Arweave({
     Uri gatewayUrl,
   }) {
@@ -28,5 +32,6 @@ class Arweave {
     _transactions = ArweaveTransactionsApi(api);
     _id = ArweaveIdApi(transactions);
     _network = ArweaveNetworkApi(api);
+    _chunks = ArweaveChunksApi(api);
   }
 }

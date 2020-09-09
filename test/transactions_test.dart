@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arweave/arweave.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
@@ -23,7 +25,7 @@ void main() {
       transaction.addTag("test-tag-2", "test-value-2");
       transaction.addTag("test-tag-3", "test-value-3");
 
-      expect(transaction.data, equals('dGVzdA'));
+      expect(utf8.decode(transaction.data), equals('test'));
       expect(transaction.lastTx, matches(transactionFieldPattern));
       expect(transaction.reward.toInt(), greaterThan(0));
 
@@ -59,6 +61,29 @@ void main() {
       expect(transaction.quantity, equals(BigInt.from(1500000000000)));
 
       expect(await transaction.verify(), isTrue);
+    });
+
+    test('sign v2 transaction', () async {
+      final wallet = await getTestWallet();
+      final signedV2Tx =
+          await getTestTransaction('test/fixtures/signed_v2_tx.json');
+      final unsignedV2Tx =
+          await getTestTransaction('test/fixtures/unsigned_v2_tx.json');
+
+      final tx = await client.transactions.prepare(
+        Transaction.withBlobData(
+          data: unsignedV2Tx.data,
+          reward: utils.arToWinston('100'),
+        ),
+        wallet,
+      );
+
+      tx.setLastTx('');
+
+      await tx.sign(wallet);
+
+      expect(tx.dataRoot, signedV2Tx.dataRoot);
+      expect(tx.signature, signedV2Tx.signature);
     });
 
     test('get and verify transaction', () async {

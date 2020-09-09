@@ -52,9 +52,7 @@ void main() {
     });
 
     test('resolve address from wallet', () async {
-      final wallet = Wallet.fromJwk(json
-          .decode(await File('test/fixtures/test-key.json').readAsString()));
-
+      final wallet = await getTestWallet();
       expect(wallet.address,
           equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
     });

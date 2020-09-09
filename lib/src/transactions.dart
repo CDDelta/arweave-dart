@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
-
 import 'api/api.dart';
 import 'models/models.dart';
 
@@ -21,6 +19,7 @@ class ArweaveTransactionsApi {
   }
 
   /// Get a transaction by its ID.
+  ///
   /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
   Future<Transaction> get(String id) async {
     final res = await this._api.get('tx/$id');
@@ -43,8 +42,13 @@ class ArweaveTransactionsApi {
         return TransactionStatus(status: res.statusCode);
       });
 
-  /// Get the raw Base64 decoded data from a transaction.
-  Future<String> getData(String id) => this._api.get('tx/$id/data').then(
+  /// Get the data associated with a transaction.
+  ///
+  /// Optionally provide an extension to decode the data.
+  Future<String> getData(String id, [String extension]) => this
+          ._api
+          .get('tx/$id/data${extension != null ? '.$extension' : ''}')
+          .then(
         (res) {
           if (res.statusCode == 200) return res.body;
           return null;
@@ -65,12 +69,19 @@ class ArweaveTransactionsApi {
         },
       );
 
+  /// Prepares a transaction with the required details.
+  ///
+  /// Chunks the transaction data, sets the transaction anchor, reward,
+  /// and the transaction owner if a wallet is specified,
   Future<Transaction> prepare(
     Transaction transaction, [
     Wallet wallet,
   ]) async {
     assert(transaction.data != null ||
         (transaction.target != null && transaction.quantity != null));
+
+    if (transaction.format == 1)
+      throw ArgumentError('Creating v1 transactions is not supported.');
 
     if (transaction.owner == null && wallet != null)
       transaction.setOwner(wallet.owner);
@@ -86,9 +97,29 @@ class ArweaveTransactionsApi {
         ),
       );
 
+    await transaction.prepareChunks();
+
     return transaction;
   }
 
-  Future<Response> post(Transaction transaction) =>
-      this._api.post('tx', body: json.encode(transaction));
+  /// Returns an uploader than can be used to upload a transaction chunk by chunk, giving progress
+  /// and the ability to resume.
+  Future<TransactionUploader> getUploader(Transaction transaction) async =>
+      TransactionUploader(transaction, _api);
+
+  /// Uploads the transaction in full, returning a stream of events signaling the status of the upload.
+  Stream<TransactionUploader> upload(Transaction transaction) async* {
+    final uploader = await getUploader(transaction);
+
+    while (!uploader.isComplete) {
+      await uploader.uploadChunk();
+      yield uploader;
+    }
+  }
+
+  /// Uploads the transaction in full. Useful for small data or wallet transactions.
+  Future<void> post(Transaction transaction) async {
+    final uploader = await getUploader(transaction);
+    while (!uploader.isComplete) await uploader.uploadChunk();
+  }
 }

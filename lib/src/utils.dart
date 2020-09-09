@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart';
 
 final keyLength = 4096;
 final publicExponent = BigInt.from(65537);
@@ -78,6 +79,20 @@ String winstonToAr(BigInt winston) {
   }
 
   return bit;
+}
+
+/// Safely get the error from an Arweave HTTP response.
+String getResponseError(Response res) {
+  if (res.headers['Content-Type'] == 'application/json') {
+    Map<String, dynamic> errJson = json.decode(res.body);
+
+    if (errJson['data'] != null)
+      return errJson['data'] is Map
+          ? errJson['data']['error']
+          : errJson['data'];
+  }
+
+  return res.body ?? 'unknown';
 }
 
 String ownerToAddress(String owner) =>
