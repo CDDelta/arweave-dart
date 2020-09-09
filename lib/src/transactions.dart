@@ -42,8 +42,13 @@ class ArweaveTransactionsApi {
         return TransactionStatus(status: res.statusCode);
       });
 
-  /// Get the raw Base64 decoded data from a transaction.
-  Future<String> getData(String id) => this._api.get('tx/$id/data').then(
+  /// Get the data associated with a transaction.
+  ///
+  /// Optionally provide an extension to decode the data.
+  Future<String> getData(String id, [String extension]) => this
+          ._api
+          .get('tx/$id/data${extension != null ? '.$extension' : ''}')
+          .then(
         (res) {
           if (res.statusCode == 200) return res.body;
           return null;

@@ -28,15 +28,15 @@ const FATAL_CHUNK_UPLOAD_ERRORS = [
 ];
 
 class TransactionUploader {
-  int _chunkIndex;
-  bool _txPosted;
+  int _chunkIndex = 0;
+  bool _txPosted = false;
   Transaction _transaction;
-  int _lastRequestTimeEnd;
-  int _totalErrors;
+  int _lastRequestTimeEnd = 0;
+  int _totalErrors = 0;
   Random _random = Random();
 
-  int lastResponseStatus;
-  String lastResponseError;
+  int lastResponseStatus = 0;
+  String lastResponseError = '';
 
   ArweaveApi _api;
 
