@@ -47,6 +47,49 @@ Arweave(gatewayUrl: Uri.parse('https://arweave.dev'));
 
 ## Usage
 
+### Working with Wallets
+
+Loading an Arweave wallet can be done as shown below:
+
+```dart
+Wallet.fromJwk(json.decode('<wallet data>'));
+```
+
+### Creating Transactions
+
+Creating transactions with `arweave-dart` is easy. First prepare a transaction like below, optionally adding some tags:
+
+```dart
+final transaction = await client.transactions.prepare(
+  Transaction.withStringData(data: 'Hello world!'),
+  wallet,
+);
+
+transaction.addTag('App-Name', 'Hello World App');
+transaction.addTag('App-Version', '1.0.0');
+```
+
+Secondly, sign the transaction:
+
+```dart
+await transaction.sign(wallet);
+```
+
+Finally upload the transaction.
+
+This can be done in a single call, useful for small transactions.
+
+```dart
+await client.transactions.post(transaction);
+```
+
+Or progressively for more granularity.
+
+```dart
+await for (final upload in client.transactions.upload(transaction))
+  print('${upload.percentageComplete}%');
+```
+
 ### Utilities
 
 Dart's Base64 encoder/decoder is incompatible with Arweave's returned Base64 content, so `arweave-dart` exposes utilities for working with Base64 from Arweave. It also includes other utilities for AR/Winston conversions etc.
