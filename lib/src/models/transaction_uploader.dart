@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:arweave/arweave.dart';
 import 'package:arweave/src/api/api.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../utils.dart';
 import 'transaction.dart';
+
+part 'transaction_uploader.g.dart';
 
 /// Maximum amount of chunks we will upload in the body.
 const MAX_CHUNKS_IN_BODY = 1;
@@ -39,10 +43,22 @@ class TransactionUploader {
   TransactionUploader(Transaction transaction, ArweaveApi api)
       : _transaction = transaction,
         _api = api {
-    if (transaction.id == null) throw ArgumentError('Transcation not signed.');
+    if (transaction.id == null) throw ArgumentError('Transaction not signed.');
     if (transaction.chunks == null)
       throw ArgumentError('Transaction chunks not prepared.');
   }
+
+  TransactionUploader._(
+      {int chunkIndex,
+      bool txPosted,
+      Transaction transaction,
+      int lastRequestTimeEnd,
+      this.lastResponseStatus,
+      this.lastResponseError})
+      : _chunkIndex = chunkIndex,
+        _txPosted = txPosted,
+        _transaction = transaction,
+        _lastRequestTimeEnd = lastRequestTimeEnd;
 
   bool get isComplete =>
       _txPosted && _chunkIndex == _transaction.chunks.chunks.length;
@@ -147,12 +163,48 @@ class TransactionUploader {
     _txPosted = true;
   }
 
-  Map<String, dynamic> toJson() => {
-        "chunkIndex": _chunkIndex,
-        "transaction": _transaction.toJson(),
-        "lastRequestTimeEnd": _lastRequestTimeEnd,
-        "lastResponseStatus": lastResponseStatus,
-        'lastResponseError': lastResponseError,
-        'txPosted': _txPosted,
-      };
+  factory TransactionUploader.deserialize(
+          SerializedTransactionUploader serialized) =>
+      TransactionUploader._(
+        chunkIndex: serialized.chunkIndex,
+        txPosted: serialized.txPosted,
+        transaction: serialized.transaction,
+        lastRequestTimeEnd: serialized.lastRequestTimeEnd,
+        lastResponseError: serialized.lastResponseError,
+        lastResponseStatus: serialized.lastResponseStatus,
+      );
+  SerializedTransactionUploader serialize() => SerializedTransactionUploader(
+        chunkIndex: _chunkIndex,
+        txPosted: _txPosted,
+        transaction: _transaction,
+        lastRequestTimeEnd: _lastRequestTimeEnd,
+        lastResponseError: lastResponseError,
+        lastResponseStatus: lastResponseStatus,
+      );
+  factory TransactionUploader.fromJson(Map<String, dynamic> json) =>
+      TransactionUploader.deserialize(
+          SerializedTransactionUploader.fromJson(json));
+  Map<String, dynamic> toJson() => serialize().toJson();
+}
+
+@JsonSerializable()
+class SerializedTransactionUploader {
+  final int chunkIndex;
+  final bool txPosted;
+  final Transaction transaction;
+  final int lastRequestTimeEnd;
+  final int lastResponseStatus;
+  final String lastResponseError;
+
+  SerializedTransactionUploader(
+      {this.chunkIndex,
+      this.txPosted,
+      this.transaction,
+      this.lastRequestTimeEnd,
+      this.lastResponseStatus,
+      this.lastResponseError});
+
+  factory SerializedTransactionUploader.fromJson(Map<String, dynamic> json) =>
+      _$SerializedTransactionUploaderFromJson(json);
+  Map<String, dynamic> toJson() => _$SerializedTransactionUploaderToJson(this);
 }

@@ -67,7 +67,7 @@ class Transaction {
   /// This constructor is reserved for JSON serialisation.
   /// [Transaction.withStringData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
   Transaction({
-    int format = 1,
+    int format = 2,
     String id,
     String lastTx,
     String owner,
@@ -91,15 +91,14 @@ class Transaction {
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
         _dataSize = dataSize,
-        _dataRoot = dataRoot,
+        _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _signature = signature {
     _tags = _tags ?? [];
   }
 
-  /// Constructs a transaction with the specified string data encoded to Base64 and computed data size.
+  /// Constructs a transaction with the specified string data and computed data size.
   factory Transaction.withStringData({
-    int format = 1,
     String owner,
     List<Tag> tags,
     String target = "",
@@ -108,7 +107,6 @@ class Transaction {
     BigInt reward,
   }) =>
       Transaction.withBlobData(
-        format: format,
         owner: owner,
         tags: tags,
         target: target,
@@ -117,9 +115,8 @@ class Transaction {
         reward: reward,
       );
 
-  /// Constructs a transaction with the specified blob data encoded to Base64 and computed data size.
+  /// Constructs a transaction with the specified blob data and computed data size.
   factory Transaction.withBlobData({
-    int format = 1,
     String owner,
     List<Tag> tags,
     String target = "",
@@ -128,7 +125,6 @@ class Transaction {
     BigInt reward,
   }) =>
       Transaction(
-        format: format,
         owner: owner,
         tags: tags,
         target: target,
@@ -141,6 +137,12 @@ class Transaction {
   void setLastTx(String lastTx) => _lastTx = lastTx;
 
   void setOwner(String owner) => _owner = owner;
+
+  /// Sets the data and data size of this transaction.
+  void setData(Uint8List data) {
+    _data = data;
+    _dataSize = data.lengthInBytes.toString();
+  }
 
   void setReward(BigInt reward) => _reward = reward;
 

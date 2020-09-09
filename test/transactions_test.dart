@@ -15,7 +15,7 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
-    test('create and sign v1 data transaction', () async {
+    test('create and sign data transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions
@@ -72,7 +72,6 @@ void main() {
 
       final tx = await client.transactions.prepare(
         Transaction.withBlobData(
-          format: 2,
           data: unsignedV2Tx.data,
           reward: utils.arToWinston('100'),
         ),

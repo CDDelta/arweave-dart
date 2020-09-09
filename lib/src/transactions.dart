@@ -1,10 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
-
 import 'api/api.dart';
 import 'models/models.dart';
-import 'utils.dart';
 
 class ArweaveTransactionsApi {
   final ArweaveApi _api;
@@ -78,6 +75,9 @@ class ArweaveTransactionsApi {
     assert(transaction.data != null ||
         (transaction.target != null && transaction.quantity != null));
 
+    if (transaction.format == 1)
+      throw ArgumentError('Creating v1 transactions is not supported.');
+
     if (transaction.owner == null && wallet != null)
       transaction.setOwner(wallet.owner);
 
@@ -92,17 +92,29 @@ class ArweaveTransactionsApi {
         ),
       );
 
-    if (transaction.format == 2) await transaction.prepareChunks();
+    await transaction.prepareChunks();
 
     return transaction;
   }
 
-  Future<Response> post(Transaction transaction) {
-    if (transaction.format != 1)
-      throw ArgumentError('Only transaction format v1 can be posted.');
+  /// Returns an uploader than can be used to upload a transaction chunk by chunk, giving progress
+  /// and the ability to resume.
+  Future<TransactionUploader> getUploader(Transaction transaction) async =>
+      TransactionUploader(transaction, _api);
 
-    final txJson = transaction.toJson();
-    txJson['data'] = encodeBytesToBase64(transaction.data);
-    return _api.post('tx', body: txJson);
+  /// Uploads the transaction in full, returning a stream of events signaling the status of the upload.
+  Stream<TransactionUploader> upload(Transaction transaction) async* {
+    final uploader = await getUploader(transaction);
+
+    while (!uploader.isComplete) {
+      await uploader.uploadChunk();
+      yield uploader;
+    }
+  }
+
+  /// Uploads the transaction in full. Useful for small data or wallet transactions.
+  Future<void> post(Transaction transaction) async {
+    final uploader = await getUploader(transaction);
+    while (!uploader.isComplete) await uploader.uploadChunk();
   }
 }
