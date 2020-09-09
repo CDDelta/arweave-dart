@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -50,7 +51,8 @@ class _LeafNode extends _MerkleNode {
 
 const MAX_CHUNK_SIZE = 256 * 1024;
 const MIN_CHUNK_SIZE = 32 * 1024;
-const _NOTE_SIZE = 32;
+const HASH_SIZE = 32;
+const NOTE_SIZE = 32;
 
 /// Builds an Arweave Merkle tree and returns the root hash for the given input.
 Future<Uint8List> computeRootHash(Uint8List data) async {
@@ -217,8 +219,78 @@ List<Object> _resolveBranchProofs(_MerkleNode node,
   throw ArgumentError('Unexpected node type');
 }
 
+Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
+    Uint8List path) async {
+  if (rightBound <= 0) return false;
+
+  if (dest >= rightBound)
+    return validatePath(id, 0, rightBound - 1, rightBound, path);
+
+  if (dest < 0) return validatePath(id, 0, 0, rightBound, path);
+
+  if (path.length == HASH_SIZE + NOTE_SIZE) {
+    final pathData = Uint8List.sublistView(path, 0, HASH_SIZE);
+    final endOffsetBuffer = Uint8List.sublistView(
+        path, pathData.length, pathData.length + NOTE_SIZE);
+
+    final pathDataHash = sha256
+        .convert(
+          sha256.convert(pathData).bytes +
+              sha256.convert(endOffsetBuffer).bytes,
+        )
+        .bytes;
+
+    return _compareArray(id, pathDataHash);
+  }
+
+  final left = Uint8List.sublistView(path, 0, HASH_SIZE);
+  final right =
+      Uint8List.sublistView(path, left.length, left.length + HASH_SIZE);
+  final offsetBuffer = Uint8List.sublistView(
+      path, left.length + right.length, left.length + right.length + NOTE_SIZE);
+  final offset = _bufferToInt(offsetBuffer);
+
+  final remainder = Uint8List.sublistView(
+      path, left.length + right.length + offsetBuffer.length);
+
+  final pathHash = sha256
+      .convert(
+        sha256.convert(left).bytes +
+            sha256.convert(right).bytes +
+            sha256.convert(offsetBuffer).bytes,
+      )
+      .bytes;
+
+  if (_compareArray(id, pathHash)) {
+    if (dest < offset)
+      return validatePath(
+          left, dest, leftBound, math.min(rightBound, offset), remainder);
+
+    return validatePath(
+        right, dest, math.max(leftBound, offset), rightBound, remainder);
+  }
+
+  return false;
+}
+
+bool _compareArray(Uint8List a, Uint8List b) {
+  for (var i = 0; i < a.length; i++) if (a[i] != b[i]) return false;
+  return true;
+}
+
+int _bufferToInt(Uint8List buffer) {
+  int value = 0;
+
+  for (var i = 0; i < buffer.length; i++) {
+    value *= 256;
+    value += buffer[i];
+  }
+
+  return value;
+}
+
 Uint8List _intToBuffer(int note) {
-  final buffer = Uint8List(_NOTE_SIZE);
+  final buffer = Uint8List(NOTE_SIZE);
 
   for (var i = buffer.length - 1; i >= 0; i--) {
     var byte = note % 256;

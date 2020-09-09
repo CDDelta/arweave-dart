@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/utils.dart' as utils;
@@ -84,6 +85,24 @@ void main() {
 
       expect(tx.dataRoot, signedV2Tx.dataRoot);
       expect(tx.signature, signedV2Tx.signature);
+    });
+
+    test('validate all chunks from 1mb.bin test file', () async {
+      final data = await File('test/fixtures/1mb.bin').readAsBytes();
+      final wallet = await getTestWallet();
+
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one), wallet);
+      expect(transaction.setData(data), completion(null));
+    });
+
+    test('validate all chunks from lotsofdata.bin test file', () async {
+      final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
+      final wallet = await getTestWallet();
+
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one), wallet);
+      expect(transaction.setData(data), completion(null));
     });
 
     test('get and verify transaction', () async {

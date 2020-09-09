@@ -61,8 +61,13 @@ class Transaction {
   String get signature => _signature;
   String _signature;
 
+  /// Constructs a transaction from the specified parameters.
+  ///
+  /// [Transaction.withStringData()] and [Transaction.withBlobData()] is the recommended way to construct data transactions.
+  /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   @JsonKey(ignore: true)
-  TransactionChunksWithProofs chunks;
+  TransactionChunksWithProofs get chunks => _chunks;
+  TransactionChunksWithProofs _chunks;
 
   /// This constructor is reserved for JSON serialisation.
   /// [Transaction.withStringData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
@@ -139,9 +144,24 @@ class Transaction {
   void setOwner(String owner) => _owner = owner;
 
   /// Sets the data and data size of this transaction.
-  void setData(Uint8List data) {
+  ///
+  /// Also chunks and validates the incoming data for format 2 transactions.
+  Future<void> setData(Uint8List data) async {
     _data = data;
     _dataSize = data.lengthInBytes.toString();
+
+    if (format == 2) {
+      _chunks = null;
+      await prepareChunks();
+
+      for (var i = 0; i < chunks.chunks.length; i++) {
+        final proof = chunks.proofs[i];
+        final chunkValid = await validatePath(
+            chunks.dataRoot, proof.offset, 0, int.parse(dataSize), proof.proof);
+
+        if (!chunkValid) throw StateError('Unable to validate chunk: $i');
+      }
+    }
   }
 
   void setReward(BigInt reward) => _reward = reward;
@@ -150,10 +170,10 @@ class Transaction {
     if (chunks != null) return;
 
     if (data.isNotEmpty) {
-      chunks = await generateTransactionChunks(data);
+      _chunks = await generateTransactionChunks(data);
       _dataRoot = encodeBytesToBase64(chunks.dataRoot);
     } else {
-      chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
+      _chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
     }
   }
 
