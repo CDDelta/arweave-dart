@@ -64,10 +64,10 @@ class ArweaveTransactionsApi {
         },
       );
 
-  /// Prepares a transaction for uploading.
+  /// Prepares a transaction with the required details.
   ///
-  /// Sets the transaction owner if a wallet is specified, the transaction anchor, and reward.
-  /// Also chunks the transaction data for v2 transactions.
+  /// Chunks the transaction data, sets the transaction anchor, reward,
+  /// and the transaction owner if a wallet is specified,
   Future<Transaction> prepare(
     Transaction transaction, [
     Wallet wallet,
