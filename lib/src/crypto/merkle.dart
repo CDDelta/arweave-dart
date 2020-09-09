@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 
 class TransactionChunksWithProofs {
   final Uint8List dataRoot;
@@ -47,8 +48,8 @@ class _LeafNode extends _MerkleNode {
       : super(id, maxByteRange);
 }
 
-const _MAX_CHUNK_SIZE = 256 * 1024;
-const _MIN_CHUNK_SIZE = 32 * 1024;
+const MAX_CHUNK_SIZE = 256 * 1024;
+const MIN_CHUNK_SIZE = 32 * 1024;
 const _NOTE_SIZE = 32;
 
 /// Builds an Arweave Merkle tree and returns the root hash for the given input.
@@ -58,7 +59,7 @@ Future<Uint8List> computeRootHash(Uint8List data) async {
 }
 
 Future<_MerkleNode> generateTree(Uint8List data) async {
-  final chunks = await _chunkData(data);
+  final chunks = await chunkData(data);
   final leaves = await _generateLeaves(chunks);
   return _buildLayers(leaves);
 }
@@ -70,10 +71,10 @@ Future<_MerkleNode> generateTree(Uint8List data) async {
 /// (we do not need to upload this zero length chunk)
 Future<TransactionChunksWithProofs> generateTransactionChunks(
     Uint8List data) async {
-  final chunks = await _chunkData(data);
+  final chunks = await chunkData(data);
   final leaves = await _generateLeaves(chunks);
   final root = await _buildLayers(leaves);
-  final proofs = await _generateProofs(root);
+  final proofs = await generateProofs(root);
 
   // Discard the last chunk & proof if it's zero length.
   if (chunks.last.maxByteRange - chunks.last.minByteRange == 0) {
@@ -87,19 +88,20 @@ Future<TransactionChunksWithProofs> generateTransactionChunks(
 /// Takes the input data and chunks it into (mostly) equal sized chunks.
 /// The last chunk will be a bit smaller as it contains the remainder
 /// from the chunking process.
-Future<List<_Chunk>> _chunkData(Uint8List data) async {
+@visibleForTesting
+Future<List<_Chunk>> chunkData(Uint8List data) async {
   final chunks = <_Chunk>[];
 
   var rest = data;
   var cursor = 0;
 
-  while (rest.lengthInBytes >= _MAX_CHUNK_SIZE) {
-    var chunkSize = _MAX_CHUNK_SIZE;
+  while (rest.lengthInBytes >= MAX_CHUNK_SIZE) {
+    var chunkSize = MAX_CHUNK_SIZE;
 
     // If the total bytes left will produce a chunk < MIN_CHUNK_SIZE,
     // then adjust the amount we put in this 2nd last chunk.
-    var nextChunkSize = rest.lengthInBytes - _MAX_CHUNK_SIZE;
-    if (nextChunkSize > 0 && nextChunkSize < _MIN_CHUNK_SIZE)
+    var nextChunkSize = rest.lengthInBytes - MAX_CHUNK_SIZE;
+    if (nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE)
       chunkSize = (rest.lengthInBytes / 2).ceil();
 
     final chunk = Uint8List.sublistView(rest, 0, chunkSize);
@@ -176,7 +178,8 @@ class Proof {
 
 /// Recursively search through all branches of the tree,
 /// and generate a proof for each leaf node.
-List<Proof> _generateProofs(_MerkleNode root) {
+@visibleForTesting
+List<Proof> generateProofs(_MerkleNode root) {
   List<Object> proofs = _resolveBranchProofs(root);
 
   flatten(Iterable iter) => iter.fold([], (List xs, s) {
