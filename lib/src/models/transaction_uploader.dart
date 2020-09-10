@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/src/api/api.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import '../utils.dart';
 import 'transaction.dart';
-
-part 'transaction_uploader.g.dart';
 
 /// Maximum amount of chunks we will upload in the body.
 const MAX_CHUNKS_IN_BODY = 1;
@@ -51,13 +49,15 @@ class TransactionUploader {
   }
 
   TransactionUploader._(
-      {int chunkIndex,
+      {ArweaveApi api,
+      int chunkIndex,
       bool txPosted,
       Transaction transaction,
       int lastRequestTimeEnd,
       this.lastResponseStatus,
       this.lastResponseError})
-      : _chunkIndex = chunkIndex,
+      : _api = api,
+        _chunkIndex = chunkIndex,
         _txPosted = txPosted,
         _transaction = transaction,
         _lastRequestTimeEnd = lastRequestTimeEnd;
@@ -165,48 +165,31 @@ class TransactionUploader {
     _txPosted = true;
   }
 
-  factory TransactionUploader.deserialize(
-          SerializedTransactionUploader serialized) =>
-      TransactionUploader._(
-        chunkIndex: serialized.chunkIndex,
-        txPosted: serialized.txPosted,
-        transaction: serialized.transaction,
-        lastRequestTimeEnd: serialized.lastRequestTimeEnd,
-        lastResponseError: serialized.lastResponseError,
-        lastResponseStatus: serialized.lastResponseStatus,
-      );
-  SerializedTransactionUploader serialize() => SerializedTransactionUploader(
-        chunkIndex: _chunkIndex,
-        txPosted: _txPosted,
-        transaction: _transaction,
-        lastRequestTimeEnd: _lastRequestTimeEnd,
-        lastResponseError: lastResponseError,
-        lastResponseStatus: lastResponseStatus,
-      );
-  factory TransactionUploader.fromJson(Map<String, dynamic> json) =>
-      TransactionUploader.deserialize(
-          SerializedTransactionUploader.fromJson(json));
-  Map<String, dynamic> toJson() => serialize().toJson();
-}
+  static Future<TransactionUploader> deserialize(
+      Map<String, dynamic> json, Uint8List data, ArweaveApi api) async {
+    final transaction = json['transaction'] != null
+        ? Transaction.fromJson(json['transaction'])
+        : null;
 
-@JsonSerializable()
-class SerializedTransactionUploader {
-  final int chunkIndex;
-  final bool txPosted;
-  final Transaction transaction;
-  final int lastRequestTimeEnd;
-  final int lastResponseStatus;
-  final String lastResponseError;
+    await transaction.setData(data);
 
-  SerializedTransactionUploader(
-      {this.chunkIndex,
-      this.txPosted,
-      this.transaction,
-      this.lastRequestTimeEnd,
-      this.lastResponseStatus,
-      this.lastResponseError});
+    return TransactionUploader._(
+      api: api,
+      chunkIndex: json['chunkIndex'] as int,
+      txPosted: json['txPosted'] as bool,
+      transaction: transaction,
+      lastRequestTimeEnd: json['lastRequestTimeEnd'] as int,
+      lastResponseStatus: json['lastResponseStatus'] as int,
+      lastResponseError: json['lastResponseError'] as String,
+    );
+  }
 
-  factory SerializedTransactionUploader.fromJson(Map<String, dynamic> json) =>
-      _$SerializedTransactionUploaderFromJson(json);
-  Map<String, dynamic> toJson() => _$SerializedTransactionUploaderToJson(this);
+  Map<String, dynamic> serialize() => <String, dynamic>{
+        'chunkIndex': _chunkIndex,
+        'txPosted': _txPosted,
+        'transaction': _transaction.toJson()..['data'] = null,
+        'lastRequestTimeEnd': _lastRequestTimeEnd,
+        'lastResponseStatus': lastResponseStatus,
+        'lastResponseError': lastResponseError,
+      };
 }

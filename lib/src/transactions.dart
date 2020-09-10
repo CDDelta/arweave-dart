@@ -105,12 +105,12 @@ class ArweaveTransactionsApi {
   /// Returns an uploader than can be used to upload a transaction chunk by chunk, giving progress
   /// and the ability to resume.
   Future<TransactionUploader> getUploader(Transaction transaction,
-          {bool forDataOnly}) async =>
+          {bool forDataOnly = false}) async =>
       TransactionUploader(transaction, _api, forDataOnly: forDataOnly);
 
   /// Uploads the transaction in full, returning a stream of events signaling the status of the upload.
   Stream<TransactionUploader> upload(Transaction transaction,
-      {bool dataOnly}) async* {
+      {bool dataOnly = false}) async* {
     final uploader = await getUploader(transaction, forDataOnly: dataOnly);
 
     while (!uploader.isComplete) {

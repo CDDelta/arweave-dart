@@ -131,6 +131,25 @@ void main() {
       );
     });
 
+    test('upload transaction with serialised uploader', () async {
+      final data = utf8.encode('Hello world!');
+      final wallet = await getTestWallet();
+      final transaction = await client.transactions.prepare(
+        Transaction.withBlobData(data: data),
+        wallet,
+      );
+
+      await transaction.sign(wallet);
+
+      final uploader = await client.transactions.getUploader(transaction);
+      final reloadedUploader = await TransactionUploader.deserialize(
+          uploader.serialize(), data, client.api);
+
+      // Technically this should fail since the test wallet has no AR but the
+      // HTTP API doesn't return an error so there's nothing we can do about it.
+      expect(reloadedUploader.uploadChunk(), completion(null));
+    });
+
     test('get and verify transaction', () async {
       final transaction = await client.transactions.get(liveDataTxId);
       expect(await transaction.verify(), isTrue);
