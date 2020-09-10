@@ -40,9 +40,11 @@ class TransactionUploader {
 
   ArweaveApi _api;
 
-  TransactionUploader(Transaction transaction, ArweaveApi api)
+  TransactionUploader(Transaction transaction, ArweaveApi api,
+      {bool forDataOnly = false})
       : _transaction = transaction,
-        _api = api {
+        _api = api,
+        _txPosted = forDataOnly {
     if (transaction.id == null) throw ArgumentError('Transaction not signed.');
     if (transaction.chunks == null)
       throw ArgumentError('Transaction chunks not prepared.');

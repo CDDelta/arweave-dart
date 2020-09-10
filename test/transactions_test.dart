@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/utils.dart' as utils;
@@ -87,22 +88,34 @@ void main() {
       expect(tx.signature, signedV2Tx.signature);
     });
 
-    test('validate all chunks from 1mb.bin test file', () async {
+    test('successfully validate data from 1mb.bin set on prepared transaction',
+        () async {
       final data = await File('test/fixtures/1mb.bin').readAsBytes();
-      final wallet = await getTestWallet();
 
-      final transaction = await client.transactions.prepare(
-          Transaction.withBlobData(data: data, reward: BigInt.one), wallet);
+      final transaction = await client.transactions
+          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
       expect(transaction.setData(data), completion(null));
     });
 
-    test('validate all chunks from lotsofdata.bin test file', () async {
+    test(
+        'successfully validate data from lotsofdata.bin set on prepared transaction',
+        () async {
       final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
-      final wallet = await getTestWallet();
 
-      final transaction = await client.transactions.prepare(
-          Transaction.withBlobData(data: data, reward: BigInt.one), wallet);
+      final transaction = await client.transactions
+          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
       expect(transaction.setData(data), completion(null));
+    });
+
+    test('error when invalid data is set on prepared transaction', () async {
+      final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
+
+      final transaction = await client.transactions
+          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      expect(
+        transaction.setData(Uint8List.sublistView(data, 1)),
+        throwsStateError,
+      );
     });
 
     test('get and verify transaction', () async {

@@ -151,16 +151,14 @@ class Transaction {
     _dataSize = data.lengthInBytes.toString();
 
     if (format == 2) {
+      final existingDataRoot = _dataRoot;
       _chunks = null;
+
       await prepareChunks();
 
-      for (var i = 0; i < chunks.chunks.length; i++) {
-        final proof = chunks.proofs[i];
-        final chunkValid = await validatePath(
-            chunks.dataRoot, proof.offset, 0, int.parse(dataSize), proof.proof);
-
-        if (!chunkValid) throw StateError('Unable to validate chunk: $i');
-      }
+      if (existingDataRoot != dataRoot)
+        throw StateError(
+            'Incoming data does not match data transaction was prepared with.');
     }
   }
 
