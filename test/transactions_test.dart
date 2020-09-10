@@ -118,6 +118,19 @@ void main() {
       );
     });
 
+    test('upload data to transaction already on network', () async {
+      final transaction = await client.transactions
+          .get('8C6yYu5pWMADLSd65wTnrzgN-9eLj9sFbyVC3prSaFs');
+
+      await transaction
+          .setData(utf8.encode('{"name":"Blockchains & Cryptocurrencies"}'));
+
+      expect(
+        client.transactions.upload(transaction, dataOnly: true).drain(),
+        completion(null),
+      );
+    });
+
     test('get and verify transaction', () async {
       final transaction = await client.transactions.get(liveDataTxId);
       expect(await transaction.verify(), isTrue);
