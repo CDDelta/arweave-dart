@@ -46,15 +46,15 @@ class Wallet {
 
   Map<String, dynamic> toJwk() => {
         'kty': 'RSA',
-        'e': encodeBigIntToBase64(_publicKey.e),
+        'e': encodeBigIntToBase64(_publicKey.publicExponent),
         'n': encodeBigIntToBase64(_publicKey.n),
-        'd': encodeBigIntToBase64(_privateKey.d),
+        'd': encodeBigIntToBase64(_privateKey.privateExponent),
         'p': encodeBigIntToBase64(_privateKey.p),
         'q': encodeBigIntToBase64(_privateKey.q),
         'dp': encodeBigIntToBase64(
-            _privateKey.d % (_privateKey.p - BigInt.from(1))),
+            _privateKey.privateExponent % (_privateKey.p - BigInt.from(1))),
         'dq': encodeBigIntToBase64(
-            _privateKey.d % (_privateKey.q - BigInt.from(1))),
+            _privateKey.privateExponent % (_privateKey.q - BigInt.from(1))),
         'qi': encodeBigIntToBase64(_privateKey.q.modInverse(_privateKey.p)),
       };
 }
