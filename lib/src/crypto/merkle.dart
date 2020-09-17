@@ -103,8 +103,9 @@ Future<List<_Chunk>> chunkData(Uint8List data) async {
     // If the total bytes left will produce a chunk < MIN_CHUNK_SIZE,
     // then adjust the amount we put in this 2nd last chunk.
     var nextChunkSize = rest.lengthInBytes - MAX_CHUNK_SIZE;
-    if (nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE)
+    if (nextChunkSize > 0 && nextChunkSize < MIN_CHUNK_SIZE) {
       chunkSize = (rest.lengthInBytes / 2).ceil();
+    }
 
     final chunk = Uint8List.sublistView(rest, 0, chunkSize);
     final dataHash = sha256.convert(chunk).bytes;
@@ -148,9 +149,10 @@ Future<_MerkleNode> _buildLayers(List<_MerkleNode> nodes,
 
   final nextLayer = <_MerkleNode>[];
 
-  for (var i = 0; i < nodes.length; i += 2)
+  for (var i = 0; i < nodes.length; i += 2) {
     nextLayer.add(await _hashBranch(
         nodes[i], i + 1 < nodes.length ? nodes[i + 1] : null));
+  }
 
   return _buildLayers(nextLayer, level + 1);
 }
@@ -182,9 +184,9 @@ class Proof {
 /// and generate a proof for each leaf node.
 @visibleForTesting
 List<Proof> generateProofs(_MerkleNode root) {
-  List<Object> proofs = _resolveBranchProofs(root);
+  final proofs = _resolveBranchProofs(root);
 
-  flatten(Iterable iter) => iter.fold([], (List xs, s) {
+  List<dynamic> flatten(Iterable iter) => iter.fold([], (List xs, s) {
         s is Iterable ? xs.addAll(flatten(s)) : xs.add(s);
         return xs;
       });
@@ -197,7 +199,7 @@ List<Object> _resolveBranchProofs(_MerkleNode node,
     [List<int> proof, depth = 0]) {
   proof = proof ?? <int>[];
 
-  if (node is _LeafNode)
+  if (node is _LeafNode) {
     return [
       Proof(
         node.maxByteRange - 1,
@@ -205,7 +207,7 @@ List<Object> _resolveBranchProofs(_MerkleNode node,
             proof + node.dataHash + _intToBuffer(node.maxByteRange)),
       )
     ];
-  else if (node is _BranchNode) {
+  } else if (node is _BranchNode) {
     final partialProof = proof +
         node.leftChild.id +
         node.rightChild.id +
@@ -223,8 +225,9 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
     Uint8List path) async {
   if (rightBound <= 0) return false;
 
-  if (dest >= rightBound)
+  if (dest >= rightBound) {
     return validatePath(id, 0, rightBound - 1, rightBound, path);
+  }
 
   if (dest < 0) return validatePath(id, 0, 0, rightBound, path);
 
@@ -262,9 +265,10 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
       .bytes;
 
   if (_compareArray(id, pathHash)) {
-    if (dest < offset)
+    if (dest < offset) {
       return validatePath(
           left, dest, leftBound, math.min(rightBound, offset), remainder);
+    }
 
     return validatePath(
         right, dest, math.max(leftBound, offset), rightBound, remainder);
@@ -274,12 +278,14 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
 }
 
 bool _compareArray(Uint8List a, Uint8List b) {
-  for (var i = 0; i < a.length; i++) if (a[i] != b[i]) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
   return true;
 }
 
 int _bufferToInt(Uint8List buffer) {
-  int value = 0;
+  var value = 0;
 
   for (var i = 0; i < buffer.length; i++) {
     value *= 256;

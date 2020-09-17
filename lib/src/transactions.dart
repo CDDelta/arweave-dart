@@ -6,38 +6,40 @@ import 'models/models.dart';
 class ArweaveTransactionsApi {
   final ArweaveApi _api;
 
-  ArweaveTransactionsApi(ArweaveApi api) : this._api = api;
+  ArweaveTransactionsApi(ArweaveApi api) : _api = api;
 
   Future<String> getTransactionAnchor() =>
-      this._api.get('tx_anchor').then((res) => res.body);
+      _api.get('tx_anchor').then((res) => res.body);
 
-  Future<BigInt> getPrice({int byteSize, String targetAddress = null}) {
+  Future<BigInt> getPrice({int byteSize, String targetAddress}) {
     final endpoint = targetAddress != null
         ? 'price/$byteSize/$targetAddress'
         : 'price/$byteSize';
-    return this._api.get(endpoint).then((res) => BigInt.parse(res.body));
+    return _api.get(endpoint).then((res) => BigInt.parse(res.body));
   }
 
   /// Get a transaction by its ID.
   ///
   /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
   Future<Transaction> get(String id) async {
-    final res = await this._api.get('tx/$id');
+    final res = await _api.get('tx/$id');
 
-    if (res.statusCode == 200)
+    if (res.statusCode == 200) {
       return Transaction.fromJson(json.decode(res.body));
+    }
 
     // TODO: Throw on other status codes
     return null;
   }
 
   Future<TransactionStatus> getStatus(String id) =>
-      this._api.get('tx/$id/status').then((res) {
-        if (res.statusCode == 200)
+      _api.get('tx/$id/status').then((res) {
+        if (res.statusCode == 200) {
           return TransactionStatus(
               status: 200,
               confirmed:
                   TransactionConfimedData.fromJson(json.decode(res.body)));
+        }
 
         return TransactionStatus(status: res.statusCode);
       });
@@ -45,10 +47,8 @@ class ArweaveTransactionsApi {
   /// Get the data associated with a transaction.
   ///
   /// Optionally provide an extension to decode the data.
-  Future<String> getData(String id, [String extension]) => this
-          ._api
-          .get('tx/$id/data${extension != null ? '.$extension' : ''}')
-          .then(
+  Future<String> getData(String id, [String extension]) =>
+      _api.get('tx/$id/data${extension != null ? '.$extension' : ''}').then(
         (res) {
           if (res.statusCode == 200) return res.body;
           return null;
@@ -56,13 +56,13 @@ class ArweaveTransactionsApi {
       );
 
   Future<List<String>> search(String tagName, String tagValue) => arql({
-        "op": "equals",
-        "expr1": tagName,
-        "expr2": tagValue,
+        'op': 'equals',
+        'expr1': tagName,
+        'expr2': tagValue,
       });
 
   Future<List<String>> arql(Map<String, dynamic> query) =>
-      this._api.post('arql', body: json.encode(query)).then(
+      _api.post('arql', body: json.encode(query)).then(
         (res) {
           if (res.body == '') return [];
           return (json.decode(res.body) as List<dynamic>).cast<String>();
@@ -80,22 +80,26 @@ class ArweaveTransactionsApi {
     assert(transaction.data != null ||
         (transaction.target != null && transaction.quantity != null));
 
-    if (transaction.format == 1)
+    if (transaction.format == 1) {
       throw ArgumentError('Creating v1 transactions is not supported.');
+    }
 
-    if (transaction.owner == null && wallet != null)
+    if (transaction.owner == null && wallet != null) {
       transaction.setOwner(wallet.owner);
+    }
 
-    if (transaction.lastTx == null)
+    if (transaction.lastTx == null) {
       transaction.setLastTx(await getTransactionAnchor());
+    }
 
-    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty)
+    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty) {
       transaction.setReward(
         await getPrice(
           byteSize: int.parse(transaction.dataSize),
           targetAddress: transaction.target,
         ),
       );
+    }
 
     await transaction.prepareChunks();
 
@@ -122,6 +126,8 @@ class ArweaveTransactionsApi {
   /// Uploads the transaction in full. Useful for small data or wallet transactions.
   Future<void> post(Transaction transaction) async {
     final uploader = await getUploader(transaction);
-    while (!uploader.isComplete) await uploader.uploadChunk();
+    while (!uploader.isComplete) {
+      await uploader.uploadChunk();
+    }
   }
 }

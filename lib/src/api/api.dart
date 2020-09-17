@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'gateway_common.dart' if (dart.library.html) 'gateway_web.dart';
 
 class ArweaveApi {
-  http.Client _client;
+  final http.Client _client;
 
-  Uri _gatewayUrl;
+  final Uri _gatewayUrl;
 
   ArweaveApi({
     Uri gatewayUrl,

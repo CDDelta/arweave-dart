@@ -26,6 +26,7 @@ void main() async {
   await client.transactions.post(transaction);
 
   // Or for larger data transactions, upload it progressively:
-  await for (final upload in client.transactions.upload(transaction))
+  await for (final upload in client.transactions.upload(transaction)) {
     print('${upload.percentageComplete}%');
+  }
 }

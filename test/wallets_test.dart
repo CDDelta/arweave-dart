@@ -6,9 +6,9 @@ import 'package:test/test.dart';
 
 import 'utils.dart';
 
-const liveAddressBalance = "498557055636";
-const liveAddress = "9_666Wkk2GzL0LGd3xhb0jY7HqNy71BaV4sULQlJsBQ";
-const liveTxid = "CE-1SFiXqWUEu0aSTebE6LC0-5JBAc3IAehYGwdF5iI";
+const liveAddressBalance = '498557055636';
+const liveAddress = '9_666Wkk2GzL0LGd3xhb0jY7HqNy71BaV4sULQlJsBQ';
+const liveTxid = 'CE-1SFiXqWUEu0aSTebE6LC0-5JBAc3IAehYGwdF5iI';
 
 void main() {
   final client = Arweave();

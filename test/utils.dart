@@ -17,6 +17,8 @@ Future<Wallet> getTestWallet(
 final random = Random();
 Uint8List randomBytes(int length) {
   final bytes = Uint8List(length);
-  for (var i = 0; i < length; i++) bytes[i] = random.nextInt(256);
+  for (var i = 0; i < length; i++) {
+    bytes[i] = random.nextInt(256);
+  }
   return bytes;
 }

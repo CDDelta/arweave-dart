@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'utils.dart';
 
-const liveDataTxId = "bNbA3TEQVL60xlgCcqdz4ZPHFZ711cZ3hmkpGttDt_U";
+const liveDataTxId = 'bNbA3TEQVL60xlgCcqdz4ZPHFZ711cZ3hmkpGttDt_U';
 
 void main() {
   final client = Arweave();
@@ -23,9 +23,9 @@ void main() {
       final transaction = await client.transactions
           .prepare(Transaction.withStringData(data: 'test'), wallet);
 
-      transaction.addTag("test-tag-1", "test-value-1");
-      transaction.addTag("test-tag-2", "test-value-2");
-      transaction.addTag("test-tag-3", "test-value-3");
+      transaction.addTag('test-tag-1', 'test-value-1');
+      transaction.addTag('test-tag-2', 'test-value-2');
+      transaction.addTag('test-tag-3', 'test-value-3');
 
       expect(utf8.decode(transaction.data), equals('test'));
       expect(transaction.lastTx, matches(transactionFieldPattern));
@@ -163,7 +163,7 @@ void main() {
 
     test('get transaction data', () async {
       final txData = await client.transactions.getData(liveDataTxId);
-      expect(txData, contains("CjwhRE9DVFlQRSBodG1sPgo"));
+      expect(txData, contains('CjwhRE9DVFlQRSBodG1sPgo'));
     });
 
     test('search transactions', () async {

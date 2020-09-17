@@ -28,15 +28,15 @@ const FATAL_CHUNK_UPLOAD_ERRORS = [
 class TransactionUploader {
   int _chunkIndex = 0;
   bool _txPosted = false;
-  Transaction _transaction;
   int _lastRequestTimeEnd = 0;
   int _totalErrors = 0;
-  Random _random = Random();
 
   int lastResponseStatus = 0;
   String lastResponseError = '';
 
-  ArweaveApi _api;
+  final Transaction _transaction;
+  final ArweaveApi _api;
+  final Random _random = Random();
 
   TransactionUploader(Transaction transaction, ArweaveApi api,
       {bool forDataOnly = false})
@@ -44,8 +44,9 @@ class TransactionUploader {
         _api = api,
         _txPosted = forDataOnly {
     if (transaction.id == null) throw ArgumentError('Transaction not signed.');
-    if (transaction.chunks == null)
+    if (transaction.chunks == null) {
       throw ArgumentError('Transaction chunks not prepared.');
+    }
   }
 
   TransactionUploader._(
@@ -75,16 +76,18 @@ class TransactionUploader {
   Future<void> uploadChunk() async {
     if (isComplete) throw StateError('Upload is already complete.');
 
-    if (lastResponseError.isNotEmpty)
+    if (lastResponseError.isNotEmpty) {
       _totalErrors++;
-    else
+    } else {
       _totalErrors = 0;
+    }
 
     // We have been trying for about an hour receiving an
     // error every time, so eventually bail.
-    if (_totalErrors == 100)
+    if (_totalErrors == 100) {
       throw StateError(
           'Unable to complete upload: $lastResponseStatus: $lastResponseError');
+    }
 
     var delay = lastResponseError.isEmpty
         ? 0
@@ -159,8 +162,9 @@ class TransactionUploader {
     _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
     lastResponseStatus = res.statusCode;
 
-    if (!(res.statusCode >= 200 && res.statusCode < 300))
+    if (!(res.statusCode >= 200 && res.statusCode < 300)) {
       throw StateError('Unable to upload transaction: ${res.statusCode}');
+    }
 
     _txPosted = true;
   }

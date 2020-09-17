@@ -77,11 +77,11 @@ class Transaction {
     String lastTx,
     String owner,
     List<Tag> tags,
-    String target = "",
+    String target = '',
     BigInt quantity,
     String data,
     Uint8List dataBytes,
-    String dataSize = "0",
+    String dataSize = '0',
     String dataRoot,
     BigInt reward,
     String signature,
@@ -106,7 +106,7 @@ class Transaction {
   factory Transaction.withStringData({
     String owner,
     List<Tag> tags,
-    String target = "",
+    String target = '',
     BigInt quantity,
     String data,
     BigInt reward,
@@ -124,7 +124,7 @@ class Transaction {
   factory Transaction.withBlobData({
     String owner,
     List<Tag> tags,
-    String target = "",
+    String target = '',
     BigInt quantity,
     Uint8List data,
     BigInt reward,
@@ -156,9 +156,10 @@ class Transaction {
 
       await prepareChunks();
 
-      if (existingDataRoot != dataRoot)
+      if (existingDataRoot != dataRoot) {
         throw StateError(
             'Incoming data does not match data transaction was prepared with.');
+      }
     }
   }
 
@@ -193,8 +194,8 @@ class Transaction {
   }
 
   void setSignature(String signature, String id) {
-    this._signature = signature;
-    this._id = id;
+    _signature = signature;
+    _id = id;
   }
 
   Future<Uint8List> getSignatureData() async {
@@ -238,7 +239,7 @@ class Transaction {
   }
 
   void addTag(String name, String value) {
-    this.tags.add(Tag(encodeStringToBase64(name), encodeStringToBase64(value)));
+    tags.add(Tag(encodeStringToBase64(name), encodeStringToBase64(value)));
   }
 
   Future<void> sign(Wallet wallet) async {

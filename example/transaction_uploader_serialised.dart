@@ -32,5 +32,7 @@ void main() async {
       uploaderJson, utf8.encode('Hello world!'), client.api);
 
   // Resume the upload.
-  while (!reloadedUploader.isComplete) await reloadedUploader.uploadChunk();
+  while (!reloadedUploader.isComplete) {
+    await reloadedUploader.uploadChunk();
+  }
 }

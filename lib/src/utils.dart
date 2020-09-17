@@ -15,9 +15,10 @@ String decodeBase64ToString(String base64) =>
 
 BigInt decodeBase64ToBigInt(String base64) {
   final bytes = decodeBase64ToBytes(base64);
-  BigInt result = BigInt.from(0);
-  for (int i = 0; i < bytes.length; i++)
+  var result = BigInt.from(0);
+  for (var i = 0; i < bytes.length; i++) {
     result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
+  }
   return result;
 }
 
@@ -29,9 +30,9 @@ String encodeBytesToBase64(List<int> bytes) =>
 
 final _byteMask = BigInt.from(0xff);
 Uint8List encodeBigIntToBytes(BigInt bigInt) {
-  int size = (bigInt.bitLength + 7) >> 3;
+  var size = (bigInt.bitLength + 7) >> 3;
   var result = Uint8List(size);
-  for (int i = 0; i < size; i++) {
+  for (var i = 0; i < size; i++) {
     result[size - i - 1] = (bigInt & _byteMask).toInt();
     bigInt = bigInt >> 8;
   }
@@ -42,8 +43,9 @@ String encodeBigIntToBase64(BigInt bigInt) =>
     encodeBytesToBase64(encodeBigIntToBytes(bigInt));
 
 BigInt arToWinston(String ar) {
-  if (ar.startsWith('.') || ar.endsWith('.'))
+  if (ar.startsWith('.') || ar.endsWith('.')) {
     throw ArgumentError('AR format is invalid.');
+  }
 
   if (ar.contains('.')) {
     final decimalPoint = ar.lastIndexOf('.');
@@ -61,12 +63,13 @@ String winstonToAr(BigInt winston) {
   var bit = winston.toString().padLeft(12, '0');
 
   // The Winston amount is less than 1 AR.
-  if (bit.length == 12)
+  if (bit.length == 12) {
     bit = '0.' + bit;
-  else
+  } else {
     bit = bit.substring(0, bit.length - 12) +
         '.' +
         bit.substring(bit.length - 12, bit.length);
+  }
 
   // Trim trailing zeroes.
   while (bit.endsWith('0')) {
@@ -86,10 +89,11 @@ String getResponseError(Response res) {
   if (res.headers['Content-Type'] == 'application/json') {
     Map<String, dynamic> errJson = json.decode(res.body);
 
-    if (errJson['data'] != null)
+    if (errJson['data'] != null) {
       return errJson['data'] is Map
           ? errJson['data']['error']
           : errJson['data'];
+    }
   }
 
   return res.body ?? 'unknown';

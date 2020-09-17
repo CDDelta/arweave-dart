@@ -86,8 +86,9 @@ await client.transactions.post(transaction);
 Or progressively for more granularity.
 
 ```dart
-await for (final upload in client.transactions.upload(transaction))
+await for (final upload in client.transactions.upload(transaction)) {
   print('${upload.percentageComplete}%');
+}
 ```
 
 ### Utilities
@@ -97,7 +98,7 @@ Dart's Base64 encoder/decoder is incompatible with Arweave's returned Base64 con
 To use these utilities, import them like so:
 
 ```dart
-import 'package:arweave/utils.dart' as arweaveUtils;
+import 'package:arweave/utils.dart' as utils;
 ```
 
 ## Development

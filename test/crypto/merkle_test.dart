@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:arweave/src/crypto/crypto.dart';
 import 'package:arweave/utils.dart' as utils;
-import "package:convert/convert.dart";
+import 'package:convert/convert.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
 
-const rootB64 = "t-GCOnjPWxdox950JsrFMu3nzOE4RktXpMcIlkqSUTw";
+const rootB64 = 't-GCOnjPWxdox950JsrFMu3nzOE4RktXpMcIlkqSUTw';
 final root = utils.decodeBase64ToBytes(rootB64);
 const pathB64 =
-    "7EAC9FsACQRwe4oIzu7Mza9KjgWKT4toYxDYGjWrCdp0QgsrYS6AueMJ_rM6ZEGslGqjUekzD3WSe7B5_fwipgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAnH6dASdQCigcL43lp0QclqBaSncF4TspuvxoFbn2L18EXpQrP1wkbwdIjSSWQQRt_F31yNvxtc09KkPFtzMKAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAIHiHU9QwOImFzjqSlfxkJJCtSbAox6TbbFhQvlEapSgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAA";
+    '7EAC9FsACQRwe4oIzu7Mza9KjgWKT4toYxDYGjWrCdp0QgsrYS6AueMJ_rM6ZEGslGqjUekzD3WSe7B5_fwipgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAnH6dASdQCigcL43lp0QclqBaSncF4TspuvxoFbn2L18EXpQrP1wkbwdIjSSWQQRt_F31yNvxtc09KkPFtzMKAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAIHiHU9QwOImFzjqSlfxkJJCtSbAox6TbbFhQvlEapSgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAA';
 final path = utils.decodeBase64ToBytes(pathB64);
 
 const offset = 262143;
@@ -54,8 +54,9 @@ void main() async {
 
       expect(chunks.length, equals(5));
 
-      for (final chunk in chunks.take(4))
+      for (final chunk in chunks.take(4)) {
         expect(chunk.maxByteRange - chunk.minByteRange, equals(MAX_CHUNK_SIZE));
+      }
 
       expect(chunks.last.maxByteRange - chunks.last.minByteRange, equals(0));
     });
