@@ -102,6 +102,24 @@ class Transaction {
     _tags = _tags ?? [];
   }
 
+  /// Constructs a transaction with the specified JSON data and computed data size.
+  factory Transaction.withJsonData({
+    String owner,
+    List<Tag> tags,
+    String target = '',
+    BigInt quantity,
+    Object data,
+    BigInt reward,
+  }) =>
+      Transaction.withStringData(
+        owner: owner,
+        tags: tags,
+        target: target,
+        quantity: quantity,
+        data: json.encode(data),
+        reward: reward,
+      );
+
   /// Constructs a transaction with the specified string data and computed data size.
   factory Transaction.withStringData({
     String owner,
