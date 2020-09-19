@@ -102,7 +102,7 @@ class Transaction {
     _tags = _tags ?? [];
   }
 
-  /// Constructs a transaction with the specified JSON data and computed data size.
+  /// Constructs a transaction with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
     String owner,
     List<Tag> tags,
@@ -118,7 +118,7 @@ class Transaction {
         quantity: quantity,
         data: json.encode(data),
         reward: reward,
-      );
+      )..addTag('Content-Type', 'application/json');
 
   /// Constructs a transaction with the specified string data and computed data size.
   factory Transaction.withStringData({
