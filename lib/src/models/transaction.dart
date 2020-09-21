@@ -256,8 +256,13 @@ class Transaction {
     }
   }
 
-  void addTag(String name, String value, {bool toBase64 = true}) {
-    tags.add(Tag(name, value, toBase64: toBase64));
+  void addTag(String name, String value, {bool valueToBase64 = true}) {
+    tags.add(
+      Tag(
+        name,
+        valueToBase64 ? encodeStringToBase64(value) : value,
+      ),
+    );
   }
 
   Future<void> sign(Wallet wallet) async {
