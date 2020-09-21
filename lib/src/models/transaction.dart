@@ -256,11 +256,11 @@ class Transaction {
     }
   }
 
-  void addTag(String name, String value, {bool valueToBase64 = true}) {
+  void addTag(String name, String value) {
     tags.add(
       Tag(
         encodeStringToBase64(name),
-        valueToBase64 ? encodeStringToBase64(value) : value,
+        encodeStringToBase64(value),
       ),
     );
   }
