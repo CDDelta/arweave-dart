@@ -259,7 +259,7 @@ class Transaction {
   void addTag(String name, String value, {bool valueToBase64 = true}) {
     tags.add(
       Tag(
-        name,
+        encodeStringToBase64(name),
         valueToBase64 ? encodeStringToBase64(value) : value,
       ),
     );
