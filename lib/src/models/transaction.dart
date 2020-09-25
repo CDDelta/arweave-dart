@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/src/crypto/crypto.dart';
-import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pointycastle/export.dart';
 
@@ -269,7 +269,8 @@ class Transaction {
     final signatureData = await getSignatureData();
     final rawSignature = wallet.sign(signatureData);
 
-    final id = encodeBytesToBase64(sha256.convert(rawSignature.bytes).bytes);
+    final idHash = await sha256.hash(rawSignature.bytes);
+    final id = encodeBytesToBase64(idHash.bytes);
 
     setSignature(encodeBytesToBase64(rawSignature.bytes), id);
   }
@@ -278,8 +279,8 @@ class Transaction {
     final signatureData = await getSignatureData();
     final claimedRawSignature = decodeBase64ToBytes(signature);
 
-    final expectedId =
-        encodeBytesToBase64(sha256.convert(claimedRawSignature).bytes);
+    final idHash = await sha256.hash(claimedRawSignature);
+    final expectedId = encodeBytesToBase64(idHash.bytes);
 
     if (id != expectedId) return false;
 

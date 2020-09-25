@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart';
 
 final keyLength = 4096;
@@ -100,4 +100,4 @@ String getResponseError(Response res) {
 }
 
 String ownerToAddress(String owner) =>
-    encodeBytesToBase64(sha256.convert(decodeBase64ToBytes(owner)).bytes);
+    encodeBytesToBase64(sha256.hashSync(decodeBase64ToBytes(owner)).bytes);

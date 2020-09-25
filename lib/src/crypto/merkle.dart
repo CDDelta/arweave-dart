@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
 class TransactionChunksWithProofs {
@@ -108,31 +108,36 @@ Future<List<_Chunk>> chunkData(Uint8List data) async {
     }
 
     final chunk = Uint8List.sublistView(rest, 0, chunkSize);
-    final dataHash = sha256.convert(chunk).bytes;
     cursor += chunk.lengthInBytes;
-    chunks.add(_Chunk(dataHash, cursor - chunk.lengthInBytes, cursor));
+    chunks.add(
+      _Chunk(
+        await _sha256(chunk),
+        cursor - chunk.lengthInBytes,
+        cursor,
+      ),
+    );
     rest = Uint8List.sublistView(rest, chunkSize);
   }
 
-  chunks.add(
-      _Chunk(sha256.convert(rest).bytes, cursor, cursor + rest.lengthInBytes));
+  chunks.add(_Chunk(await _sha256(rest), cursor, cursor + rest.lengthInBytes));
 
   return chunks;
 }
 
-Future<List<_LeafNode>> _generateLeaves(List<_Chunk> chunks) async => chunks
-    .map(
-      (c) => _LeafNode(
-        id: sha256
-            .convert(sha256.convert(c.dataHash).bytes +
-                sha256.convert(_intToBuffer(c.maxByteRange)).bytes)
-            .bytes,
-        dataHash: c.dataHash,
-        minByteRange: c.minByteRange,
-        maxByteRange: c.maxByteRange,
-      ),
-    )
-    .toList();
+Future<List<_LeafNode>> _generateLeaves(List<_Chunk> chunks) async =>
+    Future.wait(
+      chunks
+          .map(
+            (c) async => _LeafNode(
+              id: await _sha256(await _sha256(c.dataHash) +
+                  await _sha256(_intToBuffer(c.maxByteRange))),
+              dataHash: c.dataHash,
+              minByteRange: c.minByteRange,
+              maxByteRange: c.maxByteRange,
+            ),
+          )
+          .toList(),
+    );
 
 /// Starting with the bottom layer of leaf nodes, hash every second pair
 /// into a new branch node, push those branch nodes onto a new layer,
@@ -161,11 +166,11 @@ Future<_MerkleNode> _hashBranch(_MerkleNode left, _MerkleNode right) async {
   if (right == null) return left;
 
   return _BranchNode(
-    id: sha256
-        .convert(sha256.convert(left.id).bytes +
-            sha256.convert(right.id).bytes +
-            sha256.convert(_intToBuffer(left.maxByteRange)).bytes)
-        .bytes,
+    id: await _sha256(
+      await _sha256(left.id) +
+          await _sha256(right.id) +
+          await _sha256(_intToBuffer(left.maxByteRange)),
+    ),
     byteRange: left.maxByteRange,
     maxByteRange: right.maxByteRange,
     leftChild: left,
@@ -236,12 +241,9 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
     final endOffsetBuffer = Uint8List.sublistView(
         path, pathData.length, pathData.length + NOTE_SIZE);
 
-    final pathDataHash = sha256
-        .convert(
-          sha256.convert(pathData).bytes +
-              sha256.convert(endOffsetBuffer).bytes,
-        )
-        .bytes;
+    final pathDataHash = await _sha256(
+      await _sha256(pathData) + await _sha256(endOffsetBuffer),
+    );
 
     return _compareArray(id, pathDataHash);
   }
@@ -256,13 +258,9 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
   final remainder = Uint8List.sublistView(
       path, left.length + right.length + offsetBuffer.length);
 
-  final pathHash = sha256
-      .convert(
-        sha256.convert(left).bytes +
-            sha256.convert(right).bytes +
-            sha256.convert(offsetBuffer).bytes,
-      )
-      .bytes;
+  final pathHash = await _sha256(
+    await _sha256(left) + await _sha256(right) + await _sha256(offsetBuffer),
+  );
 
   if (_compareArray(id, pathHash)) {
     if (dest < offset) {
@@ -275,6 +273,11 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
   }
 
   return false;
+}
+
+Future<List<int>> _sha256(List<int> data) async {
+  final hash = await sha256.hash(data);
+  return hash.bytes;
 }
 
 bool _compareArray(Uint8List a, Uint8List b) {

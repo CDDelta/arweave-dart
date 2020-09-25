@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 
 Future<Uint8List> deepHash(List<Object> data) async {
   final tag = utf8.encode('list') + utf8.encode(data.length.toString());
-  return _deepHashChunks(data, sha384.convert(tag).bytes);
+  return _deepHashChunks(
+    data,
+    await _sha384(tag),
+  );
 }
 
 Future<Uint8List> _deepHashChunks(
@@ -19,12 +22,17 @@ Future<Uint8List> _deepHashChunks(
           ? await deepHash(chunks.first)
           : await _deepHashChunk(chunks.first));
 
-  final newAcc = sha384.convert(hashPair).bytes;
+  final newAcc = await _sha384(hashPair);
   return _deepHashChunks(chunks.skip(1), newAcc);
 }
 
-Future<Uint8List> _deepHashChunk(Uint8List data) async {
+Future<List<int>> _deepHashChunk(Uint8List data) async {
   final tag = utf8.encode('blob') + utf8.encode(data.lengthInBytes.toString());
-  final taggedHash = sha384.convert(tag).bytes + sha384.convert(data).bytes;
-  return sha384.convert(taggedHash).bytes;
+  final taggedHash = await _sha384(tag) + await _sha384(data);
+  return _sha384(taggedHash);
+}
+
+Future<List<int>> _sha384(List<int> data) async {
+  final hash = await sha384.hash(data);
+  return hash.bytes;
 }
