@@ -24,6 +24,8 @@ void main() async {
       final proofs = await generateProofs(root);
       expect(utils.encodeBytesToBase64(root.id), equals(rootB64));
       expect(utils.encodeBytesToBase64(proofs[0].proof), equals(pathB64));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('validate a valid data path against a valid data root', () async {

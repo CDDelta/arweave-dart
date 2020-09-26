@@ -8,7 +8,11 @@ dependencies:
   json_annotation: ^3.0.1
   http: ^0.12.1
   meta: ^1.1.8
-  cryptography: ^1.4.1
+  cryptography:
+    git:
+      url: https://github.com/CDDelta/cryptography.git
+      ref: web-key-fix
+      path: cryptography
   pointycastle: ^2.0.0-rc1
 
 dev_dependencies:

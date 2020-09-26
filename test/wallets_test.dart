@@ -18,6 +18,8 @@ void main() {
       final jwk =
           json.decode(await File('test/fixtures/test-key.json').readAsString());
       expect(Wallet.fromJwk(jwk).toJwk(), equals(jwk));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     final jwkFieldPattern = RegExp(r'^[a-z0-9-_]{683}$', caseSensitive: false);
@@ -49,12 +51,16 @@ void main() {
       expect(await client.wallets.getBalance(fakeWallet.address), equals('0'));
       expect(await client.wallets.getLastTransactionId(fakeWallet.address),
           equals(''));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('resolve address from wallet', () async {
       final wallet = await getTestWallet();
       expect(wallet.address,
           equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
   });
 }

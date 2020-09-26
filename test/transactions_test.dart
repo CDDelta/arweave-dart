@@ -40,6 +40,8 @@ void main() {
 
       transaction.addTag('k', 'v');
       expect(await transaction.verify(), isFalse);
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('create and sign AR transaction', () async {
@@ -63,6 +65,8 @@ void main() {
       expect(transaction.quantity, equals(BigInt.from(1500000000000)));
 
       expect(await transaction.verify(), isTrue);
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('sign v2 transaction', () async {
@@ -86,6 +90,8 @@ void main() {
 
       expect(tx.dataRoot, signedV2Tx.dataRoot);
       expect(tx.signature, signedV2Tx.signature);
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('successfully validate data from 1mb.bin set on prepared transaction',
@@ -95,6 +101,8 @@ void main() {
       final transaction = await client.transactions
           .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
       expect(transaction.setData(data), completion(null));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test(
@@ -105,6 +113,8 @@ void main() {
       final transaction = await client.transactions
           .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
       expect(transaction.setData(data), completion(null));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('error when invalid data is set on prepared transaction', () async {
@@ -116,6 +126,8 @@ void main() {
         transaction.setData(Uint8List.sublistView(data, 1)),
         throwsStateError,
       );
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('upload data to transaction already on network', () async {
@@ -148,6 +160,8 @@ void main() {
       // Technically this should fail since the test wallet has no AR but the
       // HTTP API doesn't return an error so there's nothing we can do about it.
       expect(reloadedUploader.uploadChunk(), completion(null));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
     });
 
     test('get and verify transaction', () async {
