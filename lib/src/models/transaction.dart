@@ -287,7 +287,7 @@ class Transaction {
     final ownerInt = decodeBase64ToBigInt(owner);
 
     try {
-      return rsaPss.verify(
+      final valid = await rsaPss.verify(
         signatureData,
         Signature(
           claimedRawSignature,
@@ -297,6 +297,8 @@ class Transaction {
           ),
         ),
       );
+
+      return valid;
     } catch (err) {
       if (err is UnimplementedError) {
         var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
