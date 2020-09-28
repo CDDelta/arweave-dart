@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:arweave/src/crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pointycastle/export.dart';
+import 'package:pointycastle/export.dart' hide Signature;
 
+import '../crypto/crypto.dart';
 import '../utils.dart';
 import 'tag.dart';
 import 'transaction_chunk.dart';
@@ -267,12 +267,12 @@ class Transaction {
 
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
-    final rawSignature = wallet.sign(signatureData);
+    final rawSignature = await wallet.sign(signatureData);
 
-    final idHash = await sha256.hash(rawSignature.bytes);
+    final idHash = await sha256.hash(rawSignature);
     final id = encodeBytesToBase64(idHash.bytes);
 
-    setSignature(encodeBytesToBase64(rawSignature.bytes), id);
+    setSignature(encodeBytesToBase64(rawSignature), id);
   }
 
   Future<bool> verify() async {
@@ -284,22 +284,41 @@ class Transaction {
 
     if (id != expectedId) return false;
 
-    var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
-      ..init(
-        false,
-        ParametersWithSalt(
-          PublicKeyParameter<RSAPublicKey>(
-            RSAPublicKey(
-              decodeBase64ToBigInt(owner),
-              publicExponent,
-            ),
+    final ownerInt = decodeBase64ToBigInt(owner);
+
+    try {
+      return rsaPss.verify(
+        signatureData,
+        Signature(
+          claimedRawSignature,
+          publicKey: RsaJwkPublicKey(
+            n: encodeBigIntToBytes(ownerInt),
+            e: encodeBigIntToBytes(publicExponent),
           ),
-          null,
         ),
       );
+    } catch (err) {
+      if (err is UnimplementedError) {
+        var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+          ..init(
+            false,
+            ParametersWithSalt(
+              PublicKeyParameter<RSAPublicKey>(
+                RSAPublicKey(
+                  ownerInt,
+                  publicExponent,
+                ),
+              ),
+              null,
+            ),
+          );
 
-    return signer.verifySignature(
-        signatureData, PSSSignature(claimedRawSignature));
+        return signer.verifySignature(
+            signatureData, PSSSignature(claimedRawSignature));
+      } else {
+        rethrow;
+      }
+    }
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>

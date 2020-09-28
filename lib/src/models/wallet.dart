@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/src/utils.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:pointycastle/export.dart';
+
+final rsaPss = RsaPss(sha256, nonceLength: 0);
 
 class Wallet {
   String get owner => encodeBigIntToBase64(_publicKey.n);
@@ -10,21 +14,45 @@ class Wallet {
   RSAPublicKey _publicKey;
   RSAPrivateKey _privateKey;
 
+  KeyPair _cryptoKeyPair;
+
   Wallet({RSAPublicKey publicKey, RSAPrivateKey privateKey})
       : _publicKey = publicKey,
         _privateKey = privateKey;
 
-  PSSSignature sign(Uint8List message) {
-    var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
-      ..init(
-        true,
-        ParametersWithSalt(
-          PrivateKeyParameter<RSAPrivateKey>(_privateKey),
-          null,
-        ),
+  Future<Uint8List> sign(Uint8List message) async {
+    if (_cryptoKeyPair == null) {
+      final jwk = toJwk().map((key, value) =>
+          MapEntry(key, key != 'kty' ? base64Url.normalize(value) : value));
+
+      _cryptoKeyPair = KeyPair(
+        privateKey: JwkPrivateKey.fromJson(jwk),
+        publicKey: JwkPublicKey.fromJson(jwk),
+      );
+    }
+
+    try {
+      final signature = await rsaPss.sign(
+        message,
+        _cryptoKeyPair,
       );
 
-    return signer.generateSignature(message);
+      return signature.bytes;
+    } catch (err) {
+      if (err is UnimplementedError) {
+        final signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+          ..init(
+            true,
+            ParametersWithSalt(
+              PrivateKeyParameter<RSAPrivateKey>(_privateKey),
+              null,
+            ),
+          );
+        return signer.generateSignature(message).bytes;
+      } else {
+        rethrow;
+      }
+    }
   }
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
