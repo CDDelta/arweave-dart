@@ -3,13 +3,13 @@ import 'package:http/http.dart' as http;
 import 'gateway_common.dart' if (dart.library.html) 'gateway_web.dart';
 
 class ArweaveApi {
-  final http.Client _client;
+  final Uri gatewayUrl;
 
-  final Uri _gatewayUrl;
+  final http.Client _client;
 
   ArweaveApi({
     Uri gatewayUrl,
-  })  : _gatewayUrl = gatewayUrl ?? getDefaultGateway(),
+  })  : gatewayUrl = gatewayUrl ?? getDefaultGateway(),
         _client = http.Client();
 
   Future<http.Response> get(String endpoint) =>
@@ -18,5 +18,5 @@ class ArweaveApi {
   Future<http.Response> post(String endpoint, {dynamic body}) =>
       _client.post(_getEndpointUrl(endpoint), body: body);
 
-  String _getEndpointUrl(String endpoint) => '${_gatewayUrl.origin}/$endpoint';
+  String _getEndpointUrl(String endpoint) => '${gatewayUrl.origin}/$endpoint';
 }
