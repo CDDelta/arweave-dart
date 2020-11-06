@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 import 'utils.dart';
 
-const liveAddressBalance = '498557055636';
+final liveAddressBalance = BigInt.from(498557055636);
 const liveAddress = '9_666Wkk2GzL0LGd3xhb0jY7HqNy71BaV4sULQlJsBQ';
 const liveTxid = 'CE-1SFiXqWUEu0aSTebE6LC0-5JBAc3IAehYGwdF5iI';
 
@@ -49,7 +49,8 @@ void main() {
 
       final fakeWallet = await getTestWallet();
 
-      expect(await client.wallets.getBalance(fakeWallet.address), equals('0'));
+      expect(await client.wallets.getBalance(fakeWallet.address),
+          equals(BigInt.zero));
       expect(await client.wallets.getLastTransactionId(fakeWallet.address),
           equals(''));
     }, onPlatform: {
