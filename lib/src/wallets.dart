@@ -13,10 +13,11 @@ class ArweaveWalletsApi {
 
   ArweaveWalletsApi(ArweaveApi api) : _api = api;
 
-  /// Get the balance for a given wallet.
+  /// Returns the balance for a given wallet as winston.
+  ///
   /// Unknown wallet addresses will simply return 0.
-  Future<String> getBalance(String address) =>
-      _api.get('wallet/$address/balance').then((res) => res.body);
+  Future<BigInt> getBalance(String address) =>
+      _api.get('wallet/$address/balance').then((res) => BigInt.parse(res.body));
 
   /// Get the last outgoing transaction for the given wallet address.
   Future<String> getLastTransactionId(String address) =>
