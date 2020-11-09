@@ -18,7 +18,9 @@ class DataItem implements TransactionBase {
   String _id;
 
   @override
-  final String owner;
+  String get owner => _owner;
+  String _owner;
+
   @override
   final String target;
   final String nonce;
@@ -42,7 +44,7 @@ class DataItem implements TransactionBase {
   /// [DataItem.withStringData()] and [DataItem.withBlobData()] are the recommended ways to construct data items.
   DataItem({
     String id,
-    this.owner,
+    String owner,
     this.target,
     this.nonce,
     List<Tag> tags,
@@ -50,6 +52,7 @@ class DataItem implements TransactionBase {
     Uint8List dataBytes,
     String signature,
   })  : _id = id,
+        _owner = owner,
         data = data != null
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
@@ -104,6 +107,9 @@ class DataItem implements TransactionBase {
         tags: tags,
         dataBytes: data,
       );
+
+  @override
+  void setOwner(String owner) => _owner = owner;
 
   @override
   void addTag(String name, String value) {

@@ -15,6 +15,8 @@ abstract class TransactionBase {
 
   String get signature;
 
+  void setOwner(String owner);
+
   void addTag(String name, String value);
 
   /// Returns the message that should be signed to produce a valid signature.

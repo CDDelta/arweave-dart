@@ -183,6 +183,7 @@ class Transaction implements TransactionBase {
 
   void setLastTx(String lastTx) => _lastTx = lastTx;
 
+  @override
   void setOwner(String owner) => _owner = owner;
 
   /// Sets the data and data size of this [Transaction].
