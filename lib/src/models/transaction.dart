@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pointycastle/export.dart' hide Signature;
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
@@ -277,50 +276,19 @@ class Transaction {
 
   Future<bool> verify() async {
     final signatureData = await getSignatureData();
-    final claimedRawSignature = decodeBase64ToBytes(signature);
+    final claimedSignatureBytes = decodeBase64ToBytes(signature);
 
-    final idHash = await sha256.hash(claimedRawSignature);
+    final idHash = await sha256.hash(claimedSignatureBytes);
     final expectedId = encodeBytesToBase64(idHash.bytes);
 
     if (id != expectedId) return false;
 
-    final ownerBytes = decodeBase64ToBytes(owner);
-
-    try {
-      final valid = await rsaPss.verify(
-        signatureData,
-        Signature(
-          claimedRawSignature,
-          publicKey: RsaJwkPublicKey(
-            n: ownerBytes,
-            e: encodeBigIntToBytes(publicExponent),
-          ),
-        ),
-      );
-
-      return valid;
-    } catch (err) {
-      if (err is UnimplementedError) {
-        var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
-          ..init(
-            false,
-            ParametersWithSalt(
-              PublicKeyParameter<RSAPublicKey>(
-                RSAPublicKey(
-                  decodeBytesToBigInt(ownerBytes),
-                  publicExponent,
-                ),
-              ),
-              null,
-            ),
-          );
-
-        return signer.verifySignature(
-            signatureData, PSSSignature(claimedRawSignature));
-      } else {
-        rethrow;
-      }
-    }
+    return rsaPssVerify(
+      input: signatureData,
+      signature: claimedSignatureBytes,
+      modulus: decodeBase64ToBigInt(owner),
+      publicExponent: publicExponent,
+    );
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>
