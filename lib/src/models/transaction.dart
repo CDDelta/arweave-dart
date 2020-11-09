@@ -284,7 +284,7 @@ class Transaction {
 
     if (id != expectedId) return false;
 
-    final ownerInt = decodeBase64ToBigInt(owner);
+    final ownerBytes = decodeBase64ToBytes(owner);
 
     try {
       final valid = await rsaPss.verify(
@@ -292,7 +292,7 @@ class Transaction {
         Signature(
           claimedRawSignature,
           publicKey: RsaJwkPublicKey(
-            n: encodeBigIntToBytes(ownerInt),
+            n: ownerBytes,
             e: encodeBigIntToBytes(publicExponent),
           ),
         ),
@@ -307,7 +307,7 @@ class Transaction {
             ParametersWithSalt(
               PublicKeyParameter<RSAPublicKey>(
                 RSAPublicKey(
-                  ownerInt,
+                  decodeBytesToBigInt(ownerBytes),
                   publicExponent,
                 ),
               ),

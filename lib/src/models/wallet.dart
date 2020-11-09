@@ -8,43 +8,38 @@ import 'package:pointycastle/export.dart';
 final rsaPss = RsaPss(sha256, nonceLength: 0);
 
 class Wallet {
-  String get owner => encodeBigIntToBase64(_publicKey.n);
+  String get owner =>
+      encodeBytesToBase64((_keyPair.publicKey as RsaJwkPublicKey).n);
   String get address => ownerToAddress(owner);
 
-  RSAPublicKey _publicKey;
-  RSAPrivateKey _privateKey;
+  KeyPair _keyPair;
+  RSAPrivateKey _pcPrivateKey;
 
-  KeyPair _cryptoKeyPair;
-
-  Wallet({RSAPublicKey publicKey, RSAPrivateKey privateKey})
-      : _publicKey = publicKey,
-        _privateKey = privateKey;
+  Wallet({KeyPair keyPair}) : _keyPair = keyPair;
 
   Future<Uint8List> sign(Uint8List message) async {
-    if (_cryptoKeyPair == null) {
-      final jwk = toJwk().map((key, value) =>
-          MapEntry(key, key != 'kty' ? base64Url.normalize(value) : value));
-
-      _cryptoKeyPair = KeyPair(
-        privateKey: JwkPrivateKey.fromJson(jwk),
-        publicKey: JwkPublicKey.fromJson(jwk),
-      );
-    }
-
     try {
-      final signature = await rsaPss.sign(
-        message,
-        _cryptoKeyPair,
-      );
-
+      final signature = await rsaPss.sign(message, _keyPair);
       return signature.bytes;
     } catch (err) {
       if (err is UnimplementedError) {
+        if (_pcPrivateKey == null) {
+          // Cache an instance of a `pointycastle` private key for use later.
+          final pk = _keyPair.privateKey as RsaJwkPrivateKey;
+          _pcPrivateKey = RSAPrivateKey(
+            decodeBytesToBigInt(pk.n),
+            decodeBytesToBigInt(pk.d),
+            decodeBytesToBigInt(pk.p),
+            decodeBytesToBigInt(pk.q),
+            decodeBytesToBigInt(pk.e),
+          );
+        }
+
         final signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
           ..init(
             true,
             ParametersWithSalt(
-              PrivateKeyParameter<RSAPrivateKey>(_privateKey),
+              PrivateKeyParameter<RSAPrivateKey>(_pcPrivateKey),
               null,
             ),
           );
@@ -56,33 +51,20 @@ class Wallet {
   }
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
-    final modulus = decodeBase64ToBigInt(jwk['n']);
+    // Normalize the JWK so that it can be decoded by 'cryptography'.
+    jwk = jwk.map((key, value) =>
+        MapEntry(key, key != 'kty' ? base64Url.normalize(value) : value));
 
     return Wallet(
-      publicKey: RSAPublicKey(
-        modulus,
-        decodeBase64ToBigInt(jwk['e']),
-      ),
-      privateKey: RSAPrivateKey(
-        modulus,
-        decodeBase64ToBigInt(jwk['d']),
-        decodeBase64ToBigInt(jwk['p']),
-        decodeBase64ToBigInt(jwk['q']),
+      keyPair: KeyPair(
+        publicKey: RsaJwkPublicKey.fromJson(jwk),
+        privateKey: RsaJwkPrivateKey.fromJson(jwk),
       ),
     );
   }
 
-  Map<String, dynamic> toJwk() => {
-        'kty': 'RSA',
-        'e': encodeBigIntToBase64(_publicKey.publicExponent),
-        'n': encodeBigIntToBase64(_publicKey.n),
-        'd': encodeBigIntToBase64(_privateKey.privateExponent),
-        'p': encodeBigIntToBase64(_privateKey.p),
-        'q': encodeBigIntToBase64(_privateKey.q),
-        'dp': encodeBigIntToBase64(
-            _privateKey.privateExponent % (_privateKey.p - BigInt.from(1))),
-        'dq': encodeBigIntToBase64(
-            _privateKey.privateExponent % (_privateKey.q - BigInt.from(1))),
-        'qi': encodeBigIntToBase64(_privateKey.q.modInverse(_privateKey.p)),
-      };
+  Map<String, dynamic> toJwk() =>
+      (_keyPair.privateKey as RsaJwkPrivateKey).toJson().map(
+          // Denormalize the JWK into the expected form.
+          (key, value) => MapEntry(key, (value as String).replaceAll('=', '')));
 }

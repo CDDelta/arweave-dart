@@ -13,9 +13,11 @@ Uint8List decodeBase64ToBytes(String base64) =>
 String decodeBase64ToString(String base64) =>
     utf8.decode(decodeBase64ToBytes(base64));
 
-BigInt decodeBase64ToBigInt(String base64) {
-  final bytes = decodeBase64ToBytes(base64);
-  var result = BigInt.from(0);
+BigInt decodeBase64ToBigInt(String base64) =>
+    decodeBytesToBigInt(decodeBase64ToBytes(base64));
+
+BigInt decodeBytesToBigInt(Uint8List bytes) {
+  var result = BigInt.zero;
   for (var i = 0; i < bytes.length; i++) {
     result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
   }
