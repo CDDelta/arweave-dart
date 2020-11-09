@@ -98,7 +98,7 @@ class Transaction {
     _tags = tags ?? [];
   }
 
-  /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and bundle tags.
+  /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({
     String owner,
     List<Tag> tags,

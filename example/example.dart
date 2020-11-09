@@ -16,8 +16,9 @@ void main() async {
   );
 
   // Optionally add tags to the transaction.
-  transaction.addTag('App-Name', 'Hello World App');
-  transaction.addTag('App-Version', '1.0.0');
+  transaction
+    ..addTag('App-Name', 'Hello World App')
+    ..addTag('App-Version', '1.0.0');
 
   // Sign the transaction.
   await transaction.sign(wallet);
