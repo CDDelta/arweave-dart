@@ -83,7 +83,7 @@ class Transaction implements TransactionBase {
     String lastTx,
     String owner,
     List<Tag> tags,
-    String target = '',
+    String target,
     BigInt quantity,
     String data,
     Uint8List dataBytes,
@@ -94,7 +94,7 @@ class Transaction implements TransactionBase {
   })  : _id = id,
         _lastTx = lastTx,
         _owner = owner,
-        _target = target,
+        _target = target ?? '',
         _quantity = quantity ?? BigInt.zero,
         _data = data != null
             ? decodeBase64ToBytes(data)
@@ -110,7 +110,7 @@ class Transaction implements TransactionBase {
   factory Transaction.withDataBundle({
     String owner,
     List<Tag> tags,
-    String target = '',
+    String target,
     BigInt quantity,
     @required DataBundle bundle,
     BigInt reward,
@@ -130,7 +130,7 @@ class Transaction implements TransactionBase {
   factory Transaction.withJsonData({
     String owner,
     List<Tag> tags,
-    String target = '',
+    String target,
     BigInt quantity,
     @required Object data,
     BigInt reward,
@@ -148,7 +148,7 @@ class Transaction implements TransactionBase {
   factory Transaction.withStringData({
     String owner,
     List<Tag> tags,
-    String target = '',
+    String target,
     BigInt quantity,
     @required String data,
     BigInt reward,
@@ -166,7 +166,7 @@ class Transaction implements TransactionBase {
   factory Transaction.withBlobData({
     String owner,
     List<Tag> tags,
-    String target = '',
+    String target,
     BigInt quantity,
     @required Uint8List data,
     BigInt reward,

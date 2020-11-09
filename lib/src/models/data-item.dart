@@ -52,7 +52,7 @@ class DataItem implements TransactionBase {
     Uint8List dataBytes,
     String signature,
   })  : _id = id,
-        _owner = owner,
+        _owner = owner ?? '',
         data = data != null
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
@@ -62,7 +62,7 @@ class DataItem implements TransactionBase {
 
   /// Constructs a [DataItem] with the specified JSON data and Content-Type tag.
   factory DataItem.withJsonData({
-    @required String owner,
+    String owner,
     String target = '',
     String nonce = '',
     List<Tag> tags,
@@ -78,7 +78,7 @@ class DataItem implements TransactionBase {
 
   /// Constructs a [DataItem] with the specified string data.
   factory DataItem.withStringData({
-    @required String owner,
+    String owner,
     String target = '',
     String nonce = '',
     List<Tag> tags,
@@ -94,7 +94,7 @@ class DataItem implements TransactionBase {
 
   /// Constructs a [DataItem] with the specified blob data.
   factory DataItem.withBlobData({
-    @required String owner,
+    String owner,
     String target = '',
     String nonce = '',
     List<Tag> tags,
