@@ -17,15 +17,16 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
-    test('create and sign data transaction', () async {
+    test('create, sign, and verify data transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions
           .prepare(Transaction.withStringData(data: 'test'), wallet);
 
-      transaction.addTag('test-tag-1', 'test-value-1');
-      transaction.addTag('test-tag-2', 'test-value-2');
-      transaction.addTag('test-tag-3', 'test-value-3');
+      transaction
+        ..addTag('test-tag-1', 'test-value-1')
+        ..addTag('test-tag-2', 'test-value-2')
+        ..addTag('test-tag-3', 'test-value-3');
 
       expect(utf8.decode(transaction.data), equals('test'));
       expect(transaction.lastTx, matches(transactionFieldPattern));

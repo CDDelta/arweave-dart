@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:arweave/arweave.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
@@ -18,8 +20,7 @@ BigInt _stringToBigInt(String v) => BigInt.parse(v);
 @JsonSerializable()
 class Transaction {
   @JsonKey(defaultValue: 1)
-  int get format => _format;
-  int _format;
+  final int format;
 
   String get id => _id;
   String _id;
@@ -34,14 +35,15 @@ class Transaction {
   List<Tag> get tags => _tags;
   List<Tag> _tags;
 
-  String get target => _target;
-  String _target;
+  final String target;
 
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get quantity => _quantity;
   BigInt _quantity;
 
-  /// The unencoded data associated with this transaction.
+  /// The unencoded data associated with this [Transaction].
+  ///
+  /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
   Uint8List get data => _data;
   Uint8List _data;
 
@@ -60,23 +62,21 @@ class Transaction {
   String get signature => _signature;
   String _signature;
 
-  /// Constructs a transaction from the specified parameters.
-  ///
-  /// [Transaction.withStringData()] and [Transaction.withBlobData()] is the recommended way to construct data transactions.
-  /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   @JsonKey(ignore: true)
   TransactionChunksWithProofs get chunks => _chunks;
   TransactionChunksWithProofs _chunks;
 
   /// This constructor is reserved for JSON serialisation.
+  ///
   /// [Transaction.withStringData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
+  /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   Transaction({
-    int format = 2,
+    this.format = 2,
     String id,
     String lastTx,
     String owner,
     List<Tag> tags,
-    String target = '',
+    this.target = '',
     BigInt quantity,
     String data,
     Uint8List dataBytes,
@@ -84,12 +84,9 @@ class Transaction {
     String dataRoot,
     BigInt reward,
     String signature,
-  })  : _format = format,
-        _id = id,
+  })  : _id = id,
         _lastTx = lastTx,
         _owner = owner,
-        _tags = tags,
-        _target = target,
         _quantity = quantity ?? BigInt.zero,
         _data = data != null
             ? decodeBase64ToBytes(data)
@@ -98,16 +95,36 @@ class Transaction {
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _signature = signature {
-    _tags = _tags ?? [];
+    _tags = tags ?? [];
   }
 
-  /// Constructs a transaction with the specified JSON data, computed data size, and Content-Type tag.
+  /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and bundle tags.
+  factory Transaction.withDataBundle({
+    String owner,
+    List<Tag> tags,
+    String target = '',
+    BigInt quantity,
+    @required DataBundle bundle,
+    BigInt reward,
+  }) =>
+      Transaction.withJsonData(
+        owner: owner,
+        tags: tags,
+        target: target,
+        quantity: quantity,
+        data: bundle.toJson(),
+        reward: reward,
+      )
+        ..addTag('Bundle-Format', 'json')
+        ..addTag('Bundle-Version', '1.0.0');
+
+  /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
     String owner,
     List<Tag> tags,
     String target = '',
     BigInt quantity,
-    Object data,
+    @required Object data,
     BigInt reward,
   }) =>
       Transaction.withStringData(
@@ -119,13 +136,13 @@ class Transaction {
         reward: reward,
       )..addTag('Content-Type', 'application/json');
 
-  /// Constructs a transaction with the specified string data and computed data size.
+  /// Constructs a [Transaction] with the specified string data and computed data size.
   factory Transaction.withStringData({
     String owner,
     List<Tag> tags,
     String target = '',
     BigInt quantity,
-    String data,
+    @required String data,
     BigInt reward,
   }) =>
       Transaction.withBlobData(
@@ -137,13 +154,13 @@ class Transaction {
         reward: reward,
       );
 
-  /// Constructs a transaction with the specified blob data and computed data size.
+  /// Constructs a [Transaction] with the specified blob data and computed data size.
   factory Transaction.withBlobData({
     String owner,
     List<Tag> tags,
     String target = '',
     BigInt quantity,
-    Uint8List data,
+    @required Uint8List data,
     BigInt reward,
   }) =>
       Transaction(
@@ -160,7 +177,7 @@ class Transaction {
 
   void setOwner(String owner) => _owner = owner;
 
-  /// Sets the data and data size of this transaction.
+  /// Sets the data and data size of this [Transaction].
   ///
   /// Also chunks and validates the incoming data for format 2 transactions.
   Future<void> setData(Uint8List data) async {
@@ -178,6 +195,15 @@ class Transaction {
             'Incoming data does not match data transaction was prepared with.');
       }
     }
+  }
+
+  void addTag(String name, String value) {
+    tags.add(
+      Tag(
+        encodeStringToBase64(name),
+        encodeStringToBase64(value),
+      ),
+    );
   }
 
   void setReward(BigInt reward) => _reward = reward;
@@ -210,11 +236,7 @@ class Transaction {
     );
   }
 
-  void setSignature(String signature, String id) {
-    _signature = signature;
-    _id = id;
-  }
-
+  /// Returns the message that should be signed to produce a valid signature.
   Future<Uint8List> getSignatureData() async {
     switch (format) {
       case 1:
@@ -255,40 +277,37 @@ class Transaction {
     }
   }
 
-  void addTag(String name, String value) {
-    tags.add(
-      Tag(
-        encodeStringToBase64(name),
-        encodeStringToBase64(value),
-      ),
-    );
-  }
-
+  /// Signs the [Transaction] using the specified wallet and sets the `id` and `signature` appropriately.
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
-    final idHash = await sha256.hash(rawSignature);
-    final id = encodeBytesToBase64(idHash.bytes);
+    _signature = encodeBytesToBase64(rawSignature);
 
-    setSignature(encodeBytesToBase64(rawSignature), id);
+    final idHash = await sha256.hash(rawSignature);
+    _id = encodeBytesToBase64(idHash.bytes);
   }
 
+  /// Verify that the [Transaction] is valid.
   Future<bool> verify() async {
-    final signatureData = await getSignatureData();
-    final claimedSignatureBytes = decodeBase64ToBytes(signature);
+    try {
+      final signatureData = await getSignatureData();
+      final claimedSignatureBytes = decodeBase64ToBytes(signature);
 
-    final idHash = await sha256.hash(claimedSignatureBytes);
-    final expectedId = encodeBytesToBase64(idHash.bytes);
+      final idHash = await sha256.hash(claimedSignatureBytes);
+      final expectedId = encodeBytesToBase64(idHash.bytes);
 
-    if (id != expectedId) return false;
+      if (id != expectedId) return false;
 
-    return rsaPssVerify(
-      input: signatureData,
-      signature: claimedSignatureBytes,
-      modulus: decodeBase64ToBigInt(owner),
-      publicExponent: publicExponent,
-    );
+      return rsaPssVerify(
+        input: signatureData,
+        signature: claimedSignatureBytes,
+        modulus: decodeBase64ToBigInt(owner),
+        publicExponent: publicExponent,
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>
