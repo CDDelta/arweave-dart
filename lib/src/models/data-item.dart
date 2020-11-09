@@ -12,22 +12,28 @@ import 'models.dart';
 part 'data-item.g.dart';
 
 @JsonSerializable()
-class DataItem {
+class DataItem implements TransactionBase {
+  @override
   String get id => _id;
   String _id;
 
+  @override
   final String owner;
+  @override
   final String target;
   final String nonce;
 
+  @override
   List<Tag> get tags => _tags;
   List<Tag> _tags;
 
   /// The unencoded data associated with this [DataItem].
   ///
   /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
+  @override
   final Uint8List data;
 
+  @override
   String get signature => _signature;
   String _signature;
 
@@ -99,6 +105,7 @@ class DataItem {
         dataBytes: data,
       );
 
+  @override
   void addTag(String name, String value) {
     tags.add(
       Tag(
@@ -108,7 +115,7 @@ class DataItem {
     );
   }
 
-  /// Returns the message that should be signed to produce a valid signature.
+  @override
   Future<Uint8List> getSignatureData() => deepHash(
         [
           utf8.encode('dataitem'),
@@ -129,6 +136,7 @@ class DataItem {
       );
 
   /// Signs the [DataItem] using the specified wallet and sets the `id` and `signature` appropriately.
+  @override
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
@@ -140,6 +148,7 @@ class DataItem {
   }
 
   /// Verify that the [DataItem] is valid.
+  @override
   Future<bool> verify() async {
     try {
       final signatureData = await getSignatureData();

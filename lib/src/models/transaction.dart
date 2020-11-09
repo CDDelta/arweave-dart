@@ -18,10 +18,11 @@ String _bigIntToString(BigInt v) => v.toString();
 BigInt _stringToBigInt(String v) => BigInt.parse(v);
 
 @JsonSerializable()
-class Transaction {
+class Transaction implements TransactionBase {
   @JsonKey(defaultValue: 1)
   final int format;
 
+  @override
   String get id => _id;
   String _id;
 
@@ -29,13 +30,17 @@ class Transaction {
   String get lastTx => _lastTx;
   String _lastTx;
 
+  @override
   String get owner => _owner;
   String _owner;
 
+  @override
   List<Tag> get tags => _tags;
   List<Tag> _tags;
 
-  final String target;
+  @override
+  String get target => _target;
+  String _target;
 
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get quantity => _quantity;
@@ -44,6 +49,7 @@ class Transaction {
   /// The unencoded data associated with this [Transaction].
   ///
   /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
+  @override
   Uint8List get data => _data;
   Uint8List _data;
 
@@ -59,6 +65,7 @@ class Transaction {
   BigInt get reward => _reward;
   BigInt _reward;
 
+  @override
   String get signature => _signature;
   String _signature;
 
@@ -76,7 +83,7 @@ class Transaction {
     String lastTx,
     String owner,
     List<Tag> tags,
-    this.target = '',
+    String target = '',
     BigInt quantity,
     String data,
     Uint8List dataBytes,
@@ -87,6 +94,7 @@ class Transaction {
   })  : _id = id,
         _lastTx = lastTx,
         _owner = owner,
+        _target = target,
         _quantity = quantity ?? BigInt.zero,
         _data = data != null
             ? decodeBase64ToBytes(data)
@@ -197,6 +205,7 @@ class Transaction {
     }
   }
 
+  @override
   void addTag(String name, String value) {
     tags.add(
       Tag(
@@ -236,7 +245,7 @@ class Transaction {
     );
   }
 
-  /// Returns the message that should be signed to produce a valid signature.
+  @override
   Future<Uint8List> getSignatureData() async {
     switch (format) {
       case 1:
@@ -277,7 +286,7 @@ class Transaction {
     }
   }
 
-  /// Signs the [Transaction] using the specified wallet and sets the `id` and `signature` appropriately.
+  @override
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
@@ -288,7 +297,7 @@ class Transaction {
     _id = encodeBytesToBase64(idHash.bytes);
   }
 
-  /// Verify that the [Transaction] is valid.
+  @override
   Future<bool> verify() async {
     try {
       final signatureData = await getSignatureData();
