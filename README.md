@@ -87,7 +87,7 @@ Or progressively for more granularity.
 
 ```dart
 await for (final upload in client.transactions.upload(transaction)) {
-  print('${upload.percentageComplete}%');
+  print('${upload.progress * 100}%');
 }
 ```
 

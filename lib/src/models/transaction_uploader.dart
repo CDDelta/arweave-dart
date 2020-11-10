@@ -67,7 +67,9 @@ class TransactionUploader {
       _txPosted && _chunkIndex == _transaction.chunks.chunks.length;
   int get totalChunks => _transaction.chunks.chunks.length;
   int get uploadedChunks => _chunkIndex;
-  double get percentageComplete => uploadedChunks / totalChunks * 100;
+
+  /// The progress of the current upload ranging from 0 to 1.
+  double get progress => uploadedChunks / totalChunks;
 
   /// Uploads a chunk of the transaction.
   /// On the first call this posts the transaction

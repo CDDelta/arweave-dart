@@ -21,6 +21,6 @@ void main() async {
   // Upload the original transaction data.
   await for (final upload
       in client.transactions.upload(transaction, dataOnly: true)) {
-    print('${upload.percentageComplete}%');
+    print('${upload.progress * 100}%');
   }
 }
