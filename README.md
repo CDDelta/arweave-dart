@@ -61,7 +61,7 @@ Creating transactions with `arweave-dart` is easy. First prepare a transaction l
 
 ```dart
 final transaction = await client.transactions.prepare(
-  Transaction.withStringData(data: 'Hello world!'),
+  Transaction.withBlobData(data: utf8.encode('Hello world!')),
   wallet,
 );
 

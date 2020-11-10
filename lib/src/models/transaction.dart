@@ -135,32 +135,14 @@ class Transaction implements TransactionBase {
     @required Object data,
     BigInt reward,
   }) =>
-      Transaction.withStringData(
-        owner: owner,
-        tags: tags,
-        target: target,
-        quantity: quantity,
-        data: json.encode(data),
-        reward: reward,
-      )..addTag('Content-Type', 'application/json');
-
-  /// Constructs a [Transaction] with the specified string data and computed data size.
-  factory Transaction.withStringData({
-    String owner,
-    List<Tag> tags,
-    String target,
-    BigInt quantity,
-    @required String data,
-    BigInt reward,
-  }) =>
       Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: utf8.encode(data),
+        data: utf8.encode(json.encode(data)),
         reward: reward,
-      );
+      )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [Transaction] with the specified blob data and computed data size.
   factory Transaction.withBlobData({
@@ -322,5 +304,7 @@ class Transaction implements TransactionBase {
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>
       _$TransactionFromJson(json);
+
+  /// Encodes the [Transaction] as JSON with the `data` as the original unencoded [Uint8List].
   Map<String, dynamic> toJson() => _$TransactionToJson(this);
 }

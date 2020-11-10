@@ -60,7 +60,7 @@ class DataItem implements TransactionBase {
     _tags = tags ?? [];
   }
 
-  /// Constructs a [DataItem] with the specified JSON data and Content-Type tag.
+  /// Constructs a [DataItem] with the specified JSON data and appropriate Content-Type tag.
   factory DataItem.withJsonData({
     String owner,
     String target = '',
@@ -68,29 +68,13 @@ class DataItem implements TransactionBase {
     List<Tag> tags,
     @required Object data,
   }) =>
-      DataItem.withStringData(
-        owner: owner,
-        target: target,
-        nonce: nonce,
-        tags: tags,
-        data: json.encode(data),
-      )..addTag('Content-Type', 'application/json');
-
-  /// Constructs a [DataItem] with the specified string data.
-  factory DataItem.withStringData({
-    String owner,
-    String target = '',
-    String nonce = '',
-    List<Tag> tags,
-    @required String data,
-  }) =>
       DataItem.withBlobData(
         owner: owner,
         target: target,
         nonce: nonce,
         tags: tags,
-        data: utf8.encode(data),
-      );
+        data: utf8.encode(json.encode(data)),
+      )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [DataItem] with the specified blob data.
   factory DataItem.withBlobData({
@@ -178,6 +162,8 @@ class DataItem implements TransactionBase {
 
   factory DataItem.fromJson(Map<String, dynamic> json) =>
       _$DataItemFromJson(json);
+
+  /// Returns the [DataItem] as a JSON map with the `data` encoded as Base64.
   Map<String, dynamic> toJson() {
     final json = _$DataItemToJson(this);
     // Lazily encode data bytes to Base64.

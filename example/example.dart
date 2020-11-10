@@ -11,7 +11,7 @@ void main() async {
 
   // Create a data transaction.
   final transaction = await client.transactions.prepare(
-    Transaction.withStringData(data: 'Hello world!'),
+    Transaction.withBlobData(data: utf8.encode('Hello world!')),
     wallet,
   );
 

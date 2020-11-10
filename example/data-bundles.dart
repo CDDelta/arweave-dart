@@ -13,9 +13,9 @@ void main() async {
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
 
   // Create a data item and make sure to provide an appropriate `owner`.
-  final dataItem = DataItem.withStringData(
+  final dataItem = DataItem.withBlobData(
     owner: wallet.owner,
-    data: 'HELLOWORLD_TEST_STRING',
+    data: utf8.encode('HELLOWORLD_TEST_STRING'),
   )
     ..addTag('MyTag', '0')
     ..addTag('OtherTag', 'Foo');

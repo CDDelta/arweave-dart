@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:arweave/arweave.dart';
 import 'package:test/test.dart';
 
@@ -8,8 +10,8 @@ void main() async {
     test('create, sign, and verify data items', () async {
       final wallet = await getTestWallet();
 
-      final dataItem = DataItem.withStringData(
-          owner: wallet.owner, data: 'HELLOWORLD_TEST_STRING')
+      final dataItem = DataItem.withBlobData(
+          owner: wallet.owner, data: utf8.encode('HELLOWORLD_TEST_STRING'))
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');

@@ -21,7 +21,7 @@ void main() {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions
-          .prepare(Transaction.withStringData(data: 'test'), wallet);
+          .prepare(Transaction.withBlobData(data: utf8.encode('test')), wallet);
 
       transaction
         ..addTag('test-tag-1', 'test-value-1')
