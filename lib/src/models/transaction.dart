@@ -75,7 +75,7 @@ class Transaction implements TransactionBase {
 
   /// This constructor is reserved for JSON serialisation.
   ///
-  /// [Transaction.withStringData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
+  /// [Transaction.withJsonData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
   /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   Transaction({
     this.format = 2,

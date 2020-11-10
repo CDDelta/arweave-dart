@@ -91,6 +91,30 @@ await for (final upload in client.transactions.upload(transaction)) {
 }
 ```
 
+### Using Data Bundles
+
+Use ANS-102 data bundles by first preparing some data items as so:
+
+```dart
+final dataItem = DataItem.withBlobData(
+  owner: wallet.owner,
+  data: utf8.encode('hello world'),
+)
+  ..addTag('MyTag', '0')
+  ..addTag('OtherTag', 'Foo');
+
+await dataItem.sign(wallet);
+```
+
+and then creating the data bundle transaction:
+
+```dart
+final transaction = await client.transactions.prepare(
+  Transaction.withDataBundle(bundle: DataBundle(items: [dataItem])),
+  wallet,
+);
+```
+
 ### Utilities
 
 Dart's Base64 encoder/decoder is incompatible with Arweave's returned Base64 content, so `arweave-dart` exposes utilities for working with Base64 from Arweave. It also includes other utilities for AR/Winston conversions etc.

@@ -41,7 +41,7 @@ class DataItem implements TransactionBase {
 
   /// This constructor is reserved for JSON serialisation.
   ///
-  /// [DataItem.withStringData()] and [DataItem.withBlobData()] are the recommended ways to construct data items.
+  /// [DataItem.withJsonData()] and [DataItem.withBlobData()] are the recommended ways to construct data items.
   DataItem({
     String id,
     String owner,
