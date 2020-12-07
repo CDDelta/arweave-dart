@@ -64,7 +64,7 @@ class TransactionUploader {
         _lastRequestTimeEnd = lastRequestTimeEnd;
 
   bool get isComplete =>
-      _txPosted && _chunkIndex == _transaction.chunks.chunks.length;
+      _txPosted && _chunkIndex >= _transaction.chunks.chunks.length;
   int get totalChunks => _transaction.chunks.chunks.length;
   int get uploadedChunks => _chunkIndex;
 
