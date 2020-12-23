@@ -19,8 +19,13 @@ class Wallet {
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     // Normalize the JWK so that it can be decoded by 'cryptography'.
-    jwk = jwk.map((key, value) =>
-        MapEntry(key, key != 'kty' ? base64Url.normalize(value) : value));
+    jwk = jwk.map((key, value) {
+      if (key == 'kty' || value is! String) {
+        return MapEntry(key, value);
+      } else {
+        return MapEntry(key, base64Url.normalize(value));
+      }
+    });
 
     return Wallet(
       keyPair: KeyPair(

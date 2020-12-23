@@ -23,6 +23,19 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
+    test('decode and encode old wallet', () async {
+      // Older wallets have a slightly different format to the latest ones.
+      // Make sure we can decode them.
+      Map<String, dynamic> jwk = json
+          .decode(await File('test/fixtures/test-key-old.json').readAsString());
+
+      // The `ext` field is irrelevant to the actual key so we can afford
+      // to lose it when encoding back out.
+      expect(Wallet.fromJwk(jwk).toJwk(), equals(jwk..remove('ext')));
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
+    });
+
     final jwkFieldPattern = RegExp(r'^[a-z0-9-_]{683}$', caseSensitive: false);
     test('generate wallet', () async {
       final walletA = await client.wallets.generate();
