@@ -92,7 +92,7 @@ class ArweaveTransactionsApi {
       transaction.setLastTx(await getTransactionAnchor());
     }
 
-    if (transaction.reward == BigInt.zero && transaction.data.isNotEmpty) {
+    if (transaction.reward == BigInt.zero) {
       transaction.setReward(
         await getPrice(
           byteSize: int.parse(transaction.dataSize),

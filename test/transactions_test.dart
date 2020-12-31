@@ -45,7 +45,7 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
-    test('create and sign AR transaction', () async {
+    test('create, sign, and specify reward for AR transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions.prepare(
@@ -64,6 +64,7 @@ void main() {
       expect(transaction.signature, matches(signaturePattern));
       expect(transaction.id, matches(digestPattern));
       expect(transaction.quantity, equals(BigInt.from(1500000000000)));
+      expect(transaction.reward, greaterThan(BigInt.zero));
 
       expect(await transaction.verify(), isTrue);
     }, onPlatform: {
