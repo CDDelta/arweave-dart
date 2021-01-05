@@ -167,6 +167,7 @@ class DataItem implements TransactionBase {
   Map<String, dynamic> toJson() {
     final json = _$DataItemToJson(this);
     // Lazily encode data bytes to Base64.
+    // TODO: Make async
     json['data'] = encodeBytesToBase64(json['data']);
     return json;
   }
