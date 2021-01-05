@@ -141,6 +141,7 @@ class TransactionUploader {
     final txJson = _transaction.toJson();
 
     if (uploadInBody) {
+      // TODO: Make async
       txJson['data'] = encodeBytesToBase64(_transaction.data);
       final res = await _api.post('tx', body: json.encode(txJson));
 
