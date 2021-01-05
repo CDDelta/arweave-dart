@@ -32,43 +32,6 @@ class ArweaveTransactionsApi {
     return null;
   }
 
-  Future<TransactionStatus> getStatus(String id) =>
-      _api.get('tx/$id/status').then((res) {
-        if (res.statusCode == 200) {
-          return TransactionStatus(
-              status: 200,
-              confirmed:
-                  TransactionConfimedData.fromJson(json.decode(res.body)));
-        }
-
-        return TransactionStatus(status: res.statusCode);
-      });
-
-  /// Get the data associated with a transaction.
-  ///
-  /// Optionally provide an extension to decode the data.
-  Future<String> getData(String id, [String extension]) =>
-      _api.get('tx/$id/data${extension != null ? '.$extension' : ''}').then(
-        (res) {
-          if (res.statusCode == 200) return res.body;
-          return null;
-        },
-      );
-
-  Future<List<String>> search(String tagName, String tagValue) => arql({
-        'op': 'equals',
-        'expr1': tagName,
-        'expr2': tagValue,
-      });
-
-  Future<List<String>> arql(Map<String, dynamic> query) =>
-      _api.post('arql', body: json.encode(query)).then(
-        (res) {
-          if (res.body == '') return [];
-          return (json.decode(res.body) as List<dynamic>).cast<String>();
-        },
-      );
-
   /// Prepares a transaction with the required details.
   ///
   /// Chunks the transaction data, sets the transaction anchor, reward,

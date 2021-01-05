@@ -170,22 +170,5 @@ void main() {
       final transaction = await client.transactions.get(liveDataTxId);
       expect(await transaction.verify(), isTrue);
     });
-
-    test('get transaction status', () async {
-      final status = await client.transactions.getStatus(liveDataTxId);
-      expect(status.status, equals(200));
-      expect(status.confirmed, isNotNull);
-    });
-
-    test('get transaction data', () async {
-      final txData = await client.transactions.getData(liveDataTxId);
-      expect(txData, contains('CjwhRE9DVFlQRSBodG1sPgo'));
-    });
-
-    test('search transactions', () async {
-      final results =
-          await client.transactions.search('Silo-Name', 'BmjRGIsemI77+eQb4zX8');
-      expect(results, contains('Sgmyo7nUqPpVQWUfK72p5yIpd85QQbhGaWAF-I8L6yE'));
-    });
   });
 }
