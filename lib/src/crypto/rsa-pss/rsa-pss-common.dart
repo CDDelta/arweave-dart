@@ -5,8 +5,9 @@ import 'package:pointycastle/export.dart';
 
 import '../../utils.dart';
 
-Future<Uint8List> rsaPssSign({Uint8List message, KeyPair keyPair}) async {
-  final pk = keyPair.privateKey as RsaJwkPrivateKey;
+Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
+  final pk = await keyPair.extract();
+
   final pcPk = RSAPrivateKey(
     decodeBytesToBigInt(pk.n),
     decodeBytesToBigInt(pk.d),

@@ -4,17 +4,14 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:jwk/jwk.dart';
 import 'package:pointycastle/export.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
 
 class Wallet {
-  String get owner =>
-      encodeBytesToBase64((_keyPair.publicKey as RsaJwkPublicKey).n);
-  String get address => ownerToAddress(owner);
-
-  KeyPair _keyPair;
+  RsaKeyPair _keyPair;
   Wallet({KeyPair keyPair}) : _keyPair = keyPair;
 
   static Future<Wallet> generate() async {
@@ -40,30 +37,22 @@ class Wallet {
 
     final pair = keyGen.generateKeyPair();
 
-    final pubK = pair.publicKey as RSAPublicKey;
     final privK = pair.privateKey as RSAPrivateKey;
 
     return Wallet(
-      keyPair: KeyPair(
-        publicKey: RsaJwkPublicKey(
-          e: encodeBigIntToBytes(pubK.publicExponent),
-          n: encodeBigIntToBytes(pubK.modulus),
-        ),
-        privateKey: RsaJwkPrivateKey(
-          e: encodeBigIntToBytes(privK.publicExponent),
-          n: encodeBigIntToBytes(privK.modulus),
-          d: encodeBigIntToBytes(privK.privateExponent),
-          p: encodeBigIntToBytes(privK.p),
-          q: encodeBigIntToBytes(privK.q),
-          dp: encodeBigIntToBytes(
-              privK.privateExponent % (privK.p - BigInt.one)),
-          dq: encodeBigIntToBytes(
-              privK.privateExponent % (privK.q - BigInt.one)),
-          qi: encodeBigIntToBytes(privK.q.modInverse(privK.p)),
-        ),
+      keyPair: RsaKeyPairData(
+        e: encodeBigIntToBytes(privK.publicExponent),
+        n: encodeBigIntToBytes(privK.modulus),
+        d: encodeBigIntToBytes(privK.privateExponent),
+        p: encodeBigIntToBytes(privK.p),
+        q: encodeBigIntToBytes(privK.q),
       ),
     );
   }
+
+  Future<String> getOwner() async => encodeBytesToBase64(
+      await _keyPair.extractPublicKey().then((res) => res.n));
+  Future<String> getAddress() async => ownerToAddress(await getOwner());
 
   Future<Uint8List> sign(Uint8List message) async =>
       rsaPssSign(message: message, keyPair: _keyPair);
@@ -78,16 +67,10 @@ class Wallet {
       }
     });
 
-    return Wallet(
-      keyPair: KeyPair(
-        publicKey: RsaJwkPublicKey.fromJson(jwk),
-        privateKey: RsaJwkPrivateKey.fromJson(jwk),
-      ),
-    );
+    return Wallet(keyPair: Jwk.fromJson(jwk).toKeyPair());
   }
 
-  Map<String, dynamic> toJwk() =>
-      (_keyPair.privateKey as RsaJwkPrivateKey).toJson().map(
-          // Denormalize the JWK into the expected form.
-          (key, value) => MapEntry(key, (value as String).replaceAll('=', '')));
+  Map<String, dynamic> toJwk() => Jwk.fromKeyPair(_keyPair).toJson().map(
+      // Denormalize the JWK into the expected form.
+      (key, value) => MapEntry(key, (value as String).replaceAll('=', '')));
 }

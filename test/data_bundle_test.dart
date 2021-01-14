@@ -11,7 +11,8 @@ void main() async {
       final wallet = await getTestWallet();
 
       final dataItem = DataItem.withBlobData(
-          owner: wallet.owner, data: utf8.encode('HELLOWORLD_TEST_STRING'))
+          owner: await wallet.getOwner(),
+          data: utf8.encode('HELLOWORLD_TEST_STRING'))
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');

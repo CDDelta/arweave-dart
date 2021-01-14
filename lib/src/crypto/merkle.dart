@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
+
+import 'crypto.dart';
 
 class TransactionChunksWithProofs {
   final Uint8List dataRoot;
@@ -275,9 +276,9 @@ Future<bool> validatePath(Uint8List id, int dest, int leftBound, int rightBound,
   return false;
 }
 
-Future<List<int>> _sha256(List<int> data) async {
+Future<Uint8List> _sha256(List<int> data) async {
   final hash = await sha256.hash(data);
-  return hash.bytes;
+  return Uint8List.fromList(hash.bytes);
 }
 
 bool _compareArray(Uint8List a, Uint8List b) {
