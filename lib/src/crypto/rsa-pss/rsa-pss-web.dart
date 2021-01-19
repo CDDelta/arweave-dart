@@ -11,7 +11,7 @@ final rsaPss = RsaPss(sha256, nonceLengthInBytes: 0);
 Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
   try {
     final signature = await rsaPss.sign(message, keyPair: keyPair);
-    return signature.bytes;
+    return Uint8List.fromList(signature.bytes);
   } catch (err) {
     if (err is UnimplementedError) {
       return common.rsaPssSign(message: message, keyPair: keyPair);
