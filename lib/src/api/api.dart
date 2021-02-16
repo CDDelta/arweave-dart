@@ -13,10 +13,11 @@ class ArweaveApi {
         _client = http.Client();
 
   Future<http.Response> get(String endpoint) =>
-      _client.get(_getEndpointUrl(endpoint));
+      _client.get(_getEndpointUri(endpoint));
 
   Future<http.Response> post(String endpoint, {dynamic body}) =>
-      _client.post(_getEndpointUrl(endpoint), body: body);
+      _client.post(_getEndpointUri(endpoint), body: body);
 
-  String _getEndpointUrl(String endpoint) => '${gatewayUrl.origin}/$endpoint';
+  Uri _getEndpointUri(String endpoint) =>
+      Uri.parse('${gatewayUrl.origin}/$endpoint');
 }
