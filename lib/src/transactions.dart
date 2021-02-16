@@ -48,7 +48,7 @@ class ArweaveTransactionsApi {
     }
 
     if (transaction.owner == null && wallet != null) {
-      transaction.setOwner(wallet.owner);
+      transaction.setOwner(await wallet.getOwner());
     }
 
     if (transaction.lastTx == null) {

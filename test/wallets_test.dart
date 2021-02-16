@@ -42,15 +42,16 @@ void main() {
       expect(walletJwk['n'], matches(jwkFieldPattern));
       expect(walletJwk['d'], matches(jwkFieldPattern));
 
-      expect(walletA.address, matches(digestPattern));
-      expect(walletB.address, matches(digestPattern));
+      expect(await walletA.getAddress(), matches(digestPattern));
+      expect(await walletB.getAddress(), matches(digestPattern));
 
-      expect(walletA.address, isNot(equals(walletB.address)));
+      expect(await walletA.getAddress(),
+          isNot(equals(await walletB.getAddress())));
     });
 
     test('resolve address from wallet', () async {
       final wallet = await getTestWallet();
-      expect(wallet.address,
+      expect(await wallet.getAddress(),
           equals('fOVzBRTBnyt4VrUUYadBH8yras_-jhgpmNgg-5b3vEw'));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),

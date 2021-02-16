@@ -14,7 +14,7 @@ void main() async {
 
   // Create a data item and make sure to provide an appropriate `owner`.
   final dataItem = DataItem.withBlobData(
-    owner: wallet.owner,
+    owner: await wallet.getOwner(),
     data: utf8.encode('HELLOWORLD_TEST_STRING'),
   )
     ..addTag('MyTag', '0')

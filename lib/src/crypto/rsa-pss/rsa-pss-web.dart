@@ -3,14 +3,15 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 
 import '../../utils.dart';
+import '../crypto.dart';
 import 'rsa-pss-common.dart' as common;
 
-final rsaPss = RsaPss(sha256, nonceLength: 0);
+final rsaPss = RsaPss(sha256, nonceLengthInBytes: 0);
 
-Future<Uint8List> rsaPssSign({Uint8List message, KeyPair keyPair}) async {
+Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
   try {
-    final signature = await rsaPss.sign(message, keyPair);
-    return signature.bytes;
+    final signature = await rsaPss.sign(message, keyPair: keyPair);
+    return Uint8List.fromList(signature.bytes);
   } catch (err) {
     if (err is UnimplementedError) {
       return common.rsaPssSign(message: message, keyPair: keyPair);
@@ -29,9 +30,9 @@ Future<bool> rsaPssVerify({
   try {
     final valid = await rsaPss.verify(
       input,
-      Signature(
+      signature: Signature(
         signature,
-        publicKey: RsaJwkPublicKey(
+        publicKey: RsaPublicKey(
           n: encodeBigIntToBytes(modulus),
           e: encodeBigIntToBytes(publicExponent),
         ),

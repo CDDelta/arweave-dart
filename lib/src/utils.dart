@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart';
+
+import 'crypto/crypto.dart';
 
 final keyLength = 4096;
 final publicExponent = BigInt.from(65537);
@@ -16,7 +17,7 @@ String decodeBase64ToString(String base64) =>
 BigInt decodeBase64ToBigInt(String base64) =>
     decodeBytesToBigInt(decodeBase64ToBytes(base64));
 
-BigInt decodeBytesToBigInt(Uint8List bytes) {
+BigInt decodeBytesToBigInt(List<int> bytes) {
   var result = BigInt.zero;
   for (var i = 0; i < bytes.length; i++) {
     result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
@@ -101,5 +102,5 @@ String getResponseError(Response res) {
   return res.body ?? 'unknown';
 }
 
-String ownerToAddress(String owner) =>
-    encodeBytesToBase64(sha256.hashSync(decodeBase64ToBytes(owner)).bytes);
+Future<String> ownerToAddress(String owner) async => encodeBytesToBase64(
+    await sha256.hash(decodeBase64ToBytes(owner)).then((res) => res.bytes));
