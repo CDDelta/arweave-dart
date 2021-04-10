@@ -3,17 +3,17 @@ import 'dart:typed_data';
 import 'models.dart';
 
 abstract class TransactionBase {
-  String get id;
+  String? get id;
 
-  String get owner;
+  String? get owner;
 
-  List<Tag> get tags;
+  List<Tag>? get tags;
 
-  String get target;
+  String? get target;
 
   Uint8List get data;
 
-  String get signature;
+  String? get signature;
 
   void setOwner(String owner);
 

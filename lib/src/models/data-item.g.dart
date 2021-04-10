@@ -8,15 +8,15 @@ part of 'data-item.dart';
 
 DataItem _$DataItemFromJson(Map<String, dynamic> json) {
   return DataItem(
-    id: json['id'] as String,
-    owner: json['owner'] as String,
-    target: json['target'] as String,
-    nonce: json['nonce'] as String,
-    tags: (json['tags'] as List)
-        ?.map((e) => e == null ? null : Tag.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    data: json['data'] as String,
-    signature: json['signature'] as String,
+    id: json['id'] as String?,
+    owner: json['owner'] as String?,
+    target: json['target'] as String?,
+    nonce: json['nonce'] as String?,
+    tags: (json['tags'] as List<dynamic>?)
+        ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    data: json['data'] as String?,
+    signature: json['signature'] as String?,
   );
 }
 

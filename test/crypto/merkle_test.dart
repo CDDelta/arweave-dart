@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:arweave/src/crypto/crypto.dart';
 import 'package:arweave/utils.dart' as utils;
@@ -21,8 +22,8 @@ void main() async {
     test('build valid tree and proofs', () async {
       final data = await File('test/fixtures/rebar3').readAsBytes();
       final root = await generateTree(data);
-      final proofs = await generateProofs(root);
-      expect(utils.encodeBytesToBase64(root.id), equals(rootB64));
+      final proofs = generateProofs(root);
+      expect(utils.encodeBytesToBase64(root.id!), equals(rootB64));
       expect(utils.encodeBytesToBase64(proofs[0].proof), equals(pathB64));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -37,7 +38,9 @@ void main() async {
       final invalidRoot = hex.decode(
           '957e4aee001494832dda16189285d5ae39953279e317a3fa739b28bfa98fa829');
       expect(
-          await validatePath(invalidRoot, offset, 0, dataSize, path), isFalse);
+          await validatePath(
+              invalidRoot as Uint8List, offset, 0, dataSize, path),
+          isFalse);
     });
 
     test('reject invalid data path', () async {
@@ -45,7 +48,9 @@ void main() async {
       final invalidPath = hex.decode(
           '55449db9b156d9c4efbebe6ce95192536a317edc666bbedb46f8a5b397ea8a4763e2a9cff31106d874102b265e6465b96fd58d1659834414f24c9f0d9c7403ded2c773657072d7ddad76e450e0c03404eb38fea9f1136548d4f9d2330a7522b2986d0cf32bfd8372c2a0f0784176b07113faabd5f9bb59e723b185325caec680b8a76d735a2eefebc7f5afbdf05c759d1fbe9580235bb74944503835a56f2c62f8baa5dc0075335d40870086a90ed89049d8ac2d9717a68f813a34c2a0f708b6a501ede822a55f74f9ad07557744edf1ccf1ae43940405bd27c5c62bd8922e88f82d6665df3e1c288172647ee25202330aef4877c8c8a0ef779557606946b845');
       expect(
-          await validatePath(root, offset, 0, dataSize, invalidPath), isFalse);
+          await validatePath(
+              root, offset, 0, dataSize, invalidPath as Uint8List),
+          isFalse);
     });
 
     test(

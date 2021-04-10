@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -6,7 +7,7 @@ import 'package:meta/meta.dart';
 import 'crypto.dart';
 
 class TransactionChunksWithProofs {
-  final Uint8List dataRoot;
+  final Uint8List? dataRoot;
   final List<_Chunk> chunks;
   final List<Proof> proofs;
 
@@ -22,31 +23,32 @@ class _Chunk {
 }
 
 abstract class _MerkleNode {
-  final List<int> id;
-  final int maxByteRange;
+  final List<int>? id;
+  final int? maxByteRange;
 
   _MerkleNode(this.id, this.maxByteRange);
 }
 
 class _BranchNode extends _MerkleNode {
-  final int byteRange;
-  final _MerkleNode leftChild;
-  final _MerkleNode rightChild;
+  final int? byteRange;
+  final _MerkleNode? leftChild;
+  final _MerkleNode? rightChild;
 
   _BranchNode(
-      {List<int> id,
+      {List<int>? id,
       this.byteRange,
-      int maxByteRange,
+      int? maxByteRange,
       this.leftChild,
       this.rightChild})
       : super(id, maxByteRange);
 }
 
 class _LeafNode extends _MerkleNode {
-  final List<int> dataHash;
-  final int minByteRange;
+  final List<int>? dataHash;
+  final int? minByteRange;
 
-  _LeafNode({List<int> id, this.dataHash, this.minByteRange, int maxByteRange})
+  _LeafNode(
+      {List<int>? id, this.dataHash, this.minByteRange, int? maxByteRange})
       : super(id, maxByteRange);
 }
 
@@ -56,9 +58,9 @@ const HASH_SIZE = 32;
 const NOTE_SIZE = 32;
 
 /// Builds an Arweave Merkle tree and returns the root hash for the given input.
-Future<Uint8List> computeRootHash(Uint8List data) async {
+Future<Uint8List?> computeRootHash(Uint8List data) async {
   final rootNode = await generateTree(data);
-  return rootNode.id;
+  return rootNode.id as FutureOr<Uint8List?>;
 }
 
 Future<_MerkleNode> generateTree(Uint8List data) async {
@@ -85,7 +87,7 @@ Future<TransactionChunksWithProofs> generateTransactionChunks(
     proofs.removeLast();
   }
 
-  return TransactionChunksWithProofs(root.id, chunks, proofs);
+  return TransactionChunksWithProofs(root.id as Uint8List?, chunks, proofs);
 }
 
 /// Takes the input data and chunks it into (mostly) equal sized chunks.
@@ -163,13 +165,13 @@ Future<_MerkleNode> _buildLayers(List<_MerkleNode> nodes,
   return _buildLayers(nextLayer, level + 1);
 }
 
-Future<_MerkleNode> _hashBranch(_MerkleNode left, _MerkleNode right) async {
+Future<_MerkleNode> _hashBranch(_MerkleNode left, _MerkleNode? right) async {
   if (right == null) return left;
 
   return _BranchNode(
     id: await _sha256(
-      await _sha256(left.id) +
-          await _sha256(right.id) +
+      await _sha256(left.id!) +
+          await _sha256(right.id!) +
           await _sha256(_intToBuffer(left.maxByteRange)),
     ),
     byteRange: left.maxByteRange,
@@ -201,22 +203,22 @@ List<Proof> generateProofs(_MerkleNode root) {
   return flatten(proofs).cast<Proof>().toList();
 }
 
-List<Object> _resolveBranchProofs(_MerkleNode node,
-    [List<int> proof, depth = 0]) {
+List<Object> _resolveBranchProofs(_MerkleNode? node,
+    [List<int>? proof, depth = 0]) {
   proof = proof ?? <int>[];
 
   if (node is _LeafNode) {
     return [
       Proof(
-        node.maxByteRange - 1,
+        node.maxByteRange! - 1,
         Uint8List.fromList(
-            proof + node.dataHash + _intToBuffer(node.maxByteRange)),
+            proof + node.dataHash! + _intToBuffer(node.maxByteRange)),
       )
     ];
   } else if (node is _BranchNode) {
     final partialProof = proof +
-        node.leftChild.id +
-        node.rightChild.id +
+        node.leftChild!.id! +
+        node.rightChild!.id! +
         _intToBuffer(node.byteRange);
     return [
       _resolveBranchProofs(node.leftChild, partialProof, depth + 1),
@@ -299,11 +301,11 @@ int _bufferToInt(Uint8List buffer) {
   return value;
 }
 
-Uint8List _intToBuffer(int note) {
+Uint8List _intToBuffer(int? note) {
   final buffer = Uint8List(NOTE_SIZE);
 
   for (var i = buffer.length - 1; i >= 0; i--) {
-    var byte = note % 256;
+    var byte = note! % 256;
     buffer[i] = byte;
     note = (note - byte) ~/ 256;
   }

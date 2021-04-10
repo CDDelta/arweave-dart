@@ -28,17 +28,17 @@ const FATAL_CHUNK_UPLOAD_ERRORS = [
 class TransactionUploader {
   int _chunkIndex = 0;
   bool _txPosted = false;
-  int _lastRequestTimeEnd = 0;
+  int? _lastRequestTimeEnd = 0;
   int _totalErrors = 0;
 
-  int lastResponseStatus = 0;
-  String lastResponseError = '';
+  int? lastResponseStatus = 0;
+  String? lastResponseError = '';
 
-  final Transaction _transaction;
-  final ArweaveApi _api;
+  final Transaction? _transaction;
+  final ArweaveApi? _api;
   final Random _random = Random();
 
-  TransactionUploader(Transaction transaction, ArweaveApi api,
+  TransactionUploader(Transaction transaction, ArweaveApi? api,
       {bool forDataOnly = false})
       : _transaction = transaction,
         _api = api,
@@ -50,11 +50,11 @@ class TransactionUploader {
   }
 
   TransactionUploader._(
-      {ArweaveApi api,
-      int chunkIndex,
-      bool txPosted,
-      Transaction transaction,
-      int lastRequestTimeEnd,
+      {ArweaveApi? api,
+      required int chunkIndex,
+      required bool txPosted,
+      Transaction? transaction,
+      int? lastRequestTimeEnd,
       this.lastResponseStatus,
       this.lastResponseError})
       : _api = api,
@@ -64,12 +64,12 @@ class TransactionUploader {
         _lastRequestTimeEnd = lastRequestTimeEnd;
 
   bool get isComplete =>
-      _txPosted && _chunkIndex >= _transaction.chunks.chunks.length;
-  int get totalChunks => _transaction.chunks.chunks.length;
-  int get uploadedChunks => _chunkIndex;
+      _txPosted && _chunkIndex >= _transaction!.chunks!.chunks.length;
+  int get totalChunks => _transaction!.chunks!.chunks.length;
+  int? get uploadedChunks => _chunkIndex;
 
   /// The progress of the current upload ranging from 0 to 1.
-  double get progress => uploadedChunks / totalChunks;
+  double get progress => uploadedChunks! / totalChunks;
 
   /// Uploads a chunk of the transaction.
   /// On the first call this posts the transaction
@@ -78,7 +78,7 @@ class TransactionUploader {
   Future<void> uploadChunk() async {
     if (isComplete) throw StateError('Upload is already complete.');
 
-    if (lastResponseError.isNotEmpty) {
+    if (lastResponseError!.isNotEmpty) {
       _totalErrors++;
     } else {
       _totalErrors = 0;
@@ -91,10 +91,10 @@ class TransactionUploader {
           'Unable to complete upload: $lastResponseStatus: $lastResponseError');
     }
 
-    var delay = lastResponseError.isEmpty
+    var delay = lastResponseError!.isEmpty
         ? 0
         : max(
-            _lastRequestTimeEnd +
+            _lastRequestTimeEnd! +
                 ERROR_DELAY -
                 DateTime.now().millisecondsSinceEpoch,
             ERROR_DELAY);
@@ -112,7 +112,7 @@ class TransactionUploader {
       return;
     }
 
-    final chunk = _transaction.getChunk(_chunkIndex);
+    final chunk = _transaction!.getChunk(_chunkIndex);
 
     // TODO: Validate chunks
     // final chunkValid = await validatePath(this.transaction.chunks!.data_root, parseInt(chunk.offset), 0, parseInt(chunk.data_size), ArweaveUtils.b64UrlToBuffer(chunk.data_path))
@@ -120,7 +120,7 @@ class TransactionUploader {
     //  throw StateError('Unable to validate chunk: $_chunkIndex');
 
     // Catch network errors and turn them into objects with status -1 and an error message.
-    final res = await _api.post('chunk', body: json.encode(chunk));
+    final res = await _api!.post('chunk', body: json.encode(chunk));
 
     _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
     lastResponseStatus = res.statusCode;
@@ -138,12 +138,12 @@ class TransactionUploader {
 
   Future<void> _postTransaction() async {
     final uploadInBody = totalChunks <= MAX_CHUNKS_IN_BODY;
-    final txJson = _transaction.toJson();
+    final txJson = _transaction!.toJson();
 
     if (uploadInBody) {
       // TODO: Make async
-      txJson['data'] = encodeBytesToBase64(_transaction.data);
-      final res = await _api.post('tx', body: json.encode(txJson));
+      txJson['data'] = encodeBytesToBase64(_transaction!.data);
+      final res = await _api!.post('tx', body: json.encode(txJson));
 
       _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
       lastResponseStatus = res.statusCode;
@@ -160,7 +160,7 @@ class TransactionUploader {
 
     // Post the transaction with no data.
     txJson.remove('data');
-    final res = await _api.post('tx', body: json.encode(txJson));
+    final res = await _api!.post('tx', body: json.encode(txJson));
 
     _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
     lastResponseStatus = res.statusCode;
@@ -173,28 +173,28 @@ class TransactionUploader {
   }
 
   static Future<TransactionUploader> deserialize(
-      Map<String, dynamic> json, Uint8List data, ArweaveApi api) async {
+      Map<String, dynamic> json, Uint8List data, ArweaveApi? api) async {
     final transaction = json['transaction'] != null
         ? Transaction.fromJson(json['transaction'])
         : null;
 
-    await transaction.setData(data);
+    await transaction?.setData(data);
 
     return TransactionUploader._(
       api: api,
       chunkIndex: json['chunkIndex'] as int,
       txPosted: json['txPosted'] as bool,
       transaction: transaction,
-      lastRequestTimeEnd: json['lastRequestTimeEnd'] as int,
-      lastResponseStatus: json['lastResponseStatus'] as int,
-      lastResponseError: json['lastResponseError'] as String,
+      lastRequestTimeEnd: json['lastRequestTimeEnd'] as int?,
+      lastResponseStatus: json['lastResponseStatus'] as int?,
+      lastResponseError: json['lastResponseError'] as String?,
     );
   }
 
   Map<String, dynamic> serialize() => <String, dynamic>{
         'chunkIndex': _chunkIndex,
         'txPosted': _txPosted,
-        'transaction': _transaction.toJson()..['data'] = null,
+        'transaction': _transaction!.toJson()..['data'] = null,
         'lastRequestTimeEnd': _lastRequestTimeEnd,
         'lastResponseStatus': lastResponseStatus,
         'lastResponseError': lastResponseError,

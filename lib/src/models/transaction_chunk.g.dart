@@ -8,11 +8,11 @@ part of 'transaction_chunk.dart';
 
 TransactionChunk _$TransactionChunkFromJson(Map<String, dynamic> json) {
   return TransactionChunk(
-    dataRoot: json['data_root'] as String,
-    dataSize: json['data_size'] as String,
-    dataPath: json['data_path'] as String,
-    offset: json['offset'] as String,
-    chunk: json['chunk'] as String,
+    dataRoot: json['data_root'] as String?,
+    dataSize: json['data_size'] as String?,
+    dataPath: json['data_path'] as String?,
+    offset: json['offset'] as String?,
+    chunk: json['chunk'] as String?,
   );
 }
 
@@ -28,8 +28,8 @@ Map<String, dynamic> _$TransactionChunkToJson(TransactionChunk instance) =>
 TransactionOffsetResponse _$TransactionOffsetResponseFromJson(
     Map<String, dynamic> json) {
   return TransactionOffsetResponse(
-    size: json['size'] as String,
-    offset: json['offset'] as String,
+    size: json['size'] as String?,
+    offset: json['offset'] as String?,
   );
 }
 
@@ -43,9 +43,9 @@ Map<String, dynamic> _$TransactionOffsetResponseToJson(
 TransactionChunkResponse _$TransactionChunkResponseFromJson(
     Map<String, dynamic> json) {
   return TransactionChunkResponse(
-    chunk: json['chunk'] as String,
-    dataPath: json['data_path'] as String,
-    txPath: json['tx_path'] as String,
+    chunk: json['chunk'] as String?,
+    dataPath: json['data_path'] as String?,
+    txPath: json['tx_path'] as String?,
   );
 }
 
