@@ -69,6 +69,39 @@ class ArweaveTransactionsApi {
     return transaction;
   }
 
+  Future<Transaction> prepareWithSignature(
+    Transaction transaction, [
+    String owner,
+  ]) async {
+    assert(transaction.data != null ||
+        (transaction.target != null && transaction.quantity != null));
+
+    if (transaction.format == 1) {
+      throw ArgumentError('Creating v1 transactions is not supported.');
+    }
+
+    if (transaction.owner == null && owner != null) {
+      transaction.setOwner(owner);
+    }
+
+    if (transaction.lastTx == null) {
+      transaction.setLastTx(await getTransactionAnchor());
+    }
+
+    if (transaction.reward == BigInt.zero) {
+      transaction.setReward(
+        await getPrice(
+          byteSize: int.parse(transaction.dataSize),
+          targetAddress: transaction.target,
+        ),
+      );
+    }
+
+    await transaction.prepareChunks();
+
+    return transaction;
+  }
+
   /// Returns an uploader than can be used to upload a transaction chunk by chunk, giving progress
   /// and the ability to resume.
   Future<TransactionUploader> getUploader(Transaction transaction,
