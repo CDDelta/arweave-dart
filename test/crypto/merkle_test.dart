@@ -21,7 +21,7 @@ void main() async {
     test('build valid tree and proofs', () async {
       final data = await File('test/fixtures/rebar3').readAsBytes();
       final root = await generateTree(data);
-      final proofs = await generateProofs(root);
+      final proofs = generateProofs(root);
       expect(utils.encodeBytesToBase64(root.id), equals(rootB64));
       expect(utils.encodeBytesToBase64(proofs[0].proof), equals(pathB64));
     }, onPlatform: {

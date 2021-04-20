@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -274,6 +273,14 @@ class Transaction implements TransactionBase {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
+    _signature = encodeBytesToBase64(rawSignature);
+
+    final idHash = await sha256.hash(rawSignature);
+    _id = encodeBytesToBase64(idHash.bytes);
+  }
+
+  @override
+  Future<void> signWithRawSignature(Uint8List rawSignature) async {
     _signature = encodeBytesToBase64(rawSignature);
 
     final idHash = await sha256.hash(rawSignature);

@@ -77,7 +77,7 @@ Future<TransactionChunksWithProofs> generateTransactionChunks(
   final chunks = await chunkData(data);
   final leaves = await _generateLeaves(chunks);
   final root = await _buildLayers(leaves);
-  final proofs = await generateProofs(root);
+  final proofs = generateProofs(root);
 
   // Discard the last chunk & proof if it's zero length.
   if (chunks.last.maxByteRange - chunks.last.minByteRange == 0) {
