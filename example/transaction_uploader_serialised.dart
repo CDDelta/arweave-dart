@@ -10,15 +10,17 @@ void main() async {
 
   // Load an Arweave wallet.
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
-
+  final owner = await wallet.getOwner();
   // Create a data transaction.
   final transaction = await client.transactions.prepare(
     Transaction.withBlobData(data: utf8.encode('Hello world!')),
-    wallet,
+    owner,
   );
 
   // Sign the transaction.
-  await transaction.sign(wallet);
+  final signatureData = await transaction.getSignatureData();
+  final rawSignature = await wallet.sign(signatureData);
+  await transaction.sign(rawSignature);
 
   // Get an uploader for this transaction.
   final uploader = await client.transactions.getUploader(transaction);

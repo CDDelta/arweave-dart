@@ -16,8 +16,9 @@ void main() async {
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');
-
-      await dataItem.sign(wallet);
+      final signatureData = await dataItem.getSignatureData();
+      final rawSignature = await wallet.sign(signatureData);
+      await dataItem.sign(rawSignature);
 
       expect(await dataItem.verify(), isTrue);
 

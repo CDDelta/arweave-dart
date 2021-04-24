@@ -22,8 +22,7 @@ abstract class TransactionBase {
   /// Returns the message that should be signed to produce a valid signature.
   Future<Uint8List> getSignatureData();
 
-  Future<void> sign(Wallet wallet);
-  Future<void> signWithRawSignature(Uint8List rawSignature);
+  Future<void> sign(Uint8List rawSignature);
 
   Future<bool> verify();
 }

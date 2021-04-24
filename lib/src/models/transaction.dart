@@ -9,7 +9,6 @@ import '../crypto/crypto.dart';
 import '../utils.dart';
 import 'tag.dart';
 import 'transaction_chunk.dart';
-import 'wallet.dart';
 
 part 'transaction.g.dart';
 
@@ -269,18 +268,7 @@ class Transaction implements TransactionBase {
   }
 
   @override
-  Future<void> sign(Wallet wallet) async {
-    final signatureData = await getSignatureData();
-    final rawSignature = await wallet.sign(signatureData);
-
-    _signature = encodeBytesToBase64(rawSignature);
-
-    final idHash = await sha256.hash(rawSignature);
-    _id = encodeBytesToBase64(idHash.bytes);
-  }
-
-  @override
-  Future<void> signWithRawSignature(Uint8List rawSignature) async {
+  Future<void> sign(Uint8List rawSignature) async {
     _signature = encodeBytesToBase64(rawSignature);
 
     final idHash = await sha256.hash(rawSignature);

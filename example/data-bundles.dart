@@ -11,25 +11,29 @@ void main() async {
 
   // Load an Arweave wallet.
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
+  final walletOwner = await wallet.getOwner();
 
   // Create a data item and make sure to provide an appropriate `owner`.
   final dataItem = DataItem.withBlobData(
-    owner: await wallet.getOwner(),
+    owner: walletOwner,
     data: utf8.encode('HELLOWORLD_TEST_STRING'),
   )
     ..addTag('MyTag', '0')
     ..addTag('OtherTag', 'Foo');
+  final signatureData = await dataItem.getSignatureData();
+  final rawSignature = await wallet.sign(signatureData);
 
-  await dataItem.sign(wallet);
+  await dataItem.sign(rawSignature);
 
   // Prepare a data bundle transaction.
   final transaction = await client.transactions.prepare(
     Transaction.withDataBundle(bundle: DataBundle(items: [dataItem])),
-    wallet,
+    walletOwner,
   );
-
+  final transactionSignatureData = await transaction.getSignatureData();
+  final transactionRawSignature = await wallet.sign(transactionSignatureData);
   // Sign the bundle transaction.
-  await transaction.sign(wallet);
+  await transaction.sign(transactionRawSignature);
 
   // Upload the transaction.
   await client.transactions.post(transaction);

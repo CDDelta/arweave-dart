@@ -125,19 +125,9 @@ class DataItem implements TransactionBase {
       );
 
   /// Signs the [DataItem] using the specified wallet and sets the `id` and `signature` appropriately.
-  @override
-  Future<void> sign(Wallet wallet) async {
-    final signatureData = await getSignatureData();
-    final rawSignature = await wallet.sign(signatureData);
-
-    _signature = encodeBytesToBase64(rawSignature);
-
-    final idHash = await sha256.hash(rawSignature);
-    _id = encodeBytesToBase64(idHash.bytes);
-  }
 
   @override
-  Future<void> signWithRawSignature(Uint8List rawSignature) async {
+  Future<void> sign(Uint8List rawSignature) async {
     _signature = encodeBytesToBase64(rawSignature);
 
     final idHash = await sha256.hash(rawSignature);

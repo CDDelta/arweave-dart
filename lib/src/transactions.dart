@@ -36,40 +36,8 @@ class ArweaveTransactionsApi {
   ///
   /// Chunks the transaction data, sets the transaction anchor, reward,
   /// and the transaction owner if a wallet is specified,
+
   Future<Transaction> prepare(
-    Transaction transaction, [
-    Wallet wallet,
-  ]) async {
-    assert(transaction.data != null ||
-        (transaction.target != null && transaction.quantity != null));
-
-    if (transaction.format == 1) {
-      throw ArgumentError('Creating v1 transactions is not supported.');
-    }
-
-    if (transaction.owner == null && wallet != null) {
-      transaction.setOwner(await wallet.getOwner());
-    }
-
-    if (transaction.lastTx == null) {
-      transaction.setLastTx(await getTransactionAnchor());
-    }
-
-    if (transaction.reward == BigInt.zero) {
-      transaction.setReward(
-        await getPrice(
-          byteSize: int.parse(transaction.dataSize),
-          targetAddress: transaction.target,
-        ),
-      );
-    }
-
-    await transaction.prepareChunks();
-
-    return transaction;
-  }
-
-  Future<Transaction> prepareWithSignature(
     Transaction transaction, [
     String owner,
   ]) async {

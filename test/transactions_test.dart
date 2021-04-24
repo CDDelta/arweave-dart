@@ -19,9 +19,9 @@ void main() {
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
     test('create, sign, and verify data transaction', () async {
       final wallet = await getTestWallet();
-
+      final owner = await wallet.getOwner();
       final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: utf8.encode('test')), wallet);
+          .prepare(Transaction.withBlobData(data: utf8.encode('test')), owner);
 
       transaction
         ..addTag('test-tag-1', 'test-value-1')
@@ -32,7 +32,9 @@ void main() {
       expect(transaction.lastTx, matches(transactionFieldPattern));
       expect(transaction.reward.toInt(), greaterThan(0));
 
-      await transaction.sign(wallet);
+      final signatureData = await transaction.getSignatureData();
+      final rawSignature = await wallet.sign(signatureData);
+      await transaction.sign(rawSignature);
 
       expect(transaction.signature, matches(signaturePattern));
       expect(transaction.id, matches(digestPattern));
@@ -47,19 +49,21 @@ void main() {
 
     test('create, sign, and specify reward for AR transaction', () async {
       final wallet = await getTestWallet();
-
+      final owner = await wallet.getOwner();
       final transaction = await client.transactions.prepare(
         Transaction(
           target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
           quantity: utils.arToWinston('1.5'),
         ),
-        wallet,
+        owner,
       );
 
       expect(transaction.target,
           equals('GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk'));
 
-      await transaction.sign(wallet);
+      final signatureData = await transaction.getSignatureData();
+      final rawSignature = await wallet.sign(signatureData);
+      await transaction.sign(rawSignature);
 
       expect(transaction.signature, matches(signaturePattern));
       expect(transaction.id, matches(digestPattern));
@@ -73,6 +77,7 @@ void main() {
 
     test('sign v2 transaction', () async {
       final wallet = await getTestWallet();
+      final owner = await wallet.getOwner();
       final signedV2Tx =
           await getTestTransaction('test/fixtures/signed_v2_tx.json');
       final unsignedV2Tx =
@@ -83,12 +88,14 @@ void main() {
           data: unsignedV2Tx.data,
           reward: utils.arToWinston('100'),
         ),
-        wallet,
+        owner,
       );
 
       tx.setLastTx('');
 
-      await tx.sign(wallet);
+      final signatureData = await tx.getSignatureData();
+      final rawSignature = await wallet.sign(signatureData);
+      await tx.sign(rawSignature);
 
       expect(tx.dataRoot, signedV2Tx.dataRoot);
       expect(tx.signature, signedV2Tx.signature);
@@ -148,12 +155,15 @@ void main() {
     test('upload transaction with serialised uploader', () async {
       final data = utf8.encode('Hello world!');
       final wallet = await getTestWallet();
+      final owner = await wallet.getOwner();
       final transaction = await client.transactions.prepare(
         Transaction.withBlobData(data: data),
-        wallet,
+        owner,
       );
 
-      await transaction.sign(wallet);
+      final signatureData = await transaction.getSignatureData();
+      final rawSignature = await wallet.sign(signatureData);
+      await transaction.sign(rawSignature);
 
       final uploader = await client.transactions.getUploader(transaction);
       final reloadedUploader = await TransactionUploader.deserialize(
