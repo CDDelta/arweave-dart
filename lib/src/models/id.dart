@@ -4,10 +4,10 @@ part 'id.g.dart';
 
 @JsonSerializable()
 class ArweaveId {
-  String name;
-  String url;
-  String text;
-  String avatarDataUri;
+  String? name;
+  String? url;
+  String? text;
+  String? avatarDataUri;
 
   ArweaveId({this.name, this.url, this.text, this.avatarDataUri});
 

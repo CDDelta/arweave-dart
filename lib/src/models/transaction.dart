@@ -23,20 +23,20 @@ class Transaction implements TransactionBase {
   final int format;
 
   @override
-  String get id => _id;
-  String _id;
+  String? get id => _id;
+  String? _id;
 
   @JsonKey(name: 'last_tx')
-  String get lastTx => _lastTx;
-  String _lastTx;
+  String? get lastTx => _lastTx;
+  String? _lastTx;
 
   @override
-  String get owner => _owner;
-  String _owner;
+  String? get owner => _owner;
+  String? _owner;
 
   @override
-  List<Tag> get tags => _tags;
-  List<Tag> _tags;
+  List<Tag>? get tags => _tags;
+  List<Tag>? _tags;
 
   @override
   String get target => _target;
@@ -54,8 +54,8 @@ class Transaction implements TransactionBase {
   Uint8List _data;
 
   @JsonKey(name: 'data_size')
-  String get dataSize => _dataSize;
-  String _dataSize;
+  String? get dataSize => _dataSize;
+  String? _dataSize;
 
   @JsonKey(name: 'data_root')
   String get dataRoot => _dataRoot;
@@ -66,12 +66,12 @@ class Transaction implements TransactionBase {
   BigInt _reward;
 
   @override
-  String get signature => _signature;
-  String _signature;
+  String? get signature => _signature;
+  String? _signature;
 
   @JsonKey(ignore: true)
-  TransactionChunksWithProofs get chunks => _chunks;
-  TransactionChunksWithProofs _chunks;
+  TransactionChunksWithProofs? get chunks => _chunks;
+  TransactionChunksWithProofs? _chunks;
 
   /// This constructor is reserved for JSON serialisation.
   ///
@@ -79,18 +79,18 @@ class Transaction implements TransactionBase {
   /// This constructor will not compute the data size or encode incoming data to Base64 for you.
   Transaction({
     this.format = 2,
-    String id,
-    String lastTx,
-    String owner,
-    List<Tag> tags,
-    String target,
-    BigInt quantity,
-    String data,
-    Uint8List dataBytes,
-    String dataSize = '0',
-    String dataRoot,
-    BigInt reward,
-    String signature,
+    String? id,
+    String? lastTx,
+    String? owner,
+    List<Tag>? tags,
+    String? target,
+    BigInt? quantity,
+    String? data,
+    Uint8List? dataBytes,
+    String? dataSize = '0',
+    String? dataRoot,
+    BigInt? reward,
+    String? signature,
   })  : _id = id,
         _lastTx = lastTx,
         _owner = owner,
@@ -108,12 +108,12 @@ class Transaction implements TransactionBase {
 
   /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({
-    String owner,
-    List<Tag> tags,
-    String target,
-    BigInt quantity,
-    @required DataBundle bundle,
-    BigInt reward,
+    String? owner,
+    List<Tag>? tags,
+    String? target,
+    BigInt? quantity,
+    required DataBundle bundle,
+    BigInt? reward,
   }) =>
       Transaction.withJsonData(
         owner: owner,
@@ -128,30 +128,30 @@ class Transaction implements TransactionBase {
 
   /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
-    String owner,
-    List<Tag> tags,
-    String target,
-    BigInt quantity,
-    @required Object data,
-    BigInt reward,
+    String? owner,
+    List<Tag>? tags,
+    String? target,
+    BigInt? quantity,
+    required Object data,
+    BigInt? reward,
   }) =>
       Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: utf8.encode(json.encode(data)),
+        data: utf8.encode(json.encode(data)) as Uint8List,
         reward: reward,
       )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [Transaction] with the specified blob data and computed data size.
   factory Transaction.withBlobData({
-    String owner,
-    List<Tag> tags,
-    String target,
-    BigInt quantity,
-    @required Uint8List data,
-    BigInt reward,
+    String? owner,
+    List<Tag>? tags,
+    String? target,
+    BigInt? quantity,
+    required Uint8List data,
+    BigInt? reward,
   }) =>
       Transaction(
         owner: owner,
@@ -190,7 +190,7 @@ class Transaction implements TransactionBase {
 
   @override
   void addTag(String name, String value) {
-    tags.add(
+    tags!.add(
       Tag(
         encodeStringToBase64(name),
         encodeStringToBase64(value),
@@ -205,7 +205,7 @@ class Transaction implements TransactionBase {
 
     if (data.isNotEmpty) {
       _chunks = await generateTransactionChunks(data);
-      _dataRoot = encodeBytesToBase64(chunks.dataRoot);
+      _dataRoot = encodeBytesToBase64(chunks!.dataRoot!);
     } else {
       _chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
     }
@@ -215,8 +215,8 @@ class Transaction implements TransactionBase {
   TransactionChunk getChunk(int index) {
     if (chunks == null) throw StateError('Chunks have not been prepared.');
 
-    final proof = chunks.proofs[index];
-    final chunk = chunks.chunks[index];
+    final proof = chunks!.proofs[index];
+    final chunk = chunks!.chunks[index];
 
     return TransactionChunk(
       dataRoot: dataRoot,
@@ -233,35 +233,35 @@ class Transaction implements TransactionBase {
     switch (format) {
       case 1:
         return Uint8List.fromList(
-          decodeBase64ToBytes(owner) +
+          decodeBase64ToBytes(owner!) +
               decodeBase64ToBytes(target) +
               data +
               utf8.encode(quantity.toString()) +
               utf8.encode(reward.toString()) +
-              decodeBase64ToBytes(lastTx) +
-              tags
+              decodeBase64ToBytes(lastTx!) +
+              tags!
                   .expand((t) =>
-                      decodeBase64ToBytes(t.name) +
-                      decodeBase64ToBytes(t.value))
+                      decodeBase64ToBytes(t.name!) +
+                      decodeBase64ToBytes(t.value!))
                   .toList(),
         );
       case 2:
         return deepHash([
           utf8.encode(format.toString()),
-          decodeBase64ToBytes(owner),
+          decodeBase64ToBytes(owner!),
           decodeBase64ToBytes(target),
           utf8.encode(quantity.toString()),
           utf8.encode(reward.toString()),
-          decodeBase64ToBytes(lastTx),
-          tags
+          decodeBase64ToBytes(lastTx!),
+          tags!
               .map(
                 (t) => [
-                  decodeBase64ToBytes(t.name),
-                  decodeBase64ToBytes(t.value),
+                  decodeBase64ToBytes(t.name!),
+                  decodeBase64ToBytes(t.value!),
                 ],
               )
               .toList(),
-          utf8.encode(dataSize),
+          utf8.encode(dataSize!),
           decodeBase64ToBytes(dataRoot),
         ]);
       default:
@@ -284,7 +284,7 @@ class Transaction implements TransactionBase {
   Future<bool> verify() async {
     try {
       final signatureData = await getSignatureData();
-      final claimedSignatureBytes = decodeBase64ToBytes(signature);
+      final claimedSignatureBytes = decodeBase64ToBytes(signature!);
 
       final idHash = await sha256.hash(claimedSignatureBytes);
       final expectedId = encodeBytesToBase64(idHash.bytes);
@@ -294,7 +294,7 @@ class Transaction implements TransactionBase {
       return rsaPssVerify(
         input: signatureData,
         signature: claimedSignatureBytes,
-        modulus: decodeBase64ToBigInt(owner),
+        modulus: decodeBase64ToBigInt(owner!),
         publicExponent: publicExponent,
       );
     } catch (_) {

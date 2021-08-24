@@ -8,8 +8,8 @@ part of 'tag.dart';
 
 Tag _$TagFromJson(Map<String, dynamic> json) {
   return Tag(
-    json['name'] as String,
-    json['value'] as String,
+    json['name'] as String?,
+    json['value'] as String?,
   );
 }
 

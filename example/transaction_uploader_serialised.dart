@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 
@@ -12,8 +13,8 @@ void main() async {
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
 
   // Create a data transaction.
-  final transaction = await client.transactions.prepare(
-    Transaction.withBlobData(data: utf8.encode('Hello world!')),
+  final transaction = await client.transactions!.prepare(
+    Transaction.withBlobData(data: utf8.encode('Hello world!') as Uint8List),
     wallet,
   );
 
@@ -21,7 +22,7 @@ void main() async {
   await transaction.sign(wallet);
 
   // Get an uploader for this transaction.
-  final uploader = await client.transactions.getUploader(transaction);
+  final uploader = await client.transactions!.getUploader(transaction);
 
   // Serialise and store the uploader.
   final uploaderJson = uploader.serialize();
@@ -29,7 +30,7 @@ void main() async {
   // Deserialise the uploader and provide the original transaction data again
   // as it isn't serialised along with the uploader.
   final reloadedUploader = await TransactionUploader.deserialize(
-      uploaderJson, utf8.encode('Hello world!'), client.api);
+      uploaderJson, utf8.encode('Hello world!') as Uint8List, client.api);
 
   // Resume the upload.
   while (!reloadedUploader.isComplete) {

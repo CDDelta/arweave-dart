@@ -6,7 +6,7 @@ part 'data-bundle.g.dart';
 
 @JsonSerializable()
 class DataBundle {
-  final List<DataItem> items;
+  final List<DataItem>? items;
 
   DataBundle({this.items});
 

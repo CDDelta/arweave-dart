@@ -5,13 +5,13 @@ part 'transaction_chunk.g.dart';
 @JsonSerializable()
 class TransactionChunk {
   @JsonKey(name: 'data_root')
-  final String dataRoot;
+  final String? dataRoot;
   @JsonKey(name: 'data_size')
-  final String dataSize;
+  final String? dataSize;
   @JsonKey(name: 'data_path')
-  final String dataPath;
-  final String offset;
-  final String chunk;
+  final String? dataPath;
+  final String? offset;
+  final String? chunk;
 
   TransactionChunk(
       {this.dataRoot, this.dataSize, this.dataPath, this.offset, this.chunk});
@@ -23,8 +23,8 @@ class TransactionChunk {
 
 @JsonSerializable()
 class TransactionOffsetResponse {
-  final String size;
-  final String offset;
+  final String? size;
+  final String? offset;
 
   TransactionOffsetResponse({this.size, this.offset});
 
@@ -35,11 +35,11 @@ class TransactionOffsetResponse {
 
 @JsonSerializable()
 class TransactionChunkResponse {
-  final String chunk;
+  final String? chunk;
   @JsonKey(name: 'data_path')
-  final String dataPath;
+  final String? dataPath;
   @JsonKey(name: 'tx_path')
-  final String txPath;
+  final String? txPath;
 
   TransactionChunkResponse({this.chunk, this.dataPath, this.txPath});
 

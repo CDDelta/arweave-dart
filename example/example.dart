@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 
@@ -10,8 +11,8 @@ void main() async {
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
 
   // Create a data transaction.
-  final transaction = await client.transactions.prepare(
-    Transaction.withBlobData(data: utf8.encode('Hello world!')),
+  final transaction = await client.transactions!.prepare(
+    Transaction.withBlobData(data: utf8.encode('Hello world!') as Uint8List),
     wallet,
   );
 
@@ -24,10 +25,10 @@ void main() async {
   await transaction.sign(wallet);
 
   // Upload the transaction in a single call:
-  await client.transactions.post(transaction);
+  await client.transactions!.post(transaction);
 
   // Or for larger data transactions, upload it progressively:
-  await for (final upload in client.transactions.upload(transaction)) {
+  await for (final upload in client.transactions!.upload(transaction)) {
     print('${upload.progress * 100}%');
   }
 }
