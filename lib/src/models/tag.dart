@@ -5,10 +5,10 @@ part 'tag.g.dart';
 @JsonSerializable()
 class Tag {
   /// The tag's name encoded as Base64.
-  final String? name;
+  final String name;
 
   /// The tag's value encoded as Base64.
-  final String? value;
+  final String value;
 
   // TODO: Verify tag size.
   // TODO: Move encoding logic into [Tag] class while ensuring it does not break JSON decoding.

@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:cryptography/cryptography.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
@@ -35,8 +33,8 @@ class Transaction implements TransactionBase {
   String? _owner;
 
   @override
-  List<Tag>? get tags => _tags;
-  List<Tag>? _tags;
+  List<Tag> get tags => _tags;
+  List<Tag> _tags = [];
 
   @override
   String get target => _target;
@@ -44,7 +42,7 @@ class Transaction implements TransactionBase {
 
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get quantity => _quantity;
-  BigInt _quantity;
+  BigInt _quantity ;
 
   /// The unencoded data associated with this [Transaction].
   ///
@@ -82,7 +80,7 @@ class Transaction implements TransactionBase {
     String? id,
     String? lastTx,
     String? owner,
-    List<Tag>? tags,
+    List<Tag> tags = const [],
     String? target,
     BigInt? quantity,
     String? data,
@@ -103,13 +101,13 @@ class Transaction implements TransactionBase {
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _signature = signature {
-    _tags = tags ?? [];
+    _tags = tags;
   }
 
   /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({
     String? owner,
-    List<Tag>? tags,
+    List<Tag> tags = const [],
     String? target,
     BigInt? quantity,
     required DataBundle bundle,
@@ -129,7 +127,7 @@ class Transaction implements TransactionBase {
   /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
     String? owner,
-    List<Tag>? tags,
+    List<Tag> tags = const [],
     String? target,
     BigInt? quantity,
     required Object data,
@@ -147,7 +145,7 @@ class Transaction implements TransactionBase {
   /// Constructs a [Transaction] with the specified blob data and computed data size.
   factory Transaction.withBlobData({
     String? owner,
-    List<Tag>? tags,
+    List<Tag> tags = const [],
     String? target,
     BigInt? quantity,
     required Uint8List data,
@@ -190,7 +188,7 @@ class Transaction implements TransactionBase {
 
   @override
   void addTag(String name, String value) {
-    tags!.add(
+    tags.add(
       Tag(
         encodeStringToBase64(name),
         encodeStringToBase64(value),
@@ -239,10 +237,10 @@ class Transaction implements TransactionBase {
               utf8.encode(quantity.toString()) +
               utf8.encode(reward.toString()) +
               decodeBase64ToBytes(lastTx!) +
-              tags!
+              tags
                   .expand((t) =>
-                      decodeBase64ToBytes(t.name!) +
-                      decodeBase64ToBytes(t.value!))
+                      decodeBase64ToBytes(t.name) +
+                      decodeBase64ToBytes(t.value))
                   .toList(),
         );
       case 2:
@@ -253,11 +251,11 @@ class Transaction implements TransactionBase {
           utf8.encode(quantity.toString()),
           utf8.encode(reward.toString()),
           decodeBase64ToBytes(lastTx!),
-          tags!
+          tags
               .map(
                 (t) => [
-                  decodeBase64ToBytes(t.name!),
-                  decodeBase64ToBytes(t.value!),
+                  decodeBase64ToBytes(t.name),
+                  decodeBase64ToBytes(t.value),
                 ],
               )
               .toList(),

@@ -8,8 +8,8 @@ part of 'data-bundle.dart';
 
 DataBundle _$DataBundleFromJson(Map<String, dynamic> json) {
   return DataBundle(
-    items: (json['items'] as List<dynamic>?)
-        ?.map((e) => DataItem.fromJson(e as Map<String, dynamic>))
+    items: (json['items'] as List<dynamic>)
+        .map((e) => DataItem.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
 }

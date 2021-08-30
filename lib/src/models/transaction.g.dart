@@ -12,8 +12,8 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
     id: json['id'] as String?,
     lastTx: json['last_tx'] as String?,
     owner: json['owner'] as String?,
-    tags: (json['tags'] as List<dynamic>?)
-        ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
+    tags: (json['tags'] as List<dynamic>)
+        .map((e) => Tag.fromJson(e as Map<String, dynamic>))
         .toList(),
     target: json['target'] as String?,
     quantity: _stringToBigInt(json['quantity'] as String),

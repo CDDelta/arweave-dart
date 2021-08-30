@@ -114,8 +114,8 @@ class DataItem implements TransactionBase {
           tags!
               .map(
                 (t) => [
-                  decodeBase64ToBytes(t.name!),
-                  decodeBase64ToBytes(t.value!),
+                  decodeBase64ToBytes(t.name),
+                  decodeBase64ToBytes(t.value),
                 ],
               )
               .toList(),
