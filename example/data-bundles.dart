@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/api/gateway_common.dart';
 
 /// You can bundle multiple logical data transactions into one transaction using [DataBundle]s.
 ///
 /// Read more about [DataBundle]s at [ANS-102](https://github.com/ArweaveTeam/arweave-standards/blob/master/ans/ANS-102.md).
 void main() async {
   // Initialise an Arweave client.
-  final client = Arweave();
+  final client = Arweave(gatewayUrl: getDefaultGateway());
 
   // Load an Arweave wallet.
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));

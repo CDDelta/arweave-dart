@@ -4,25 +4,25 @@ import 'api/api.dart';
 import 'models/models.dart';
 
 class ArweaveTransactionsApi {
-  final ArweaveApi? _api;
+  final ArweaveApi _api;
 
-  ArweaveTransactionsApi(ArweaveApi? api) : _api = api;
+  ArweaveTransactionsApi(ArweaveApi api) : _api = api;
 
   Future<String> getTransactionAnchor() =>
-      _api!.get('tx_anchor').then((res) => res.body);
+      _api.get('tx_anchor').then((res) => res.body);
 
-  Future<BigInt> getPrice({int? byteSize, String? targetAddress}) {
+  Future<BigInt> getPrice({required int byteSize, String? targetAddress}) {
     final endpoint = targetAddress != null
         ? 'price/$byteSize/$targetAddress'
         : 'price/$byteSize';
-    return _api!.get(endpoint).then((res) => BigInt.parse(res.body));
+    return _api.get(endpoint).then((res) => BigInt.parse(res.body));
   }
 
   /// Get a transaction by its ID.
   ///
   /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
   Future<Transaction?> get(String id) async {
-    final res = await _api!.get('tx/$id');
+    final res = await _api.get('tx/$id');
 
     if (res.statusCode == 200) {
       return Transaction.fromJson(json.decode(res.body));

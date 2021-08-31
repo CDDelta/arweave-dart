@@ -218,7 +218,7 @@ class Transaction implements TransactionBase {
 
     return TransactionChunk(
       dataRoot: dataRoot,
-      dataSize: dataSize,
+      dataSize: dataSize!,
       dataPath: encodeBytesToBase64(proof.proof),
       offset: proof.offset.toString(),
       chunk: encodeBytesToBase64(

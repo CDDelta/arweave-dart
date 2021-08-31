@@ -88,7 +88,7 @@ String winstonToAr(BigInt winston) {
 }
 
 /// Safely get the error from an Arweave HTTP response.
-String? getResponseError(Response res) {
+String getResponseError(Response res) {
   if (res.headers['Content-Type'] == 'application/json') {
     Map<String, dynamic> errJson = json.decode(res.body);
 

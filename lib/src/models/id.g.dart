@@ -8,10 +8,10 @@ part of 'id.dart';
 
 ArweaveId _$ArweaveIdFromJson(Map<String, dynamic> json) {
   return ArweaveId(
-    name: json['name'] as String?,
-    url: json['url'] as String?,
-    text: json['text'] as String?,
-    avatarDataUri: json['avatarDataUri'] as String?,
+    name: json['name'] as String,
+    url: json['url'] as String,
+    text: json['text'] as String,
+    avatarDataUri: json['avatarDataUri'] as String,
   );
 }
 
