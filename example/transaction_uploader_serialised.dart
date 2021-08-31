@@ -13,7 +13,7 @@ void main() async {
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));
 
   // Create a data transaction.
-  final transaction = await client.transactions!.prepare(
+  final transaction = await client.transactions.prepare(
     Transaction.withBlobData(data: utf8.encode('Hello world!') as Uint8List),
     wallet,
   );
@@ -22,7 +22,7 @@ void main() async {
   await transaction.sign(wallet);
 
   // Get an uploader for this transaction.
-  final uploader = await client.transactions!.getUploader(transaction);
+  final uploader = await client.transactions.getUploader(transaction);
 
   // Serialise and store the uploader.
   final uploaderJson = uploader.serialize();

@@ -24,7 +24,7 @@ void main() async {
   await dataItem.sign(wallet);
 
   // Prepare a data bundle transaction.
-  final transaction = await client.transactions!.prepare(
+  final transaction = await client.transactions.prepare(
     Transaction.withDataBundle(bundle: DataBundle(items: [dataItem])),
     wallet,
   );
@@ -33,5 +33,5 @@ void main() async {
   await transaction.sign(wallet);
 
   // Upload the transaction.
-  await client.transactions!.post(transaction);
+  await client.transactions.post(transaction);
 }

@@ -15,14 +15,14 @@ void main() async {
   final client = Arweave();
 
   // Get the transaction from the network.
-  final transaction = await (client.transactions!.get('<transaction id>') as FutureOr<Transaction>);
+  final transaction = await (client.transactions.get('<transaction id>') as FutureOr<Transaction>);
 
   // Set the data that is meant to be on this transaction.
   await transaction.setData(utf8.encode('<original data>') as Uint8List);
 
   // Upload the original transaction data.
   await for (final upload
-      in client.transactions!.upload(transaction, dataOnly: true)) {
+      in client.transactions.upload(transaction, dataOnly: true)) {
     print('${upload.progress * 100}%');
   }
 }
