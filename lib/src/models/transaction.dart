@@ -21,8 +21,8 @@ class Transaction implements TransactionBase {
   final int format;
 
   @override
-  String? get id => _id;
-  String? _id;
+  String get id => _id;
+  late String _id;
 
   @JsonKey(name: 'last_tx')
   String? get lastTx => _lastTx;
@@ -52,20 +52,20 @@ class Transaction implements TransactionBase {
   Uint8List _data;
 
   @JsonKey(name: 'data_size')
-  String? get dataSize => _dataSize;
-  String? _dataSize;
+  String get dataSize => _dataSize;
+  String _dataSize = '0';
 
   @JsonKey(name: 'data_root')
   String get dataRoot => _dataRoot;
-  String _dataRoot;
+  late String _dataRoot;
 
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get reward => _reward;
-  BigInt _reward;
+  late BigInt _reward;
 
   @override
-  String? get signature => _signature;
-  String? _signature;
+  String get signature => _signature;
+  late String _signature;
 
   @JsonKey(ignore: true)
   TransactionChunksWithProofs? get chunks => _chunks;
@@ -85,23 +85,30 @@ class Transaction implements TransactionBase {
     BigInt? quantity,
     String? data,
     Uint8List? dataBytes,
-    String? dataSize = '0',
+    String? dataSize,
     String? dataRoot,
     BigInt? reward,
     String? signature,
-  })  : _id = id,
-        _lastTx = lastTx,
-        _owner = owner,
-        _target = target ?? '',
+  })  : _target = target ?? '',
         _quantity = quantity ?? BigInt.zero,
         _data = data != null
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
-        _dataSize = dataSize,
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
-        _signature = signature,
-        _tags = [...tags];
+        _owner = owner,
+        _lastTx = lastTx,
+        _tags = [...tags] {
+    if (signature != null) {
+      _signature = signature;
+    }
+    if (dataSize != null) {
+      _dataSize = dataSize;
+    }
+    if (id != null) {
+      _id = id;
+    }
+  }
 
   /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({
@@ -217,7 +224,7 @@ class Transaction implements TransactionBase {
 
     return TransactionChunk(
       dataRoot: dataRoot,
-      dataSize: dataSize!,
+      dataSize: dataSize,
       dataPath: encodeBytesToBase64(proof.proof),
       offset: proof.offset.toString(),
       chunk: encodeBytesToBase64(
@@ -258,7 +265,7 @@ class Transaction implements TransactionBase {
                 ],
               )
               .toList(),
-          utf8.encode(dataSize!),
+          utf8.encode(dataSize),
           decodeBase64ToBytes(dataRoot),
         ]);
       default:
@@ -289,7 +296,7 @@ class Transaction implements TransactionBase {
   Future<bool> verify() async {
     try {
       final signatureData = await getSignatureData();
-      final claimedSignatureBytes = decodeBase64ToBytes(signature!);
+      final claimedSignatureBytes = decodeBase64ToBytes(signature);
 
       final idHash = await sha256.hash(claimedSignatureBytes);
       final expectedId = encodeBytesToBase64(idHash.bytes);

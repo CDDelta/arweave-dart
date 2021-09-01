@@ -53,9 +53,10 @@ class ArweaveTransactionsApi {
     }
 
     if (transaction.reward == BigInt.zero) {
+
       transaction.setReward(
         await getPrice(
-          byteSize: int.parse(transaction.dataSize!),
+          byteSize: int.parse(transaction.dataSize),
           targetAddress: transaction.target,
         ),
       );

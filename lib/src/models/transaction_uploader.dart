@@ -43,7 +43,7 @@ class TransactionUploader {
       : _transaction = transaction,
         _api = api,
         _txPosted = forDataOnly {
-    if (transaction.id == null) throw ArgumentError('Transaction not signed.');
+    // if (transaction.id == null) throw ArgumentError('Transaction not signed.');
     if (transaction.chunks == null) {
       throw ArgumentError('Transaction chunks not prepared.');
     }

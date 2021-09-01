@@ -3,13 +3,13 @@ import 'dart:typed_data';
 import 'models.dart';
 
 abstract class TransactionBase {
-  String? get id;
+  String get id;
 
   String? get owner;
 
   List<Tag> get tags;
 
-  String? get target;
+  String get target;
 
   Uint8List get data;
 
