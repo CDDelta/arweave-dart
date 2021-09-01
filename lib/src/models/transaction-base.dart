@@ -5,6 +5,7 @@ import 'models.dart';
 abstract class TransactionBase {
   String get id;
 
+  //Null owner means the transaction hasnt been prepared
   String? get owner;
 
   List<Tag> get tags;
@@ -13,6 +14,7 @@ abstract class TransactionBase {
 
   Uint8List get data;
 
+  //Null signature means the transaction hasnt been signed
   String? get signature;
 
   void setOwner(String owner);
