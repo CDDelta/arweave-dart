@@ -34,7 +34,7 @@ class Transaction implements TransactionBase {
 
   @override
   List<Tag> get tags => _tags;
-  List<Tag> _tags;
+  late List<Tag> _tags;
 
   @override
   String get target => _target;
@@ -80,7 +80,7 @@ class Transaction implements TransactionBase {
     String? id,
     String? lastTx,
     String? owner,
-    List<Tag> tags = const [],
+    List<Tag>? tags,
     String? target,
     BigInt? quantity,
     String? data,
@@ -97,8 +97,7 @@ class Transaction implements TransactionBase {
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _owner = owner,
-        _lastTx = lastTx,
-        _tags = [...tags] {
+        _lastTx = lastTx {
     if (signature != null) {
       _signature = signature;
     }
@@ -108,12 +107,14 @@ class Transaction implements TransactionBase {
     if (id != null) {
       _id = id;
     }
+
+    _tags = tags != null ? [...tags] : [];
   }
 
   /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({
     String? owner,
-    List<Tag> tags = const [],
+    List<Tag>? tags,
     String? target,
     BigInt? quantity,
     required DataBundle bundle,
@@ -133,7 +134,7 @@ class Transaction implements TransactionBase {
   /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
     String? owner,
-    List<Tag> tags = const [],
+    List<Tag>? tags,
     String? target,
     BigInt? quantity,
     required Object data,
@@ -151,7 +152,7 @@ class Transaction implements TransactionBase {
   /// Constructs a [Transaction] with the specified blob data and computed data size.
   factory Transaction.withBlobData({
     String? owner,
-    List<Tag> tags = const [],
+    List<Tag>? tags,
     String? target,
     BigInt? quantity,
     required Uint8List data,
