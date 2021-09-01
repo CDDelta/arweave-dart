@@ -51,19 +51,32 @@ class TransactionUploader {
   TransactionUploader._({
     required ArweaveApi api,
     required Transaction transaction,
-    int chunkIndex = 0,
-    bool txPosted = false,
-    int lastRequestTimeEnd = 0,
-    this.lastResponseStatus = 0,
-    this.lastResponseError = '',
+    int? chunkIndex,
+    bool? txPosted,
+    int? lastRequestTimeEnd,
+    int? lastResponseStatus,
+    String? lastResponseError,
   })  : _api = api,
-        _chunkIndex = chunkIndex,
-        _txPosted = txPosted,
-        _transaction = transaction,
-        _lastRequestTimeEnd = lastRequestTimeEnd;
+        _transaction = transaction {
+    if (chunkIndex != null) {
+      _chunkIndex = chunkIndex;
+    }
+    if (txPosted != null) {
+      _txPosted = txPosted;
+    }
+    if (lastRequestTimeEnd != null) {
+      _lastRequestTimeEnd = lastRequestTimeEnd;
+    }
+    if (lastResponseStatus != null) {
+      this.lastResponseStatus = lastResponseStatus;
+    }
+    if (lastResponseError != null) {
+      this.lastResponseError = lastResponseError;
+    }
+  }
 
   bool get isComplete =>
-      _txPosted&& _chunkIndex >= _transaction.chunks!.chunks.length;
+      _txPosted && _chunkIndex >= _transaction.chunks!.chunks.length;
   int get totalChunks => _transaction.chunks!.chunks.length;
   int get uploadedChunks => _chunkIndex;
 
@@ -93,7 +106,7 @@ class TransactionUploader {
     var delay = lastResponseError.isEmpty
         ? 0
         : max(
-            _lastRequestTimeEnd+
+            _lastRequestTimeEnd +
                 ERROR_DELAY -
                 DateTime.now().millisecondsSinceEpoch,
             ERROR_DELAY);
