@@ -102,8 +102,9 @@ void main() {
         () async {
       final data = await File('test/fixtures/1mb.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -114,8 +115,9 @@ void main() {
         () async {
       final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -124,8 +126,9 @@ void main() {
     test('error when invalid data is set on prepared transaction', () async {
       final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
       expect(
         transaction.setData(Uint8List.sublistView(data, 1)),
         throwsStateError,

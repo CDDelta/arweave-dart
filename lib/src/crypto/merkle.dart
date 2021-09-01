@@ -206,10 +206,8 @@ List<Proof> generateProofs(_MerkleNode root) {
   return flatten(proofs).cast<Proof>().toList();
 }
 
-List<Object> _resolveBranchProofs(_MerkleNode? node,
-    [List<int>? proof, depth = 0]) {
-  proof = proof ?? <int>[];
-
+List<Object> _resolveBranchProofs(_MerkleNode node,
+    [List<int> proof = const <int>[], depth = 0]) {
   if (node is _LeafNode) {
     return [
       Proof(
@@ -304,11 +302,11 @@ int _bufferToInt(Uint8List buffer) {
   return value;
 }
 
-Uint8List _intToBuffer(int? note) {
+Uint8List _intToBuffer(int note) {
   final buffer = Uint8List(NOTE_SIZE);
 
   for (var i = buffer.length - 1; i >= 0; i--) {
-    var byte = note! % 256;
+    var byte = note % 256;
     buffer[i] = byte;
     note = (note - byte) ~/ 256;
   }

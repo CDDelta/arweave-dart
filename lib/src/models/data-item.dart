@@ -24,8 +24,8 @@ class DataItem implements TransactionBase {
   final String? nonce;
 
   @override
-  List<Tag>? get tags => _tags;
-  List<Tag>? _tags;
+  List<Tag> get tags => _tags;
+  List<Tag> _tags;
 
   /// The unencoded data associated with this [DataItem].
   ///
@@ -54,9 +54,8 @@ class DataItem implements TransactionBase {
         data = data != null
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
-        _signature = signature {
-    _tags = tags ?? [];
-  }
+        _signature = signature,
+        _tags = tags ?? [];
 
   /// Constructs a [DataItem] with the specified JSON data and appropriate Content-Type tag.
   factory DataItem.withJsonData({
@@ -95,7 +94,7 @@ class DataItem implements TransactionBase {
 
   @override
   void addTag(String name, String value) {
-    tags!.add(
+    tags.add(
       Tag(
         encodeStringToBase64(name),
         encodeStringToBase64(value),
@@ -111,7 +110,7 @@ class DataItem implements TransactionBase {
           decodeBase64ToBytes(owner),
           decodeBase64ToBytes(target!),
           decodeBase64ToBytes(nonce!),
-          tags!
+          tags
               .map(
                 (t) => [
                   decodeBase64ToBytes(t.name),

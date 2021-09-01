@@ -34,7 +34,7 @@ class Transaction implements TransactionBase {
 
   @override
   List<Tag> get tags => _tags;
-  List<Tag> _tags = [];
+  List<Tag> _tags;
 
   @override
   String get target => _target;
@@ -42,7 +42,7 @@ class Transaction implements TransactionBase {
 
   @JsonKey(fromJson: _stringToBigInt, toJson: _bigIntToString)
   BigInt get quantity => _quantity;
-  BigInt _quantity ;
+  BigInt _quantity;
 
   /// The unencoded data associated with this [Transaction].
   ///
@@ -100,9 +100,8 @@ class Transaction implements TransactionBase {
         _dataSize = dataSize,
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
-        _signature = signature {
-    _tags = tags;
-  }
+        _signature = signature,
+        _tags = [...tags];
 
   /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
   factory Transaction.withDataBundle({

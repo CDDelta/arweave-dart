@@ -7,7 +7,7 @@ abstract class TransactionBase {
 
   String? get owner;
 
-  List<Tag>? get tags;
+  List<Tag> get tags;
 
   String? get target;
 

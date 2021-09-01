@@ -37,14 +37,14 @@ class ArweaveTransactionsApi {
   /// Chunks the transaction data, sets the transaction anchor, reward,
   /// and the transaction owner if a wallet is specified,
   Future<Transaction> prepare(
-    Transaction transaction, [
-    Wallet? wallet,
-  ]) async {
+    Transaction transaction,
+    Wallet wallet,
+  ) async {
     if (transaction.format == 1) {
       throw ArgumentError('Creating v1 transactions is not supported.');
     }
 
-    if (transaction.owner == null && wallet != null) {
+    if (transaction.owner == null) {
       transaction.setOwner(await wallet.getOwner());
     }
 
