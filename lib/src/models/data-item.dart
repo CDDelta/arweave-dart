@@ -135,6 +135,14 @@ class DataItem implements TransactionBase {
     _id = encodeBytesToBase64(idHash.bytes);
   }
 
+  @override
+  Future<void> signWithRawSignature(Uint8List rawSignature) async {
+    _signature = encodeBytesToBase64(rawSignature);
+
+    final idHash = await sha256.hash(rawSignature);
+    _id = encodeBytesToBase64(idHash.bytes);
+  }
+
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {

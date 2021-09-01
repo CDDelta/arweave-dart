@@ -279,6 +279,14 @@ class Transaction implements TransactionBase {
   }
 
   @override
+  Future<void> signWithRawSignature(Uint8List rawSignature) async {
+    _signature = encodeBytesToBase64(rawSignature);
+
+    final idHash = await sha256.hash(rawSignature);
+    _id = encodeBytesToBase64(idHash.bytes);
+  }
+
+  @override
   Future<bool> verify() async {
     try {
       final signatureData = await getSignatureData();

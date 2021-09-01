@@ -23,6 +23,7 @@ abstract class TransactionBase {
   Future<Uint8List> getSignatureData();
 
   Future<void> sign(Wallet wallet);
+  Future<void> signWithRawSignature(Uint8List rawSignature);
 
   Future<bool> verify();
 }
