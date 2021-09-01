@@ -203,7 +203,7 @@ class Transaction implements TransactionBase {
 
     if (data.isNotEmpty) {
       _chunks = await generateTransactionChunks(data);
-      _dataRoot = encodeBytesToBase64(chunks!.dataRoot!);
+      _dataRoot = encodeBytesToBase64(chunks!.dataRoot);
     } else {
       _chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
     }
