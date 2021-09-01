@@ -43,29 +43,41 @@ class TransactionUploader {
       : _transaction = transaction,
         _api = api,
         _txPosted = forDataOnly {
-    if (transaction.id == null) throw ArgumentError('Transaction not signed.');
     if (transaction.chunks == null) {
       throw ArgumentError('Transaction chunks not prepared.');
     }
   }
 
-  TransactionUploader._(
-      {ArweaveApi api,
-      int chunkIndex,
-      bool txPosted,
-      Transaction transaction,
-      int lastRequestTimeEnd,
-      this.lastResponseStatus,
-      this.lastResponseError})
-      : _api = api,
-        _chunkIndex = chunkIndex,
-        _txPosted = txPosted,
-        _transaction = transaction,
-        _lastRequestTimeEnd = lastRequestTimeEnd;
+  TransactionUploader._({
+    required ArweaveApi api,
+    required Transaction transaction,
+    int? chunkIndex,
+    bool? txPosted,
+    int? lastRequestTimeEnd,
+    int? lastResponseStatus,
+    String? lastResponseError,
+  })  : _api = api,
+        _transaction = transaction {
+    if (chunkIndex != null) {
+      _chunkIndex = chunkIndex;
+    }
+    if (txPosted != null) {
+      _txPosted = txPosted;
+    }
+    if (lastRequestTimeEnd != null) {
+      _lastRequestTimeEnd = lastRequestTimeEnd;
+    }
+    if (lastResponseStatus != null) {
+      this.lastResponseStatus = lastResponseStatus;
+    }
+    if (lastResponseError != null) {
+      this.lastResponseError = lastResponseError;
+    }
+  }
 
   bool get isComplete =>
-      _txPosted && _chunkIndex >= _transaction.chunks.chunks.length;
-  int get totalChunks => _transaction.chunks.chunks.length;
+      _txPosted && _chunkIndex >= _transaction.chunks!.chunks.length;
+  int get totalChunks => _transaction.chunks!.chunks.length;
   int get uploadedChunks => _chunkIndex;
 
   /// The progress of the current upload ranging from 0 to 1.
@@ -178,16 +190,16 @@ class TransactionUploader {
         ? Transaction.fromJson(json['transaction'])
         : null;
 
-    await transaction.setData(data);
+    await transaction!.setData(data);
 
     return TransactionUploader._(
       api: api,
       chunkIndex: json['chunkIndex'] as int,
-      txPosted: json['txPosted'] as bool,
+      txPosted: json['txPosted'],
       transaction: transaction,
-      lastRequestTimeEnd: json['lastRequestTimeEnd'] as int,
-      lastResponseStatus: json['lastResponseStatus'] as int,
-      lastResponseError: json['lastResponseError'] as String,
+      lastRequestTimeEnd: json['lastRequestTimeEnd'],
+      lastResponseStatus: json['lastResponseStatus'],
+      lastResponseError: json['lastResponseError'],
     );
   }
 

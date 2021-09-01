@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:test/test.dart';
@@ -12,7 +13,7 @@ void main() async {
 
       final dataItem = DataItem.withBlobData(
           owner: await wallet.getOwner(),
-          data: utf8.encode('HELLOWORLD_TEST_STRING'))
+          data: utf8.encode('HELLOWORLD_TEST_STRING') as Uint8List)
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');

@@ -99,7 +99,7 @@ String getResponseError(Response res) {
     }
   }
 
-  return res.body ?? 'unknown';
+  return res.body;
 }
 
 Future<String> ownerToAddress(String owner) async => encodeBytesToBase64(

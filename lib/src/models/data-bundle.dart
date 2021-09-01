@@ -8,7 +8,7 @@ part 'data-bundle.g.dart';
 class DataBundle {
   final List<DataItem> items;
 
-  DataBundle({this.items});
+  DataBundle({required this.items});
 
   factory DataBundle.fromJson(Map<String, dynamic> json) =>
       _$DataBundleFromJson(json);

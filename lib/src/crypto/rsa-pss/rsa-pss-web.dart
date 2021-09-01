@@ -8,7 +8,7 @@ import 'rsa-pss-common.dart' as common;
 
 final rsaPss = RsaPss(sha256, nonceLengthInBytes: 0);
 
-Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
+Future<Uint8List> rsaPssSign({required Uint8List message, required RsaKeyPair keyPair}) async {
   try {
     final signature = await rsaPss.sign(message, keyPair: keyPair);
     return Uint8List.fromList(signature.bytes);
@@ -22,10 +22,10 @@ Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
 }
 
 Future<bool> rsaPssVerify({
-  Uint8List input,
-  Uint8List signature,
-  BigInt modulus,
-  BigInt publicExponent,
+  required Uint8List input,
+  required Uint8List signature,
+  required BigInt modulus,
+  required BigInt publicExponent,
 }) async {
   try {
     final valid = await rsaPss.verify(
