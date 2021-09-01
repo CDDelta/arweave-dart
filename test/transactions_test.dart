@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:arweave/src/api/gateway_common.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
 
@@ -12,7 +11,7 @@ import 'utils.dart';
 const liveDataTxId = 'bNbA3TEQVL60xlgCcqdz4ZPHFZ711cZ3hmkpGttDt_U';
 
 void main() {
-  final client = Arweave(gatewayUrl: getDefaultGateway());
+  final client = Arweave();
 
   group('transactions:', () {
     final transactionFieldPattern =

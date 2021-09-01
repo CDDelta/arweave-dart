@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:arweave/src/api/gateway_common.dart';
 
 void main() async {
   // Initialise an Arweave client.
-  final client = Arweave(gatewayUrl: getDefaultGateway());
+  final client = Arweave();
 
   // Load an Arweave wallet.
   final wallet = Wallet.fromJwk(json.decode('<wallet jwk>'));

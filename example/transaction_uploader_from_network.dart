@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:arweave/src/api/gateway_common.dart';
 
 /// In the case of a failure that causes a transaction upload to not fully complete
 /// you can complete the upload by loading the transaction metadata off the network
@@ -13,7 +12,7 @@ import 'package:arweave/src/api/gateway_common.dart';
 /// been uploaded.
 void main() async {
   // Initialise an Arweave client.
-  final client = Arweave(gatewayUrl: getDefaultGateway());
+  final client = Arweave();
 
   // Get the transaction from the network.
   final transaction = await (client.transactions.get('<transaction id>') as FutureOr<Transaction>);

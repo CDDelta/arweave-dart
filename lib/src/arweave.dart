@@ -1,3 +1,4 @@
+
 import 'api/api.dart';
 import 'chunks.dart';
 import 'transactions.dart';
@@ -13,7 +14,7 @@ class Arweave {
   late ArweaveChunksApi _chunks;
 
   Arweave({
-    required Uri gatewayUrl,
+    Uri? gatewayUrl,
   }) {
     _api = ArweaveApi(gatewayUrl: gatewayUrl);
     _transactions = ArweaveTransactionsApi(api);
