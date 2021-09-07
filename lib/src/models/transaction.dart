@@ -120,16 +120,16 @@ class Transaction implements TransactionBase {
     required DataBundle bundle,
     BigInt? reward,
   }) =>
-      Transaction.withJsonData(
+      Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: bundle.toJson(),
+        data: utf8.encode(json.encode(bundle.toJson())) as Uint8List,
         reward: reward,
       )
-        ..addTag('Bundle-Format', 'json')
-        ..addTag('Bundle-Version', '1.0.0');
+        ..addTag('Bundle-Format', 'binary')
+        ..addTag('Bundle-Version', '2.0.0');
 
   /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
