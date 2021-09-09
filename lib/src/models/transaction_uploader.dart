@@ -154,7 +154,11 @@ class TransactionUploader {
 
     if (uploadInBody) {
       // TODO: Make async
-      txJson['data'] = encodeBytesToBase64(_transaction.data);
+      if (_transaction.tags.contains(Tag('Bundle-Format', 'binary'))) {
+        txJson['data'] = _transaction.data.buffer;
+      } else {
+        txJson['data'] = encodeBytesToBase64(_transaction.data);
+      }
       final res = await _api.post('tx', body: json.encode(txJson));
 
       _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
