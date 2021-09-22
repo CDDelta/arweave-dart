@@ -5,7 +5,7 @@ import '../crypto/crypto.dart';
 import '../utils.dart';
 import 'models.dart';
 
-class DataItem implements TransactionBase {
+class DataItemV2 implements TransactionBase {
   @override
   String get id => _id;
   late String _id;
@@ -36,7 +36,7 @@ class DataItem implements TransactionBase {
   /// This constructor is reserved for JSON serialisation.
   ///
   /// [DataItem.withJsonData()] and [DataItem.withBlobData()] are the recommended ways to construct data items.
-  DataItem({
+  DataItemV2({
     String? owner,
     String? target,
     String? nonce,
@@ -52,14 +52,14 @@ class DataItem implements TransactionBase {
         _tags = tags ?? [];
 
   /// Constructs a [DataItem] with the specified JSON data and appropriate Content-Type tag.
-  factory DataItem.withJsonData({
+  factory DataItemV2.withJsonData({
     String? owner,
     String target = '',
     String nonce = '',
     List<Tag>? tags,
     required Object data,
   }) =>
-      DataItem.withBlobData(
+      DataItemV2.withBlobData(
         owner: owner,
         target: target,
         nonce: nonce,
@@ -68,14 +68,14 @@ class DataItem implements TransactionBase {
       )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [DataItem] with the specified blob data.
-  factory DataItem.withBlobData({
+  factory DataItemV2.withBlobData({
     String? owner,
     String target = '',
     String nonce = '',
     List<Tag>? tags,
     required Uint8List data,
   }) =>
-      DataItem(
+      DataItemV2(
         owner: owner,
         target: target,
         nonce: nonce,
@@ -118,7 +118,7 @@ class DataItem implements TransactionBase {
 
   /// Signs the [DataItem] using the specified wallet and sets the `id` and `signature` appropriately.
   @override
-  Future<void> sign(Wallet wallet) async {
+  Future<Uint8List> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
@@ -126,6 +126,7 @@ class DataItem implements TransactionBase {
 
     final idHash = await sha256.hash(rawSignature);
     _id = encodeBytesToBase64(idHash.bytes);
+    return idHash.bytes as Uint8List;
   }
 
   @override
@@ -205,95 +206,73 @@ class DataItem implements TransactionBase {
     return anchorStart;
   }
 
-  Future<ByteBuffer> asBinary() {
-    final bytesArray = Uint8List.fromList([]);
-
-    final owner = utf8.encode(this.owner);
-    final target = utf8.encode(this.target);
-
+  ByteBuffer asBinary() {
+    final owner = utf8.encode(this.owner) as Uint8List;
+    final target = utf8.encode(this.target) as Uint8List;
+    final target_length = 1 + (target.lengthInBytes);
+    final anchor = null;
+    //const _anchor = opts?.anchor ? Buffer.from(opts.anchor) : null;
+    //const anchor_length = 1 + (_anchor?.byteLength ?? 0);
+    final anchor_length = 1;
     final tags = this
         .tags
         .map((tag) => utf8.encode(json.encode(tag.toJson())))
-        .reduce((value, element) => value + element);
+        .reduce((value, element) => value + element) as Uint8List;
+    final tags_length = 16 + (tags.lengthInBytes);
+    final data = this.data.buffer;
 
-    throw UnimplementedError();
+    final data_length = data.lengthInBytes;
+
+    // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
+    final length = 2 +
+        512 +
+        owner.buffer.lengthInBytes +
+        target_length +
+        anchor_length +
+        tags_length +
+        data_length;
+    // Create array with set length
+    final bytes = Uint8List(length);
+    bytes.setAll(0, shortTo2ByteArray(1));
+
+    // Push bytes for `signature`
+    bytes.setAll(2, <int>[]);
+    // // Push bytes for `id`
+    // bytes.set(EMPTY_ARRAY, 32);
+    // Push bytes for `owner`
+
+    bytes.setAll(514, owner);
+
+    // Push `presence byte` and push `target` if present
+    // 64 + OWNER_LENGTH
+    bytes[1026] = target.isNotEmpty ? 1 : 0;
+    if (target.isNotEmpty) {
+      assert(target.lengthInBytes == 32, print('Target must be 32 bytes'));
+      bytes.setAll(1027, target);
+    }
+
+    // Push `presence byte` and push `anchor` if present
+    // 64 + OWNER_LENGTH
+    final anchor_start = 1026 + target_length;
+    var tags_start = anchor_start + 1;
+    bytes[anchor_start] = anchor != null ? 1 : 0;
+    // if (anchor!=null) {
+    //   tags_start += anchor.byteLength;
+    //   assert(_anchor.byteLength == 32, new Error("Anchor must be 32 bytes"));
+    //   bytes.set(_anchor, anchor_start + 1);
+    // }
+
+    bytes.setAll(tags_start, longTo8ByteArray(tags.length));
+    final bytesCount = longTo8ByteArray(tags.lengthInBytes);
+    bytes.setAll(tags_start + 8, bytesCount);
+    if (tags.isNotEmpty) {
+      bytes.setAll(tags_start + 16, tags);
+    }
+
+    final data_start = tags_start + tags_length;
+
+    bytes.setAll(data_start, data.asUint8List());
+
+    return bytes.buffer;
   }
-//Refrence to create Data bundle from arbundles lib
-//   createData(
-//   data: string | Uint8Array,
-//   signer: Signer,
-//   opts?: DataItemCreateOptions,
-// ): DataItem {
-//   // TODO: Add asserts
-//   // Parse all values to a buffer and
-//   const _owner = signer.publicKey;
-//   assert(
-//     _owner.byteLength == OWNER_LENGTH,
-//     new Error(`Public key isn't the correct length: ${_owner.byteLength}`)
-//   );
-
-//   const _target = opts?.target ? base64url.toBuffer(opts.target) : null;
-//   const target_length = 1 + (_target?.byteLength ?? 0);
-//   const _anchor = opts?.anchor ? Buffer.from(opts.anchor) : null;
-//   const anchor_length = 1 + (_anchor?.byteLength ?? 0);
-//   const _tags = (opts?.tags?.length ?? 0) > 0 ? serializeTags(opts.tags) : null;
-//   const tags_length = 16 + (_tags ? _tags.byteLength : 0);
-//   const _data =
-//     typeof data === "string" ? Buffer.from(data) : Buffer.from(data);
-//   const data_length = _data.byteLength;
-
-//   // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
-//   const length =
-//     2 +
-//     512 +
-//     _owner.byteLength +
-//     target_length +
-//     anchor_length +
-//     tags_length +
-//     data_length;
-//   // Create array with set length
-//   const bytes = Buffer.alloc(length);
-
-//   bytes.set(shortTo2ByteArray(signer.signatureType), 0);
-//   // Push bytes for `signature`
-//   bytes.set(EMPTY_ARRAY, 2);
-//   // // Push bytes for `id`
-//   // bytes.set(EMPTY_ARRAY, 32);
-//   // Push bytes for `owner`
-
-//   assert(_owner.byteLength == 512, new Error("Owner must be 512 bytes"));
-//   bytes.set(_owner, 514);
-
-//   // Push `presence byte` and push `target` if present
-//   // 64 + OWNER_LENGTH
-//   bytes[1026] = _target ? 1 : 0;
-//   if (_target) {
-//     assert(_target.byteLength == 32, new Error("Target must be 32 bytes"));
-//     bytes.set(_target, 1027);
-//   }
-
-//   // Push `presence byte` and push `anchor` if present
-//   // 64 + OWNER_LENGTH
-//   const anchor_start = 1026 + target_length;
-//   let tags_start = anchor_start + 1;
-//   bytes[anchor_start] = _anchor ? 1 : 0;
-//   if (_anchor) {
-//     tags_start += _anchor.byteLength;
-//     assert(_anchor.byteLength == 32, new Error("Anchor must be 32 bytes"));
-//     bytes.set(_anchor, anchor_start + 1);
-//   }
-
-//   bytes.set(longTo8ByteArray(opts?.tags?.length ?? 0), tags_start);
-//   const bytesCount = longTo8ByteArray(_tags?.byteLength ?? 0);
-//   bytes.set(bytesCount, tags_start + 8);
-//   if (_tags) {
-//     bytes.set(_tags, tags_start + 16);
-//   }
-
-//   const data_start = tags_start + tags_length;
-
-//   bytes.set(_data, data_start);
-
-//   return new DataItem(bytes);
-// }
 }

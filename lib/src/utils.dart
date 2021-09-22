@@ -173,3 +173,16 @@ int byteArrayToLong(Uint8List byteArray) {
   }
   return value;
 }
+
+Uint8List longTo8ByteArray(int long) {
+  // we want to represent the input as a 8-bytes array
+  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
+
+  for (var index = 0; index < byteArray.length; index++) {
+    final byte = long & 0xff;
+    byteArray[index] = byte;
+    long = (long - byte) ~/ 256;
+  }
+
+  return Uint8List.fromList(byteArray);
+}
