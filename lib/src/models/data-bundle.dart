@@ -10,7 +10,7 @@ class DataBundle {
   DataBundle({required this.items});
 
   Future<Uint8List> asBlob(Wallet wallet) async {
-    final headers = Uint16List(64 * items.length);
+    final headers = Uint8List(64 * items.length);
     final binaries = await Future.wait(
       items.map((d) async {
         // Sign DataItem
