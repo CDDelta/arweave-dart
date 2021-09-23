@@ -119,13 +119,14 @@ class Transaction implements TransactionBase {
     BigInt? quantity,
     required DataBundle bundle,
     BigInt? reward,
+    Wallet? wallet,
   }) =>
       Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: utf8.encode(json.encode(bundle.toJson())) as Uint8List,
+        data: bundle.asBlob(wallet!) as Uint8List,
         reward: reward,
       )
         ..addTag('Bundle-Format', 'binary')
@@ -279,14 +280,6 @@ class Transaction implements TransactionBase {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
-    _signature = encodeBytesToBase64(rawSignature);
-
-    final idHash = await sha256.hash(rawSignature);
-    _id = encodeBytesToBase64(idHash.bytes);
-  }
-
-  @override
-  Future<void> signWithRawSignature(Uint8List rawSignature) async {
     _signature = encodeBytesToBase64(rawSignature);
 
     final idHash = await sha256.hash(rawSignature);
