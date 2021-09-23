@@ -25,7 +25,8 @@ void main() async {
 
   // Prepare a data bundle transaction.
   final transaction = await client.transactions.prepare(
-    Transaction.withDataBundle(bundle: DataBundle(items: [dataItem])),
+    Transaction.withDataBundle(
+        bundle: DataBundle(items: [dataItem]), wallet: wallet),
     wallet,
   );
 
