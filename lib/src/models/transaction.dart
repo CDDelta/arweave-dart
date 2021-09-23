@@ -117,16 +117,15 @@ class Transaction implements TransactionBase {
     List<Tag>? tags,
     String? target,
     BigInt? quantity,
-    required DataBundle bundle,
+    required Uint8List bundleBlob,
     BigInt? reward,
-    required Wallet wallet,
   }) =>
       Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: bundle.asBlob(wallet) as Uint8List,
+        data: bundleBlob,
         reward: reward,
       )
         ..addTag('Bundle-Format', 'binary')
