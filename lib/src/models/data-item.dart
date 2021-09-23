@@ -134,7 +134,36 @@ class DataItem implements TransactionBase {
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {
+    final buffer = asBinary();
     try {
+      if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
+        return false;
+      }
+      final sigType = byteArrayToLong(buffer.asUint8List().sublist(0, 2));
+      var tagsStart = 2 + 512 + 512 + 2;
+      final targetPresent = buffer.asUint8List()[1026] == 1;
+      tagsStart += targetPresent ? 32 : 0;
+      final anchorPresentByte = targetPresent ? 1059 : 1027;
+      final anchorPresent = buffer.asUint8List()[anchorPresentByte] == 1;
+      tagsStart += anchorPresent ? 32 : 0;
+
+      final numberOfTags = byteArrayToLong(
+          buffer.asUint8List().sublist(tagsStart, tagsStart + 8));
+      final numberOfTagBytesArray =
+          buffer.asUint8List().sublist(tagsStart + 8, tagsStart + 16);
+      final numberOfTagBytes = byteArrayToLong(numberOfTagBytesArray);
+
+      if (numberOfTags > 0) {
+        try {
+          //TODO: Deserialize and check tags
+          
+          // if (tags.length !== numberOfTags) {
+          //   return false;
+          // }
+        } catch (e) {
+          return false;
+        }
+      }
       final signatureData = await getSignatureData();
       final claimedSignatureBytes = decodeBase64ToBytes(signature);
 
@@ -268,45 +297,4 @@ class DataItem implements TransactionBase {
 
     return bytes.buffer;
   }
-}
-
-@override
-Future<bool> verify(ByteBuffer buffer) async {
-  // if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
-  //   return false;
-  // }
-  // final sigType = byteArrayToLong(buffer.asUint8List().sublist(0, 2));
-  // var tagsStart = 2 + 512 + 512 + 2;
-  // final targetPresent = buffer.asUint8List()[1026] == 1;
-  // tagsStart += targetPresent ? 32 : 0;
-  // final anchorPresentByte = targetPresent ? 1059 : 1027;
-  // final anchorPresent = buffer.asUint8List()[anchorPresentByte] == 1;
-  // tagsStart += anchorPresent ? 32 : 0;
-
-  // final numberOfTags = byteArrayToLong(
-  //   buffer.asUint8List().sublist(tagsStart, tagsStart + 8)
-  // );
-  // final numberOfTagBytesArray = buffer.asUint8List().sublist(
-  //   tagsStart + 8,
-  //   tagsStart + 16
-  // );
-  // final numberOfTagBytes = byteArrayToLong(numberOfTagBytesArray);
-
-  // if (numberOfTags > 0) {
-  //   try {
-  //     final tags= tagsParser.fromBuffer(
-  //       Uint16List.fromList(
-  //         buffer.asUint8List() .sublist(tagsStart + 16, tagsStart + 16 + numberOfTagBytes)
-  //       )
-  //     );
-
-  //     if (tags.length !== numberOfTags) {
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     return false;
-  //   }
-  // }
-
-  return true;
 }
