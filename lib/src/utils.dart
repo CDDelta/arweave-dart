@@ -108,7 +108,7 @@ Future<String> ownerToAddress(String owner) async => encodeBytesToBase64(
 
 Uint8List longTo32ByteArray(int long) {
   // we want to represent the input as a 8-bytes array
-  const byteArray = [
+  final byteArray = [
     0,
     0,
     0,
@@ -176,7 +176,7 @@ int byteArrayToLong(Uint8List byteArray) {
 
 Uint8List longTo8ByteArray(int long) {
   // we want to represent the input as a 8-bytes array
-  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
+  final byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
 
   for (var index = 0; index < byteArray.length; index++) {
     final byte = long & 0xff;

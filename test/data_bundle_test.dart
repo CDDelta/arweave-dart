@@ -17,7 +17,8 @@ void main() async {
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');
-
+      final binary = dataItem.asBinary();
+      
       await dataItem.sign(wallet);
 
       expect(await dataItem.verify(), isTrue);
