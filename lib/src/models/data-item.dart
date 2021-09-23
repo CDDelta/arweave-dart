@@ -209,8 +209,8 @@ class DataItem implements TransactionBase {
     final anchor_length = 1;
     final tags = this
         .tags
-        .map((tag) => utf8.encode(json.encode(tag.toJson())))
-        .reduce((value, element) => value + element) as Uint8List;
+        .map((tag) => utf8.encode(json.encode(tag.toJson())) as Uint8List)
+        .reduce((value, element) => (value + element) as Uint8List);
     final tags_length = 16 + (tags.lengthInBytes);
     final data = this.data.buffer;
 
