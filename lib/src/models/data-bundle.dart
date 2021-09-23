@@ -29,7 +29,7 @@ class DataBundle {
         return raw.asUint8List();
       }),
     ).then((a) {
-      return a.reduce((a, e) => a + e as Uint8List);
+      return a.reduce((a, e) => Uint8List.fromList(a + e));
     });
     final buffer = Uint8List.fromList([
       ...longTo32ByteArray(items.length),

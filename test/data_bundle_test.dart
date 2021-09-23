@@ -17,8 +17,8 @@ void main() async {
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');
-      final binary = dataItem.asBinary();
-      
+      final dataItemBinary = dataItem.asBinary();
+
       await dataItem.sign(wallet);
 
       expect(await dataItem.verify(), isTrue);
@@ -27,5 +27,24 @@ void main() async {
 
       expect(await dataItem.verify(), isFalse);
     });
+  });
+  test('create data bundle', () async {
+    final wallet = await getTestWallet();
+
+    final dataItemOne = DataItem.withBlobData(
+        owner: await wallet.getOwner(),
+        data: utf8.encode('HELLOWORLD_TEST_STRING_1') as Uint8List)
+      ..addTag('MyTag', '0')
+      ..addTag('OtherTag', 'Foo')
+      ..addTag('MyTag', '1');
+    final dataItemTwo = DataItem.withBlobData(
+        owner: await wallet.getOwner(),
+        data: utf8.encode('HELLOWORLD_TEST_STRING_2') as Uint8List)
+      ..addTag('MyTag', '0')
+      ..addTag('OtherTag', 'Foo')
+      ..addTag('MyTag', '1');
+
+    final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
+    final bundleBlob = bundle.asBlob(wallet);
   });
 }
