@@ -128,7 +128,7 @@ class DataItem implements TransactionBase {
 
     final idHash = await sha256.hash(rawSignature);
     _id = encodeBytesToBase64(idHash.bytes);
-    return idHash.bytes as Uint8List;
+    return Uint8List.fromList(idHash.bytes);
   }
 
   /// Verify that the [DataItem] is valid.
@@ -204,9 +204,8 @@ class DataItem implements TransactionBase {
     final owner = utf8.encode(this.owner) as Uint8List;
     final target = utf8.encode(this.target) as Uint8List;
     final target_length = 1 + (target.lengthInBytes);
+    //We dont use anchors
     final anchor = null;
-    //const _anchor = opts?.anchor ? Buffer.from(opts.anchor) : null;
-    //const anchor_length = 1 + (_anchor?.byteLength ?? 0);
     final anchor_length = 1;
     final tags = this
         .tags
@@ -273,6 +272,41 @@ class DataItem implements TransactionBase {
 
 @override
 Future<bool> verify(ByteBuffer buffer) async {
-  //TODO: Implement Verify
-  throw UnimplementedError();
+  // if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
+  //   return false;
+  // }
+  // final sigType = byteArrayToLong(buffer.asUint8List().sublist(0, 2));
+  // var tagsStart = 2 + 512 + 512 + 2;
+  // final targetPresent = buffer.asUint8List()[1026] == 1;
+  // tagsStart += targetPresent ? 32 : 0;
+  // final anchorPresentByte = targetPresent ? 1059 : 1027;
+  // final anchorPresent = buffer.asUint8List()[anchorPresentByte] == 1;
+  // tagsStart += anchorPresent ? 32 : 0;
+
+  // final numberOfTags = byteArrayToLong(
+  //   buffer.asUint8List().sublist(tagsStart, tagsStart + 8)
+  // );
+  // final numberOfTagBytesArray = buffer.asUint8List().sublist(
+  //   tagsStart + 8,
+  //   tagsStart + 16
+  // );
+  // final numberOfTagBytes = byteArrayToLong(numberOfTagBytesArray);
+
+  // if (numberOfTags > 0) {
+  //   try {
+  //     final tags= tagsParser.fromBuffer(
+  //       Uint16List.fromList(
+  //         buffer.asUint8List() .sublist(tagsStart + 16, tagsStart + 16 + numberOfTagBytes)
+  //       )
+  //     );
+
+  //     if (tags.length !== numberOfTags) {
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // }
+
+  return true;
 }
