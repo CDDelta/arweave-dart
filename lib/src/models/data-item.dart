@@ -236,11 +236,12 @@ class DataItem implements TransactionBase {
     //We dont use anchors
     final anchor = null;
     final anchor_length = 1;
-    final tags = this
-        .tags
-        .map((tag) => utf8.encode(json.encode(tag.toJson())) as Uint8List)
-        .reduce((value, element) => Uint8List.fromList((value + element)));
-    final tags_length = 16 + (tags.lengthInBytes);
+    // final tags = this
+    //     .tags
+    //     .map((tag) => utf8.encode(json.encode(tag.toJson())) as Uint8List)
+    //     .reduce((value, element) => Uint8List.fromList((value + element)));
+    final tags = Uint8List.fromList([]);
+    final tags_length = 16 + (0);
     final data = this.data.buffer;
 
     final data_length = data.lengthInBytes;
@@ -271,7 +272,8 @@ class DataItem implements TransactionBase {
     // 64 + OWNER_LENGTH
     bytes[1026] = decodedTarget.isNotEmpty ? 1 : 0;
     if (decodedTarget.isNotEmpty) {
-      assert(decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
+      assert(
+          decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
       bytes.setAll(1027, decodedTarget);
     }
 
