@@ -156,7 +156,7 @@ class DataItem implements TransactionBase {
       if (numberOfTags > 0) {
         try {
           //TODO: Deserialize and check tags
-          
+
           // if (tags.length !== numberOfTags) {
           //   return false;
           // }
@@ -230,9 +230,9 @@ class DataItem implements TransactionBase {
   }
 
   ByteBuffer asBinary() {
-    final owner = utf8.encode(this.owner) as Uint8List;
-    final target = utf8.encode(this.target) as Uint8List;
-    final target_length = 1 + (target.lengthInBytes);
+    final decodedOwner = decodeBase64ToBytes(owner);
+    final decodedTarget = decodeBase64ToBytes(target);
+    final target_length = 1 + (decodedTarget.lengthInBytes);
     //We dont use anchors
     final anchor = null;
     final anchor_length = 1;
@@ -244,15 +244,17 @@ class DataItem implements TransactionBase {
     final data = this.data.buffer;
 
     final data_length = data.lengthInBytes;
-
+    final signature_type_length = 2;
+    final signature_length = 512;
     // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
-    final length = 2 +
-        512 +
-        owner.buffer.lengthInBytes +
+    final length = signature_type_length +
+        signature_length +
+        decodedOwner.buffer.lengthInBytes +
         target_length +
         anchor_length +
         tags_length +
         data_length;
+    assert(decodedOwner.buffer.lengthInBytes == 512);
     // Create array with set length
     final bytes = Uint8List(length);
     bytes.setAll(0, shortTo2ByteArray(1));
@@ -263,14 +265,14 @@ class DataItem implements TransactionBase {
     // bytes.set(EMPTY_ARRAY, 32);
     // Push bytes for `owner`
 
-    bytes.setAll(514, owner);
+    bytes.setAll(514, decodedOwner);
 
     // Push `presence byte` and push `target` if present
     // 64 + OWNER_LENGTH
-    bytes[1026] = target.isNotEmpty ? 1 : 0;
-    if (target.isNotEmpty) {
-      assert(target.lengthInBytes == 32, print('Target must be 32 bytes'));
-      bytes.setAll(1027, target);
+    bytes[1026] = decodedTarget.isNotEmpty ? 1 : 0;
+    if (decodedTarget.isNotEmpty) {
+      assert(decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
+      bytes.setAll(1027, decodedTarget);
     }
 
     // Push `presence byte` and push `anchor` if present

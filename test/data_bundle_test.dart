@@ -10,7 +10,8 @@ void main() async {
   group('DataItem:', () {
     test('create, sign, and verify data items', () async {
       final wallet = await getTestWallet();
-
+      print(await wallet.getOwner());
+      print(await wallet.getAddress());
       final dataItem = DataItem.withBlobData(
           owner: await wallet.getOwner(),
           data: utf8.encode('HELLOWORLD_TEST_STRING') as Uint8List)
