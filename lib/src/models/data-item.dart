@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:arweave/src/avro/avro.dart';
+
 import '../crypto/crypto.dart';
 import '../utils.dart';
 import 'models.dart';
@@ -157,9 +159,9 @@ class DataItem implements TransactionBase {
         try {
           //TODO: Deserialize and check tags
 
-          // if (tags.length !== numberOfTags) {
-          //   return false;
-          // }
+          if (tags.length != numberOfTags) {
+            return false;
+          }
         } catch (e) {
           return false;
         }
@@ -236,11 +238,7 @@ class DataItem implements TransactionBase {
     //We dont use anchors
     final anchor = null;
     final anchor_length = 1;
-    // final tags = this
-    //     .tags
-    //     .map((tag) => utf8.encode(json.encode(tag.toJson())) as Uint8List)
-    //     .reduce((value, element) => Uint8List.fromList((value + element)));
-    final tags = Uint8List.fromList([]);
+    final tags = serializeTags(tags: this.tags);
     final tags_length = 16 + (0);
     final data = this.data.buffer;
 
