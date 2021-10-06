@@ -25,6 +25,7 @@ class Type {
 }
 
 @JS()
+@anonymous
 class Schema {
   external String type;
   external String name;
@@ -38,6 +39,7 @@ class Schema {
 }
 
 @JS()
+@anonymous
 class SchemaField {
   external String name;
   external String type;
@@ -49,6 +51,7 @@ class SchemaField {
 }
 
 @JS()
+@anonymous
 class BundleTag {
   external String get name;
   external String get value;
