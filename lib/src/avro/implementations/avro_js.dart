@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:arweave/src/models/tag.dart';
 import 'package:js/js.dart';
 
+external Type get type;
+
 Type _getTypeSchema() => Type.forSchema(Schema(
       type: 'record',
       name: 'Tag',
@@ -18,7 +20,7 @@ Type _getTypeSchema() => Type.forSchema(Schema(
 Uint8List serializeData({required List<Tag> tags}) => _getTypeSchema()
     .toBuffer(tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
 
-@JS()
+@JS('Type')
 class Type {
   external static dynamic forSchema(Schema schema);
   external dynamic toBuffer(Object obj);
