@@ -24,6 +24,7 @@ class Type {
   external dynamic toBuffer(Object obj);
 }
 
+@JS()
 class Schema {
   external String type;
   external String name;
@@ -36,6 +37,7 @@ class Schema {
   });
 }
 
+@JS()
 class SchemaField {
   external String name;
   external String type;
@@ -46,6 +48,7 @@ class SchemaField {
   });
 }
 
+@JS()
 class BundleTag {
   external String get name;
   external String get value;
