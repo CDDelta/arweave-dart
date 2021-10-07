@@ -7,7 +7,7 @@ import 'package:arweave/src/models/tag.dart';
 import 'package:js/js.dart';
 
 @JS()
-external Uint8List serializeTags(Iterable<BundleTag> bundleTags);
+external Uint8List serializeTags(var bundleTags);
 
 Uint8List parseTags({required List<Tag> tags}) {
   return serializeTags(
