@@ -238,7 +238,7 @@ class DataItem implements TransactionBase {
     //We dont use anchors
     final anchor = null;
     final anchor_length = 1;
-    final tags = serializeTags(tags: this.tags);
+    final tags = parseTags(tags: this.tags);
     final tags_length = 16 + (0);
     final data = this.data.buffer;
 

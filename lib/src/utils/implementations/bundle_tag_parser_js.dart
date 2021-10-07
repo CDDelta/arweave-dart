@@ -6,11 +6,11 @@ import 'dart:typed_data';
 import 'package:arweave/src/models/tag.dart';
 import 'package:js/js.dart';
 
-@JS('serializeTags')
-external Uint8List _serializeTags(Iterable<BundleTag> bundleTags);
+@JS()
+external Uint8List serializeTags(Iterable<BundleTag> bundleTags);
 
-Uint8List serializeTags({required List<Tag> tags}) {
-  return _serializeTags(
+Uint8List parseTags({required List<Tag> tags}) {
+  return serializeTags(
       tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
 }
 
