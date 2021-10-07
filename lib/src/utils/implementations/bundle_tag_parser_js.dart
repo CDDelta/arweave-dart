@@ -1,4 +1,4 @@
-@JS()
+@JS('tagparser')
 library tagparser;
 
 import 'dart:typed_data';
