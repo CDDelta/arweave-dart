@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:arweave/src/avro/avro.dart';
+import 'package:arweave/src/utils/bundle_tag_parser.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
