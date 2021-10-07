@@ -20,7 +20,7 @@ AvroType _getTypeSchema() => AvroType.forSchema(Schema(
 Uint8List serializeData({required List<Tag> tags}) => _getTypeSchema()
     .toBuffer(tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
 
-@JS('Type')
+@JS('avsc.Type')
 class AvroType {
   external static dynamic forSchema(Schema schema);
   external dynamic toBuffer(Object obj);
