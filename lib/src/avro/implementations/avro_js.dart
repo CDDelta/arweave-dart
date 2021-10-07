@@ -1,5 +1,5 @@
-@JS('avsc')
-library avro;
+@JS('avsc-types')
+library avsc;
 
 import 'dart:typed_data';
 
@@ -20,7 +20,7 @@ AvroType _getTypeSchema() => AvroType.forSchema(Schema(
 Uint8List serializeData({required List<Tag> tags}) => _getTypeSchema()
     .toBuffer(tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
 
-@JS('avro.Type')
+@JS('Type')
 class AvroType {
   external static dynamic forSchema(Schema schema);
   external dynamic toBuffer(Object obj);
