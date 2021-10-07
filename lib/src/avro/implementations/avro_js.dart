@@ -1,4 +1,4 @@
-@JS('avsc')
+@JS('avsc.Type')
 library avsc;
 
 import 'dart:typed_data';
