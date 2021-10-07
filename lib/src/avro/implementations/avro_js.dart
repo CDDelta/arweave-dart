@@ -17,8 +17,25 @@ AvroType _getTypeSchema() => AvroType.forSchema(Schema(
       ],
     ));
 
-Uint8List serializeData({required List<Tag> tags}) => _getTypeSchema()
-    .toBuffer(tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
+Uint8List serializeData({required List<Tag> tags}) {
+  var obj = {
+    getTypeForSchema(Schema(
+      type: 'record',
+      name: 'Tag',
+      fields: [
+        SchemaField(name: 'name', type: 'string'),
+        SchemaField(name: 'value', type: 'string'),
+      ],
+    ))
+  };
+  print(obj);
+
+  return _getTypeSchema()
+      .toBuffer(tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
+}
+
+@JS('Type.forSchema')
+external dynamic getTypeForSchema(Schema schema);
 
 @JS('Type')
 abstract class AvroType {
