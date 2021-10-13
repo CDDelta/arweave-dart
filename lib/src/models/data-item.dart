@@ -239,7 +239,7 @@ class DataItem implements TransactionBase {
     final anchor = null;
     final anchor_length = 1;
     final tags = parseTags(tags: this.tags);
-    final tags_length = 16 + (0);
+    final tags_length = 16 + (tags.lengthInBytes);
     final data = this.data.buffer;
 
     final data_length = data.lengthInBytes;
