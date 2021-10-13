@@ -11,7 +11,7 @@ external Uint8List serializeTags(var bundleTags);
 
 Uint8List parseTags({required List<Tag> tags}) {
   return serializeTags(
-      tags.map((tag) => BundleTag(name: tag.name, value: tag.value)));
+      tags.map((tag) => BundleTag(name: tag.name, value: tag.value)).toList());
 }
 
 @JS()
