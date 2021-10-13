@@ -4,17 +4,26 @@ library tagparser;
 import 'dart:typed_data';
 
 import 'package:arweave/src/models/tag.dart';
+import 'package:arweave/src/utils.dart';
 import 'package:js/js.dart';
 
 @JS()
 external Uint8List serializeTags(var bundleTags);
 
 Uint8List parseTags({required List<Tag> tags}) {
-  tags.forEach((element) {
+  final decodedTags = <Tag>[];
+  tags.forEach((tag) {
+    decodedTags.add(Tag(
+      decodeBase64ToString(tag.name),
+      decodeBase64ToString(tag.value),
+    ));
+  });
+  decodedTags.forEach((element) {
     print(element.name + ' ' + element.value);
   });
-  final data = serializeTags(
-      tags.map((tag) => BundleTag(name: tag.name, value: tag.value)).toList());
+  final data = serializeTags(decodedTags
+      .map((tag) => BundleTag(name: tag.name, value: tag.value))
+      .toList());
 
   return data;
 }
