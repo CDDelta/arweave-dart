@@ -10,7 +10,9 @@ import 'package:js/js.dart';
 external Uint8List serializeTags(var bundleTags);
 
 Uint8List parseTags({required List<Tag> tags}) {
-  print(tags);
+  tags.forEach((element) {
+    print(element.name + ' ' + element.value);
+  });
   final data = serializeTags(
       tags.map((tag) => BundleTag(name: tag.name, value: tag.value)).toList());
 
