@@ -12,7 +12,7 @@ external Uint8List serializeTags(var bundleTags);
 Uint8List parseTags({required List<Tag> tags}) {
   final data = serializeTags(
       tags.map((tag) => BundleTag(name: tag.name, value: tag.value)).toList());
-  print(tags);
+  print(data);
   return data;
 }
 
