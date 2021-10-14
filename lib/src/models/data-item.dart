@@ -245,6 +245,7 @@ class DataItem implements TransactionBase {
     final data_length = data.lengthInBytes;
     final signature_type_length = 2;
     final signature_length = 512;
+
     // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
     final length = signature_type_length +
         signature_length +
@@ -259,7 +260,7 @@ class DataItem implements TransactionBase {
     bytes.setAll(0, shortTo2ByteArray(1));
 
     // Push bytes for `signature`
-    bytes.setAll(2, <int>[]);
+    bytes.setAll(2, decodeBase64ToBytes(signature));
     // // Push bytes for `id`
     // bytes.set(EMPTY_ARRAY, 32);
     // Push bytes for `owner`
