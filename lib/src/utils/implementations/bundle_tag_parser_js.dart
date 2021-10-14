@@ -18,9 +18,7 @@ Uint8List parseTags({required List<Tag> tags}) {
       decodeBase64ToString(tag.value),
     ));
   });
-  decodedTags.forEach((element) {
-    print(element.name + ' ' + element.value);
-  });
+
   final data = serializeTags(decodedTags
       .map((tag) => BundleTag(name: tag.name, value: tag.value))
       .toList());
