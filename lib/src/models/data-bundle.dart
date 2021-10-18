@@ -15,8 +15,8 @@ class DataBundle {
       items.map((d) async {
         // Sign DataItem
         var index = items.indexOf(d);
-        final id = await d.sign(wallet);
-        print('Transaction ID:' + encodeBytesToBase64(id));
+        final id = decodeBase64ToBytes(d.id);
+        print('Transaction ID:' + d.id);
         // Create header array
         final header = Uint8List(64);
         // Set offset
