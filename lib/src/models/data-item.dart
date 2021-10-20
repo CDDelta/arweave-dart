@@ -288,8 +288,7 @@ class DataItem implements TransactionBase {
     //   bytes.set(_anchor, anchor_start + 1);
     // }
 
-    bytes.setAll(tags_start, longTo8ByteArray(tags.length));
-    print(longTo8ByteArray(tags.length));
+    bytes.setAll(tags_start, longTo8ByteArray(this.tags.length));
     final bytesCount = longTo8ByteArray(tags.lengthInBytes);
     bytes.setAll(tags_start + 8, bytesCount);
     if (tags.isNotEmpty) {
