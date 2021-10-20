@@ -18,7 +18,6 @@ void main() async {
         ..addTag('MyTag', '0')
         ..addTag('OtherTag', 'Foo')
         ..addTag('MyTag', '1');
-      final dataItemBinary = dataItem.asBinary();
 
       await dataItem.sign(wallet);
 
@@ -46,6 +45,5 @@ void main() async {
       ..addTag('MyTag', '1');
 
     final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
-    final bundleBlob = bundle.asBlob(wallet);
   });
 }

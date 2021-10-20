@@ -39,4 +39,8 @@ class DataBundle {
     ]);
     return buffer;
   }
+
+  Future<bool> verify(Wallet wallet) async {
+    return false;
+  }
 }

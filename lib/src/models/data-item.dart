@@ -142,6 +142,7 @@ class DataItem implements TransactionBase {
         return false;
       }
       final sigType = byteArrayToLong(buffer.asUint8List().sublist(0, 2));
+      assert(sigType == 1);
       var tagsStart = 2 + 512 + 512 + 2;
       final targetPresent = buffer.asUint8List()[1026] == 1;
       tagsStart += targetPresent ? 32 : 0;
@@ -288,6 +289,7 @@ class DataItem implements TransactionBase {
     // }
 
     bytes.setAll(tags_start, longTo8ByteArray(tags.length));
+    print(longTo8ByteArray(tags.length));
     final bytesCount = longTo8ByteArray(tags.lengthInBytes);
     bytes.setAll(tags_start + 8, bytesCount);
     if (tags.isNotEmpty) {
