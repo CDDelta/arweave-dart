@@ -16,7 +16,6 @@ class DataBundle {
         // Sign DataItem
         var index = items.indexOf(d);
         final id = decodeBase64ToBytes(d.id);
-        print('Transaction ID:' + d.id);
         // Create header array
         final header = Uint8List(64);
         // Set offset

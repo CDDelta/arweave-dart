@@ -104,7 +104,8 @@ class DataItem implements TransactionBase {
   Future<Uint8List> getSignatureData() => deepHash(
         [
           utf8.encode('dataitem'),
-          utf8.encode('1'),
+          utf8.encode('1'), //Transaction format
+          utf8.encode('1'), //Signature type
           decodeBase64ToBytes(owner),
           decodeBase64ToBytes(target),
           decodeBase64ToBytes(nonce),
