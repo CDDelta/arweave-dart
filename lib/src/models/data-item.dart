@@ -237,8 +237,7 @@ class DataItem implements TransactionBase {
     final decodedOwner = decodeBase64ToBytes(owner);
     final decodedTarget = decodeBase64ToBytes(target);
     final target_length = 1 + (decodedTarget.lengthInBytes);
-    //We dont use anchors
-    final anchor = null;
+    final anchor = decodeBase64ToBytes(nonce);
     final anchor_length = 1;
     final tags = parseTags(tags: this.tags);
     final tags_length = 16 + (tags.lengthInBytes);
@@ -257,38 +256,25 @@ class DataItem implements TransactionBase {
         tags_length +
         data_length;
     assert(decodedOwner.buffer.lengthInBytes == 512);
-    // Create array with set length
     final bytes = Uint8List(length);
     bytes.setAll(0, shortTo2ByteArray(1));
-
-    // Push bytes for `signature`
     bytes.setAll(2, decodeBase64ToBytes(signature));
-    // // Push bytes for `id`
-    // bytes.set(EMPTY_ARRAY, 32);
-    // Push bytes for `owner`
-
     bytes.setAll(514, decodedOwner);
-
-    // Push `presence byte` and push `target` if present
-    // 64 + OWNER_LENGTH
     bytes[1026] = decodedTarget.isNotEmpty ? 1 : 0;
     if (decodedTarget.isNotEmpty) {
       assert(
           decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
       bytes.setAll(1027, decodedTarget);
     }
-
-    // Push `presence byte` and push `anchor` if present
-    // 64 + OWNER_LENGTH
     final anchor_start = 1026 + target_length;
     var tags_start = anchor_start + 1;
-    bytes[anchor_start] = anchor != null ? 1 : 0;
-    // if (anchor!=null) {
-    //   tags_start += anchor.byteLength;
-    //   assert(_anchor.byteLength == 32, new Error("Anchor must be 32 bytes"));
-    //   bytes.set(_anchor, anchor_start + 1);
-    // }
-
+    bytes[anchor_start] = anchor.isNotEmpty ? 1 : 0;
+    if (anchor.isNotEmpty) {
+      tags_start += anchor.buffer.lengthInBytes;
+      assert(
+          anchor.buffer.lengthInBytes == 32, print('Anchor must be 32 bytes'));
+      bytes.setAll(anchor_start + 1, anchor);
+    }
     bytes.setAll(tags_start, longTo8ByteArray(this.tags.length));
     final bytesCount = longTo8ByteArray(tags.lengthInBytes);
     bytes.setAll(tags_start + 8, bytesCount);
