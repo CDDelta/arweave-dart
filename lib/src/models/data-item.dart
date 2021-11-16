@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
@@ -14,15 +13,15 @@ part 'data-item.g.dart';
 class DataItem implements TransactionBase {
   @override
   String get id => _id;
-  String _id;
+  late String _id;
 
   @override
   String get owner => _owner;
-  String _owner;
+  late String _owner;
 
   @override
-  final String target;
-  final String nonce;
+  late String target;
+  late String nonce;
 
   @override
   List<Tag> get tags => _tags;
@@ -36,52 +35,50 @@ class DataItem implements TransactionBase {
 
   @override
   String get signature => _signature;
-  String _signature;
+  late String _signature;
 
   /// This constructor is reserved for JSON serialisation.
   ///
   /// [DataItem.withJsonData()] and [DataItem.withBlobData()] are the recommended ways to construct data items.
   DataItem({
-    String id,
-    String owner,
-    this.target,
-    this.nonce,
-    List<Tag> tags,
-    String data,
-    Uint8List dataBytes,
-    String signature,
-  })  : _id = id,
+    String? owner,
+    String? target,
+    String? nonce,
+    List<Tag>? tags,
+    String? data,
+    Uint8List? dataBytes,
+  })  : 
+        target = target ??'',
+        nonce = nonce ??'',
         _owner = owner ?? '',
         data = data != null
             ? decodeBase64ToBytes(data)
             : (dataBytes ?? Uint8List(0)),
-        _signature = signature {
-    _tags = tags ?? [];
-  }
+        _tags = tags ?? [];
 
   /// Constructs a [DataItem] with the specified JSON data and appropriate Content-Type tag.
   factory DataItem.withJsonData({
-    String owner,
+    String? owner,
     String target = '',
     String nonce = '',
-    List<Tag> tags,
-    @required Object data,
+    List<Tag>? tags,
+    required Object data,
   }) =>
       DataItem.withBlobData(
         owner: owner,
         target: target,
         nonce: nonce,
         tags: tags,
-        data: utf8.encode(json.encode(data)),
+        data: utf8.encode(json.encode(data)) as Uint8List,
       )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [DataItem] with the specified blob data.
   factory DataItem.withBlobData({
-    String owner,
+    String? owner,
     String target = '',
     String nonce = '',
-    List<Tag> tags,
-    @required Uint8List data,
+    List<Tag>? tags,
+    required Uint8List data,
   }) =>
       DataItem(
         owner: owner,

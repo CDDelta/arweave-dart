@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -33,21 +34,25 @@ class _BranchNode extends _MerkleNode {
   final _MerkleNode leftChild;
   final _MerkleNode rightChild;
 
-  _BranchNode(
-      {List<int> id,
-      this.byteRange,
-      int maxByteRange,
-      this.leftChild,
-      this.rightChild})
-      : super(id, maxByteRange);
+  _BranchNode({
+    required List<int> id,
+    required int maxByteRange,
+    required this.byteRange,
+    required this.leftChild,
+    required this.rightChild,
+  }) : super(id, maxByteRange);
 }
 
 class _LeafNode extends _MerkleNode {
   final List<int> dataHash;
   final int minByteRange;
 
-  _LeafNode({List<int> id, this.dataHash, this.minByteRange, int maxByteRange})
-      : super(id, maxByteRange);
+  _LeafNode({
+    required List<int> id,
+    required int maxByteRange,
+    required this.dataHash,
+    required this.minByteRange,
+  }) : super(id, maxByteRange);
 }
 
 const MAX_CHUNK_SIZE = 256 * 1024;
@@ -58,7 +63,7 @@ const NOTE_SIZE = 32;
 /// Builds an Arweave Merkle tree and returns the root hash for the given input.
 Future<Uint8List> computeRootHash(Uint8List data) async {
   final rootNode = await generateTree(data);
-  return rootNode.id;
+  return rootNode.id as FutureOr<Uint8List>;
 }
 
 Future<_MerkleNode> generateTree(Uint8List data) async {
@@ -85,7 +90,7 @@ Future<TransactionChunksWithProofs> generateTransactionChunks(
     proofs.removeLast();
   }
 
-  return TransactionChunksWithProofs(root.id, chunks, proofs);
+  return TransactionChunksWithProofs(root.id as Uint8List, chunks, proofs);
 }
 
 /// Takes the input data and chunks it into (mostly) equal sized chunks.
@@ -163,7 +168,7 @@ Future<_MerkleNode> _buildLayers(List<_MerkleNode> nodes,
   return _buildLayers(nextLayer, level + 1);
 }
 
-Future<_MerkleNode> _hashBranch(_MerkleNode left, _MerkleNode right) async {
+Future<_MerkleNode> _hashBranch(_MerkleNode left, _MerkleNode? right) async {
   if (right == null) return left;
 
   return _BranchNode(
@@ -202,9 +207,7 @@ List<Proof> generateProofs(_MerkleNode root) {
 }
 
 List<Object> _resolveBranchProofs(_MerkleNode node,
-    [List<int> proof, depth = 0]) {
-  proof = proof ?? <int>[];
-
+    [List<int> proof = const <int>[], depth = 0]) {
   if (node is _LeafNode) {
     return [
       Proof(

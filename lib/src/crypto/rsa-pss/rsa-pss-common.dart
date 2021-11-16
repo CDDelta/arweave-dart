@@ -5,7 +5,8 @@ import 'package:pointycastle/export.dart';
 
 import '../../utils.dart';
 
-Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
+Future<Uint8List> rsaPssSign(
+    {required Uint8List message, required RsaKeyPair keyPair}) async {
   final pk = await keyPair.extract();
 
   final pcPk = RSAPrivateKey(
@@ -20,17 +21,17 @@ Future<Uint8List> rsaPssSign({Uint8List message, RsaKeyPair keyPair}) async {
       true,
       ParametersWithSalt(
         PrivateKeyParameter<RSAPrivateKey>(pcPk),
-        null,
+        Uint8List(0),
       ),
     );
   return signer.generateSignature(message).bytes;
 }
 
 Future<bool> rsaPssVerify({
-  Uint8List input,
-  Uint8List signature,
-  BigInt modulus,
-  BigInt publicExponent,
+  required Uint8List input,
+  required Uint8List signature,
+  required BigInt modulus,
+  required BigInt publicExponent,
 }) async {
   var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
     ..init(
@@ -42,7 +43,7 @@ Future<bool> rsaPssVerify({
             publicExponent,
           ),
         ),
-        null,
+        Uint8List(0),
       ),
     );
 

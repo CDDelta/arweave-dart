@@ -8,7 +8,7 @@ class ArweaveApi {
   final http.Client _client;
 
   ArweaveApi({
-    Uri gatewayUrl,
+    Uri? gatewayUrl,
   })  : gatewayUrl = gatewayUrl ?? getDefaultGateway(),
         _client = http.Client();
 
