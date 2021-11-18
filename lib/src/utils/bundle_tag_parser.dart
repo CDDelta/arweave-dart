@@ -6,5 +6,5 @@ import 'implementations/bundle_tag_parser_js.dart'
     if (dart.library.io) 'implementations/bundle_tag_parser_ffi.dart'
     as implementation;
 
-Uint8List parseTags({required List<Tag> tags}) =>
-    implementation.parseTags(tags: tags);
+Uint8List serializeTags({required List<Tag> tags}) =>
+    implementation.serializeTags(tags: tags);

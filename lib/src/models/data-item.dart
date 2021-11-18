@@ -109,7 +109,7 @@ class DataItem implements TransactionBase {
           decodeBase64ToBytes(owner),
           decodeBase64ToBytes(target),
           decodeBase64ToBytes(nonce),
-          parseTags(tags: tags),
+          serializeTags(tags: tags),
           data,
         ],
       );
@@ -232,7 +232,7 @@ class DataItem implements TransactionBase {
     final target_length = 1 + (decodedTarget.lengthInBytes);
     final anchor = decodeBase64ToBytes(nonce);
     final anchor_length = 1;
-    final tags = parseTags(tags: this.tags);
+    final tags = serializeTags(tags: this.tags);
     final tags_length = 16 + (tags.lengthInBytes);
     final data = this.data.buffer;
 

@@ -1,17 +1,17 @@
 var avro = window.avro;
 
-function serializeTags(tags) {
+function serializeTagsToBuffer(tags) {
   const tagSchema = avro.Type.forSchema({
-    type: 'record',
-    name: 'Tag',
+    type: "record",
+    name: "Tag",
     fields: [
-      { name: 'name', type: 'string' },
-      { name: 'value', type: 'string' },
+      { name: "name", type: "string" },
+      { name: "value", type: "string" },
     ],
   });
 
   const tagsSchema = avro.Type.forSchema({
-    type: 'array',
+    type: "array",
     items: tagSchema,
   });
   if (tags.length == 0) {
@@ -24,29 +24,25 @@ function serializeTags(tags) {
   } catch (e) {
     console.log(e);
     throw new Error(
-      'Incorrect tag format used. Make sure your tags are { name: string!, value: string! }[]',
+      "Incorrect tag format used. Make sure your tags are { name: string!, value: string! }[]"
     );
   }
   return Uint8Array.from(tagsBuffer);
 }
-async function deserializeTags(buffer) {
+function deserializeTagsFromBuffer(buffer) {
   const tagSchema = avro.Type.forSchema({
-    type: 'record',
-    name: 'Tag',
+    type: "record",
+    name: "Tag",
     fields: [
-      { name: 'name', type: 'string' },
-      { name: 'value', type: 'string' },
+      { name: "name", type: "string" },
+      { name: "value", type: "string" },
     ],
   });
 
   const tagsSchema = avro.Type.forSchema({
-    type: 'array',
+    type: "array",
     items: tagSchema,
   });
-  const tags = tagsSchema.fromBuffer(
-    Buffer.from(
-      buffer.subarray(tagsStart + 16, tagsStart + 16 + numberOfTagBytes),
-    ),
-  );
+  const tags = tagsSchema.fromBuffer(buffer);
   return tags;
 }

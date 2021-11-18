@@ -8,12 +8,12 @@ import 'package:arweave/src/utils.dart';
 import 'package:js/js.dart';
 
 @JS()
-external Uint8List serializeTags(var bundleTags);
+external Uint8List serializeTagsToBuffer(var bundleTags);
 
 @JS()
-external List<BundleTag> deserializeTags(var buffer);
+external List<BundleTag> deserializeTagsFromBuffer(var buffer);
 
-Uint8List parseTags({required List<Tag> tags}) {
+Uint8List serializeTags({required List<Tag> tags}) {
   final decodedTags = <Tag>[];
   tags.forEach((tag) {
     decodedTags.add(Tag(
@@ -21,16 +21,25 @@ Uint8List parseTags({required List<Tag> tags}) {
       decodeBase64ToString(tag.value),
     ));
   });
-
-  final data = serializeTags(decodedTags
+  final data = serializeTagsToBuffer(decodedTags
       .map((tag) => BundleTag(name: tag.name, value: tag.value))
       .toList());
   return data;
 }
 
-List<Tag> avroToTags({required Uint8List buffer}) {
-  final tags = deserializeTags(buffer);
-  return tags.map((tag) => Tag(tag.name, tag.value)).toList();
+List<Tag> deserializeTags({var buffer}) {
+  final tags = deserializeTagsFromBuffer(buffer);
+  final decodedTags = <Tag>[];
+  for (var tag in tags) {
+    decodedTags.add(Tag(
+      encodeBytesToBase64(
+          tag.name.split(',').map((e) => int.parse(e)).toList()),
+      encodeBytesToBase64(
+          tag.value.split(',').map((e) => int.parse(e)).toList()),
+    ));
+  }
+
+  return decodedTags;
 }
 
 @JS()

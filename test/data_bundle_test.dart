@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/utils/implementations/bundle_tag_parser_js.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/test_wallet.dart';
+import 'snapshots/data_bundle_test_snaphot.dart';
 
 void main() async {
   group('DataItem:', () {
@@ -26,6 +28,15 @@ void main() async {
 
       expect(await dataItem.verify(), isFalse);
     });
+  });
+
+  test('check if avro serializes tags correctly', () {
+    final buffer = serializeTags(tags: testTagsSnapshot);
+    expect(buffer, equals(testTagsBufferSnapshot));
+  });
+  test('check if avro deserializes tags correctly', () {
+    final tags = deserializeTags(buffer: testTagsBufferSnapshot);
+    expect(tags, equals(testTagsSnapshot));
   });
   test('create data bundle', () async {
     final wallet = getTestWallet();
