@@ -39,7 +39,8 @@ class DataBundle {
     return buffer;
   }
 
-  Future<bool> verify(Wallet wallet) async {
-    return false;
+  Future<bool> verify() async {
+    var verify = await Future.wait(items.map((e) async => await e.verify()));
+    return verify.reduce((value, element) => value &= element);
   }
 }

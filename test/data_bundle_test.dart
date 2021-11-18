@@ -47,13 +47,15 @@ void main() async {
       ..addTag('MyTag', '0')
       ..addTag('OtherTag', 'Foo')
       ..addTag('MyTag', '1');
+    await dataItemOne.sign(wallet);
     final dataItemTwo = DataItem.withBlobData(
         owner: await wallet.getOwner(),
         data: utf8.encode('HELLOWORLD_TEST_STRING_2') as Uint8List)
       ..addTag('MyTag', '0')
       ..addTag('OtherTag', 'Foo')
       ..addTag('MyTag', '1');
-
+    await dataItemTwo.sign(wallet);
     final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
+    expect(await bundle.verify(), isTrue);
   });
 }
