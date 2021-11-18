@@ -1,5 +1,5 @@
-
 import 'dart:typed_data';
 
-dynamic getTypeSchema({required Map schema}) => throw UnimplementedError();
-Uint8List serializeData({required List<Map> tags, required dynamic typeSchema}) => throw UnimplementedError();
+import 'package:arweave/arweave.dart';
+
+Uint8List parseTags({required List<Tag> tags}) => throw UnimplementedError();

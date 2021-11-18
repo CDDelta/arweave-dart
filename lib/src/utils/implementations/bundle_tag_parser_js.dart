@@ -10,6 +10,9 @@ import 'package:js/js.dart';
 @JS()
 external Uint8List serializeTags(var bundleTags);
 
+@JS()
+external List<BundleTag> deserializeTags(var buffer);
+
 Uint8List parseTags({required List<Tag> tags}) {
   final decodedTags = <Tag>[];
   tags.forEach((tag) {
@@ -22,8 +25,12 @@ Uint8List parseTags({required List<Tag> tags}) {
   final data = serializeTags(decodedTags
       .map((tag) => BundleTag(name: tag.name, value: tag.value))
       .toList());
-
   return data;
+}
+
+List<Tag> avroToTags({required Uint8List buffer}) {
+  final tags = deserializeTags(buffer);
+  return tags.map((tag) => Tag(tag.name, tag.value)).toList();
 }
 
 @JS()

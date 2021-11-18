@@ -1,17 +1,16 @@
+@TestOn('browser')
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
+import 'fixtures/test_wallet.dart';
 
 void main() async {
   group('DataItem:', () {
     test('create, sign, and verify data items', () async {
-      final wallet = await getTestWallet();
-      print(await wallet.getOwner());
-      print(await wallet.getAddress());
+      final wallet = getTestWallet();
       final dataItem = DataItem.withBlobData(
           owner: await wallet.getOwner(),
           data: utf8.encode('HELLOWORLD_TEST_STRING') as Uint8List)
@@ -29,7 +28,7 @@ void main() async {
     });
   });
   test('create data bundle', () async {
-    final wallet = await getTestWallet();
+    final wallet = getTestWallet();
 
     final dataItemOne = DataItem.withBlobData(
         owner: await wallet.getOwner(),
