@@ -34,10 +34,12 @@ void main() async {
     final buffer = serializeTags(tags: testTagsSnapshot);
     expect(buffer, equals(testTagsBufferSnapshot));
   });
+  
   test('check if avro deserializes tags correctly', () {
     final tags = deserializeTags(buffer: testTagsBufferSnapshot);
     expect(tags, equals(testTagsSnapshot));
   });
+
   test('create data bundle', () async {
     final wallet = getTestWallet();
 
