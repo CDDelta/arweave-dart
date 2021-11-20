@@ -132,7 +132,7 @@ class DataItem implements TransactionBase {
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {
-    final buffer = asBinary();
+    final buffer = await asBinary();
     try {
       if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
         return false;
@@ -228,7 +228,7 @@ class DataItem implements TransactionBase {
     return anchorStart;
   }
 
-  ByteBuffer asBinary() {
+  Future<ByteBuffer> asBinary() async {
     final decodedOwner = decodeBase64ToBytes(owner);
     final decodedTarget = decodeBase64ToBytes(target);
     final target_length = 1 + (decodedTarget.lengthInBytes);

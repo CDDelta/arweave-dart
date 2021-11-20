@@ -9,7 +9,7 @@ class DataBundle {
 
   DataBundle({required this.items});
 
-  Future<Uint8List> asBlob(Wallet wallet) async {
+  Future<Uint8List> asBlob() async {
     final headers = Uint8List(64 * items.length);
     final binaries = await Future.wait(
       items.map((d) async {
@@ -18,15 +18,15 @@ class DataBundle {
         final id = decodeBase64ToBytes(d.id);
         // Create header array
         final header = Uint8List(64);
+        final rawDataItem = await d.asBinary();
         // Set offset
-        header.setAll(0, longTo32ByteArray(d.asBinary().lengthInBytes));
+        header.setAll(0, longTo32ByteArray(rawDataItem.lengthInBytes));
         // Set id
         header.setAll(32, id);
         // Add header to array of headers
         headers.setAll(64 * index, header);
         // Convert to array for flattening
-        final raw = d.asBinary();
-        return raw.asUint8List();
+        return rawDataItem.asUint8List();
       }),
     ).then((a) {
       return a.reduce((a, e) => Uint8List.fromList(a + e));
