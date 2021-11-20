@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:async/async.dart';
 
 import '../../utils.dart';
 
@@ -11,8 +12,9 @@ class DataBundle {
 
   Future<Uint8List> asBlob() async {
     final headers = Uint8List(64 * items.length);
-    final binaries = await Future.wait(
-      items.map((d) async {
+    final tasks = FutureGroup();
+    items.forEach((d) {
+      tasks.add(() async {
         // Sign DataItem
         var index = items.indexOf(d);
         final id = decodeBase64ToBytes(d.id);
@@ -27,8 +29,10 @@ class DataBundle {
         headers.setAll(64 * index, header);
         // Convert to array for flattening
         return rawDataItem.asUint8List();
-      }),
-    ).then((a) {
+      }());
+    });
+    tasks.close();
+    final binaries = await tasks.future.then((a) {
       return a.reduce((a, e) => Uint8List.fromList(a + e));
     });
     final buffer = Uint8List.fromList([
