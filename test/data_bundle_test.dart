@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/crypto/crypto.dart';
 import 'package:arweave/src/utils/implementations/bundle_tag_parser_js.dart';
 import 'package:arweave/utils.dart';
 import 'package:test/test.dart';
@@ -91,6 +92,8 @@ void main() async {
     final testData = utf8.encode(
         List.generate(5000 * pow(2, 10) as int, (index) => 'A')
             .reduce((acc, next) => acc += next)) as Uint8List;
+
+    expect(await deepHash([testData]), equals(testFileHash));
     final testStart = DateTime.now();
     final dataItemOne =
         DataItem.withBlobData(owner: await wallet.getOwner(), data: testData)
