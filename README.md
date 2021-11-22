@@ -135,8 +135,6 @@ dart test -p "chrome,vm"
 
 ## Development
 
-## Development
-
 To rebuild the generated code (eg. for JSON serialisation) run:
 
 ```shell
