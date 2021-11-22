@@ -28,18 +28,22 @@ Uint8List serializeTags({required List<Tag> tags}) {
 }
 
 List<Tag> deserializeTags({var buffer}) {
-  final tags = deserializeTagsFromBuffer(buffer);
-  final decodedTags = <Tag>[];
-  for (var tag in tags) {
-    decodedTags.add(Tag(
-      encodeBytesToBase64(
-          tag.name.split(',').map((e) => int.parse(e)).toList()),
-      encodeBytesToBase64(
-          tag.value.split(',').map((e) => int.parse(e)).toList()),
-    ));
-  }
+  try {
+    final tags = deserializeTagsFromBuffer(buffer);
+    final decodedTags = <Tag>[];
+    for (var tag in tags) {
+      decodedTags.add(Tag(
+        encodeBytesToBase64(
+            tag.name.split(',').map((e) => int.parse(e)).toList()),
+        encodeBytesToBase64(
+            tag.value.split(',').map((e) => int.parse(e)).toList()),
+      ));
+    }
 
-  return decodedTags;
+    return decodedTags;
+  } catch (e) {
+    throw WrongTagBufferException();
+  }
 }
 
 @JS()
@@ -54,3 +58,5 @@ class BundleTag {
     String value,
   });
 }
+
+class WrongTagBufferException implements Exception {}

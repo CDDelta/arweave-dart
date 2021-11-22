@@ -50,11 +50,14 @@ void main() async {
 
   test('check if avro fails serialization when wrong data is given', () {
     final testTags = [
-      ...testTagsSnapshot,
       Tag(encodeStringToBase64('wrong'), encodeStringToBase64('wrong'))
     ];
     final buffer = serializeTags(tags: testTags);
-    expect(buffer, isNot(equals(testTagsBufferSnapshot)));
+
+    expect(
+      () => deserializeTags(buffer: [Uint8List.fromList(buffer), 0]),
+      throwsException,
+    );
   });
 
   test('check if avro deserializes tags correctly', () {
