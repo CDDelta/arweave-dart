@@ -132,7 +132,7 @@ class DataItem implements TransactionBase {
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {
-    final buffer = await asBinary();
+    final buffer = (await asBinary()).toBytes().buffer;
     try {
       if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
         return false;
@@ -228,63 +228,7 @@ class DataItem implements TransactionBase {
     return anchorStart;
   }
 
-  Future<ByteBuffer> asBinaryBlob() async {
-    final decodedOwner = decodeBase64ToBytes(owner);
-    final decodedTarget = decodeBase64ToBytes(target);
-    final target_length = 1 + (decodedTarget.lengthInBytes);
-    final anchor = decodeBase64ToBytes(nonce);
-    final anchor_length = 1;
-    final tags = serializeTags(tags: this.tags);
-    final tags_length = 16 + (tags.lengthInBytes);
-    final data = this.data.buffer;
-
-    final data_length = data.lengthInBytes;
-    final signature_type_length = 2;
-    final signature_length = 512;
-
-    // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
-    final length = signature_type_length +
-        signature_length +
-        decodedOwner.buffer.lengthInBytes +
-        target_length +
-        anchor_length +
-        tags_length +
-        data_length;
-    assert(decodedOwner.buffer.lengthInBytes == 512);
-    final bytes = Uint8List(length);
-    bytes.setAll(0, shortTo2ByteArray(1));
-    bytes.setAll(2, decodeBase64ToBytes(signature));
-    bytes.setAll(514, decodedOwner);
-    bytes[1026] = decodedTarget.isNotEmpty ? 1 : 0;
-    if (decodedTarget.isNotEmpty) {
-      assert(
-          decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
-      bytes.setAll(1027, decodedTarget);
-    }
-    final anchor_start = 1026 + target_length;
-    var tags_start = anchor_start + 1;
-    bytes[anchor_start] = anchor.isNotEmpty ? 1 : 0;
-    if (anchor.isNotEmpty) {
-      tags_start += anchor.buffer.lengthInBytes;
-      assert(
-          anchor.buffer.lengthInBytes == 32, print('Anchor must be 32 bytes'));
-      bytes.setAll(anchor_start + 1, anchor);
-    }
-    bytes.setAll(tags_start, longTo8ByteArray(this.tags.length));
-    final bytesCount = longTo8ByteArray(tags.lengthInBytes);
-    bytes.setAll(tags_start + 8, bytesCount);
-    if (tags.isNotEmpty) {
-      bytes.setAll(tags_start + 16, tags);
-    }
-
-    final data_start = tags_start + tags_length;
-
-    bytes.setAll(data_start, data.asUint8List());
-
-    return bytes.buffer;
-  }
-
-  Future<ByteBuffer> asBinary() async {
+  Future<BytesBuilder> asBinary() async {
     final decodedOwner = decodeBase64ToBytes(owner);
     final decodedTarget = decodeBase64ToBytes(target);
     final anchor = decodeBase64ToBytes(nonce);
@@ -299,7 +243,7 @@ class DataItem implements TransactionBase {
     bytesBuilder.add(decodeBase64ToBytes(signature));
     bytesBuilder.add(decodedOwner);
     bytesBuilder.addByte(decodedTarget.isNotEmpty ? 1 : 0);
-    
+
     if (decodedTarget.isNotEmpty) {
       assert(
           decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
@@ -318,6 +262,6 @@ class DataItem implements TransactionBase {
       bytesBuilder.add(tags);
     }
     bytesBuilder.add(data.asUint8List());
-    return bytesBuilder.toBytes().buffer;
+    return bytesBuilder;
   }
 }
