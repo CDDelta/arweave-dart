@@ -31,11 +31,9 @@ class DataBundle {
     }));
 
     final buffer = BytesBuilder();
-    buffer.add([
-      ...longTo32ByteArray(items.length),
-      ...headers,
-      ...binaries.takeBytes(),
-    ]);
+    buffer.add(longTo32ByteArray(items.length));
+    buffer.add(headers);
+    buffer.add(binaries.takeBytes());
     return buffer.takeBytes();
   }
 
