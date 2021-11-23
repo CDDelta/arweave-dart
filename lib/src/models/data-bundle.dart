@@ -13,7 +13,7 @@ class DataBundle {
     final headers = Uint8List(64 * items.length);
     // Use precalculated buffers if provided to
     final binaries = BytesBuilder();
-    items.forEach((item) async {
+    await Future.wait(items.map((item) async {
       // Sign DataItem
       var index = items.indexOf(item);
       final id = decodeBase64ToBytes(item.id);
@@ -28,7 +28,7 @@ class DataBundle {
       headers.setAll(64 * index, header);
       // Convert to array for flattening
       binaries.add(raw.takeBytes());
-    });
+    }));
 
     final buffer = BytesBuilder();
     buffer.add([
@@ -36,7 +36,6 @@ class DataBundle {
       ...headers,
       ...binaries.takeBytes(),
     ]);
-
     return buffer.takeBytes();
   }
 
