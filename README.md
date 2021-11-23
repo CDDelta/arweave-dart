@@ -125,6 +125,14 @@ To use these utilities, import them like so:
 import 'package:arweave/utils.dart' as utils;
 ```
 
+### Testing
+
+To test, run the following command
+
+```shell
+dart test -p "chrome,vm"
+```
+
 ## Development
 
 To rebuild the generated code (eg. for JSON serialisation) run:

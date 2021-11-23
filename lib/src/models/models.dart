@@ -1,6 +1,5 @@
 export 'data-bundle.dart';
 export 'data-item.dart';
-export 'data-item.dart';
 export 'id.dart';
 export 'tag.dart';
 export 'transaction-base.dart';
