@@ -28,7 +28,7 @@ void main() async {
       expect(await dataItem.verify(), isTrue);
     });
 
-    test('comfirm data item with wrong signaure fails verify', () async {
+    test('confirm data item with wrong signaure fails verify', () async {
       final wallet = getTestWallet();
       final dataItem = DataItem.withBlobData(
           owner: await wallet.getOwner(),
