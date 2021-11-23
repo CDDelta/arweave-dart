@@ -233,7 +233,6 @@ class DataItem implements TransactionBase {
     final decodedTarget = decodeBase64ToBytes(target);
     final anchor = decodeBase64ToBytes(nonce);
     final tags = serializeTags(tags: this.tags);
-    final data = this.data.buffer;
 
     // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
     assert(decodedOwner.buffer.lengthInBytes == 512);
@@ -261,7 +260,7 @@ class DataItem implements TransactionBase {
     if (tags.isNotEmpty) {
       bytesBuilder.add(tags);
     }
-    bytesBuilder.add(data.asUint8List());
+    bytesBuilder.add(data);
     return bytesBuilder;
   }
 }

@@ -34,7 +34,7 @@ void main() async {
     final buffer = serializeTags(tags: testTagsSnapshot);
     expect(buffer, equals(testTagsBufferSnapshot));
   });
-  
+
   test('check if avro deserializes tags correctly', () {
     final tags = deserializeTags(buffer: testTagsBufferSnapshot);
     expect(tags, equals(testTagsSnapshot));
@@ -58,6 +58,7 @@ void main() async {
       ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
     final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
+    await bundle.asBlob();
     expect(await bundle.verify(), isTrue);
   });
 }
