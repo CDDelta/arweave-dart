@@ -32,7 +32,7 @@ class DataItem implements TransactionBase {
   ///
   /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
   @override
-  final Uint8List data;
+  late Uint8List data;
 
   @override
   String get signature => _signature;
@@ -262,5 +262,9 @@ class DataItem implements TransactionBase {
     }
     bytesBuilder.add(data);
     return bytesBuilder;
+  }
+
+  void dispose() {
+    data = Uint8List(0);
   }
 }
