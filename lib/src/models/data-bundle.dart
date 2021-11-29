@@ -28,7 +28,6 @@ class DataBundle {
       headers.setAll(64 * index, header);
       // Convert to array for flattening
       binaries.add(raw.takeBytes());
-      item.dispose();
     }));
 
     final buffer = BytesBuilder();

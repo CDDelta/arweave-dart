@@ -264,7 +264,4 @@ class DataItem implements TransactionBase {
     return bytesBuilder;
   }
 
-  void dispose() {
-    data = Uint8List(0);
-  }
 }
