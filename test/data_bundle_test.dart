@@ -84,6 +84,7 @@ void main() async {
       ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
     final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
+    await bundle.asBlob();
     expect(await bundle.verify(), isTrue);
   });
 
@@ -92,7 +93,7 @@ void main() async {
     final testData = utf8.encode(
         List.generate(5000 * pow(2, 10) as int, (index) => 'A')
             .reduce((acc, next) => acc += next)) as Uint8List;
-
+    print('Test Data Item Size: ${testData.lengthInBytes} Bytes ');
     expect(await deepHash([testData]), equals(testFileHash));
     final testStart = DateTime.now();
     final dataItemOne =
@@ -108,11 +109,13 @@ void main() async {
           ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
     final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
-    await bundle.asBlob();
+    final bundleBlob = await bundle.asBlob();
+    print('Bundle Data Size: ${bundleBlob.lengthInBytes} Bytes ');
+
     print(
         'Time Elapsed to bundle ${(DateTime.now().difference(testStart)).inSeconds} Seconds');
     final verify = await bundle.verify();
-
+    expect(testData.length < bundleBlob.length, isTrue);
     expect(verify, isTrue);
   });
 }
