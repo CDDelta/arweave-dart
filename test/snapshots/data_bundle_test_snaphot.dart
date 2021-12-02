@@ -14,6 +14,7 @@ final testTagsSnapshot = <Tag>[
     encodeStringToBase64('MyTag'),
     encodeStringToBase64('ඒයි මේ @#\$?. ’“[]{}字符'),
   ),
+  //1500 characters
   Tag(
     encodeStringToBase64('Long Length Tag'),
     encodeStringToBase64(
