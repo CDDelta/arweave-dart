@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:json_annotation/json_annotation.dart';
+import 'package:arweave/src/utils/bundle_tag_parser.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
 import 'models.dart';
 
-part 'data-item.g.dart';
+final MIN_BINARY_SIZE = 1044;
 
-@JsonSerializable()
+/// ANS-104 [DataItem]
+/// Spec: https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md
 class DataItem implements TransactionBase {
   @override
   String get id => _id;
@@ -31,11 +32,12 @@ class DataItem implements TransactionBase {
   ///
   /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
   @override
-  final Uint8List data;
+  late Uint8List data;
 
   @override
   String get signature => _signature;
   late String _signature;
+  late ByteBuffer binary;
 
   /// This constructor is reserved for JSON serialisation.
   ///
@@ -47,9 +49,8 @@ class DataItem implements TransactionBase {
     List<Tag>? tags,
     String? data,
     Uint8List? dataBytes,
-  })  : 
-        target = target ??'',
-        nonce = nonce ??'',
+  })  : target = target ?? '',
+        nonce = nonce ?? '',
         _owner = owner ?? '',
         data = data != null
             ? decodeBase64ToBytes(data)
@@ -105,25 +106,19 @@ class DataItem implements TransactionBase {
   Future<Uint8List> getSignatureData() => deepHash(
         [
           utf8.encode('dataitem'),
-          utf8.encode('1'),
+          utf8.encode('1'), //Transaction format
+          utf8.encode('1'), //Signature type
           decodeBase64ToBytes(owner),
           decodeBase64ToBytes(target),
           decodeBase64ToBytes(nonce),
-          tags
-              .map(
-                (t) => [
-                  decodeBase64ToBytes(t.name),
-                  decodeBase64ToBytes(t.value),
-                ],
-              )
-              .toList(),
+          serializeTags(tags: tags),
           data,
         ],
       );
 
   /// Signs the [DataItem] using the specified wallet and sets the `id` and `signature` appropriately.
   @override
-  Future<void> sign(Wallet wallet) async {
+  Future<Uint8List> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
@@ -131,20 +126,43 @@ class DataItem implements TransactionBase {
 
     final idHash = await sha256.hash(rawSignature);
     _id = encodeBytesToBase64(idHash.bytes);
-  }
-
-  @override
-  Future<void> signWithRawSignature(Uint8List rawSignature) async {
-    _signature = encodeBytesToBase64(rawSignature);
-
-    final idHash = await sha256.hash(rawSignature);
-    _id = encodeBytesToBase64(idHash.bytes);
+    return Uint8List.fromList(idHash.bytes);
   }
 
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {
+    final buffer = (await asBinary()).toBytes().buffer;
     try {
+      if (buffer.lengthInBytes < MIN_BINARY_SIZE) {
+        return false;
+      }
+      final sigType = byteArrayToLong(buffer.asUint8List().sublist(0, 2));
+      assert(sigType == 1);
+      var tagsStart = 2 + 512 + 512 + 2;
+      final targetPresent = buffer.asUint8List()[1026] == 1;
+      tagsStart += targetPresent ? 32 : 0;
+      final anchorPresentByte = targetPresent ? 1059 : 1027;
+      final anchorPresent = buffer.asUint8List()[anchorPresentByte] == 1;
+      tagsStart += anchorPresent ? 32 : 0;
+
+      final numberOfTags = byteArrayToLong(
+          buffer.asUint8List().sublist(tagsStart, tagsStart + 8));
+      final numberOfTagBytesArray =
+          buffer.asUint8List().sublist(tagsStart + 8, tagsStart + 16);
+      final numberOfTagBytes = byteArrayToLong(numberOfTagBytesArray);
+
+      if (numberOfTags > 0) {
+        try {
+          //TODO: Deserialize and check tags
+
+          if (tags.length != numberOfTags) {
+            return false;
+          }
+        } catch (e) {
+          return false;
+        }
+      }
       final signatureData = await getSignatureData();
       final claimedSignatureBytes = decodeBase64ToBytes(signature);
 
@@ -164,15 +182,86 @@ class DataItem implements TransactionBase {
     }
   }
 
-  factory DataItem.fromJson(Map<String, dynamic> json) =>
-      _$DataItemFromJson(json);
-
-  /// Returns the [DataItem] as a JSON map with the `data` encoded as Base64.
-  Map<String, dynamic> toJson() {
-    final json = _$DataItemToJson(this);
-    // Lazily encode data bytes to Base64.
-    // TODO: Make async
-    json['data'] = encodeBytesToBase64(json['data']);
-    return json;
+  ByteBuffer getRawTags() {
+    final tagsStart = getTagsStart();
+    final tagsSize = byteArrayToLong(
+        binary.asUint8List().sublist(tagsStart + 8, tagsStart + 16));
+    return binary
+        .asUint8List()
+        .sublist(tagsStart + 16, tagsStart + 16 + tagsSize)
+        .buffer;
   }
+
+  int getTagsStart() {
+    var tagsStart = 2 + 512 + 512 + 2;
+    var targetPresent = binary.asUint8List()[1026] == 1;
+    tagsStart += targetPresent ? 32 : 0;
+    var anchorPresentByte = targetPresent ? 1059 : 1027;
+    var anchorPresent = binary.asUint8List()[anchorPresentByte] == 1;
+    tagsStart += anchorPresent ? 32 : 0;
+
+    return tagsStart;
+  }
+
+  ByteBuffer getRawData() {
+    final tagsStart = getTagsStart();
+
+    final numberOfTagBytesArray =
+        binary.asUint8List().sublist(tagsStart + 8, tagsStart + 16);
+    final numberOfTagBytes = byteArrayToLong(numberOfTagBytesArray);
+    final dataStart = tagsStart + 16 + numberOfTagBytes;
+
+    return binary.asUint8List().sublist(dataStart, binary.lengthInBytes).buffer;
+  }
+
+  // Returns the start byte of the tags section (number of tags)
+  int getTargetStart() {
+    return 1026;
+  }
+
+  // Returns the start byte of the tags section (number of tags)
+  int getAnchorStart() {
+    var anchorStart = getTargetStart() + 1;
+    final targetPresent = binary.asUint8List()[getTargetStart()] == 1;
+    anchorStart += targetPresent ? 32 : 0;
+
+    return anchorStart;
+  }
+
+  Future<BytesBuilder> asBinary() async {
+    final decodedOwner = decodeBase64ToBytes(owner);
+    final decodedTarget = decodeBase64ToBytes(target);
+    final anchor = decodeBase64ToBytes(nonce);
+    final tags = serializeTags(tags: this.tags);
+
+    // See [https://github.com/joshbenaron/arweave-standards/blob/ans104/ans/ANS-104.md#13-dataitem-format]
+    assert(decodedOwner.buffer.lengthInBytes == 512);
+    final bytesBuilder = BytesBuilder();
+
+    bytesBuilder.add(shortTo2ByteArray(1));
+    bytesBuilder.add(decodeBase64ToBytes(signature));
+    bytesBuilder.add(decodedOwner);
+    bytesBuilder.addByte(decodedTarget.isNotEmpty ? 1 : 0);
+
+    if (decodedTarget.isNotEmpty) {
+      assert(
+          decodedTarget.lengthInBytes == 32, print('Target must be 32 bytes'));
+      bytesBuilder.add(decodedTarget);
+    }
+    bytesBuilder.addByte(anchor.isNotEmpty ? 1 : 0);
+    if (anchor.isNotEmpty) {
+      assert(
+          anchor.buffer.lengthInBytes == 32, print('Anchor must be 32 bytes'));
+      bytesBuilder.add(anchor);
+    }
+    bytesBuilder.add(longTo8ByteArray(this.tags.length));
+    final bytesCount = longTo8ByteArray(tags.lengthInBytes);
+    bytesBuilder.add(bytesCount);
+    if (tags.isNotEmpty) {
+      bytesBuilder.add(tags);
+    }
+    bytesBuilder.add(data);
+    return bytesBuilder;
+  }
+
 }

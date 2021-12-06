@@ -53,7 +53,6 @@ class ArweaveTransactionsApi {
     }
 
     if (transaction.reward == BigInt.zero) {
-
       transaction.setReward(
         await getPrice(
           byteSize: int.parse(transaction.dataSize),
@@ -74,18 +73,29 @@ class ArweaveTransactionsApi {
       TransactionUploader(transaction, _api, forDataOnly: forDataOnly);
 
   /// Uploads the transaction in full, returning a stream of events signaling the status of the upload.
-  Stream<TransactionUploader> upload(Transaction transaction,
-      {bool dataOnly = false}) async* {
+  Stream<TransactionUploader> upload(
+    Transaction transaction, {
+    bool dataOnly = false,
+    bool dryRun = false,
+  }) async* {
     final uploader = await getUploader(transaction, forDataOnly: dataOnly);
 
     while (!uploader.isComplete) {
-      await uploader.uploadChunk();
+      if (!dryRun) {
+        await uploader.uploadChunk();
+      }
       yield uploader;
     }
   }
 
   /// Uploads the transaction in full. Useful for small data or wallet transactions.
-  Future<void> post(Transaction transaction) async {
+  Future<void> post(
+    Transaction transaction, {
+    bool dryRun = false,
+  }) async {
+    if (dryRun) {
+      return;
+    }
     final uploader = await getUploader(transaction);
     while (!uploader.isComplete) {
       await uploader.uploadChunk();

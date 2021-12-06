@@ -31,7 +31,6 @@ Once you have the package, you can create an instance of the client with its def
 
 ```dart
 import 'package:arweave/arweave.dart';
-
 void main() {
   var client = Arweave();
 }
@@ -64,7 +63,6 @@ final transaction = await client.transactions.prepare(
   Transaction.withBlobData(data: utf8.encode('Hello world!')),
   wallet,
 );
-
 transaction.addTag('App-Name', 'Hello World App');
 transaction.addTag('App-Version', '1.0.0');
 ```
@@ -93,7 +91,7 @@ await for (final upload in client.transactions.upload(transaction)) {
 
 ### Using Data Bundles
 
-Use ANS-102 data bundles by first preparing some data items as so:
+Use ANS-104 data bundles by first preparing some data items as so:
 
 ```dart
 final dataItem = DataItem.withBlobData(
@@ -102,7 +100,6 @@ final dataItem = DataItem.withBlobData(
 )
   ..addTag('MyTag', '0')
   ..addTag('OtherTag', 'Foo');
-
 await dataItem.sign(wallet);
 ```
 
@@ -131,4 +128,12 @@ To rebuild the generated code (eg. for JSON serialisation) run:
 
 ```shell
 dart pub run build_runner build
+```
+
+### Testing
+
+To test, run the following command
+
+```shell
+dart test -p "chrome,vm"
 ```

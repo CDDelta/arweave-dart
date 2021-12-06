@@ -117,19 +117,19 @@ class Transaction implements TransactionBase {
     List<Tag>? tags,
     String? target,
     BigInt? quantity,
-    required DataBundle bundle,
+    required Uint8List bundleBlob,
     BigInt? reward,
   }) =>
-      Transaction.withJsonData(
+      Transaction.withBlobData(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        data: bundle.toJson(),
+        data: bundleBlob,
         reward: reward,
       )
-        ..addTag('Bundle-Format', 'json')
-        ..addTag('Bundle-Version', '1.0.0');
+        ..addTag('Bundle-Format', 'binary')
+        ..addTag('Bundle-Version', '2.0.0');
 
   /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
   factory Transaction.withJsonData({
@@ -279,14 +279,6 @@ class Transaction implements TransactionBase {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
 
-    _signature = encodeBytesToBase64(rawSignature);
-
-    final idHash = await sha256.hash(rawSignature);
-    _id = encodeBytesToBase64(idHash.bytes);
-  }
-
-  @override
-  Future<void> signWithRawSignature(Uint8List rawSignature) async {
     _signature = encodeBytesToBase64(rawSignature);
 
     final idHash = await sha256.hash(rawSignature);
