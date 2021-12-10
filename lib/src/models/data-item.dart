@@ -129,6 +129,30 @@ class DataItem implements TransactionBase {
     return Uint8List.fromList(idHash.bytes);
   }
 
+  int getSize() {
+    const targetLength = 1;
+    final anchorLength = nonce.isEmpty ? 1 : 1 + 32;
+
+    final serializedTags = serializeTags(tags: tags);
+    final tagsLength = 16 + serializedTags.lengthInBytes;
+
+    const arweaveSignerLength = 512;
+    const ownerLength = 512;
+
+    const signatureTypeLength = 2;
+
+    final dataLength = data.lengthInBytes;
+
+    final totalByteLength = arweaveSignerLength +
+        ownerLength +
+        signatureTypeLength +
+        targetLength +
+        anchorLength +
+        tagsLength +
+        dataLength;
+    return totalByteLength;
+  }
+
   /// Verify that the [DataItem] is valid.
   @override
   Future<bool> verify() async {
@@ -263,5 +287,4 @@ class DataItem implements TransactionBase {
     bytesBuilder.add(data);
     return bytesBuilder;
   }
-
 }
