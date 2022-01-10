@@ -285,7 +285,7 @@ class DataItem implements TransactionBase {
       bytesBuilder.add(tags);
     }
     bytesBuilder.add(data);
-    data.clear();
+    data = Uint8List(0);
     return bytesBuilder;
   }
 }
