@@ -129,11 +129,14 @@ class DataItem implements TransactionBase {
     return Uint8List.fromList(idHash.bytes);
   }
 
-  int getSize() {
+  int getSize({
+    int? fileDataSize,
+    List<Tag>? tags,
+  }) {
     const targetLength = 1;
     final anchorLength = nonce.isEmpty ? 1 : 1 + 32;
 
-    final serializedTags = serializeTags(tags: tags);
+    final serializedTags = serializeTags(tags: tags ?? this.tags);
     final tagsLength = 16 + serializedTags.lengthInBytes;
 
     const arweaveSignerLength = 512;
@@ -141,7 +144,7 @@ class DataItem implements TransactionBase {
 
     const signatureTypeLength = 2;
 
-    final dataLength = data.lengthInBytes;
+    final dataLength = fileDataSize ?? data.lengthInBytes;
 
     final totalByteLength = arweaveSignerLength +
         ownerLength +
@@ -285,6 +288,7 @@ class DataItem implements TransactionBase {
       bytesBuilder.add(tags);
     }
     bytesBuilder.add(data);
+    data = Uint8List(0);
     return bytesBuilder;
   }
 }
