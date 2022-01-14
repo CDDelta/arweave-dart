@@ -1,4 +1,5 @@
 export 'data-bundle.dart';
+export 'data-item-prototype.dart';
 export 'data-item.dart';
 export 'id.dart';
 export 'tag.dart';
