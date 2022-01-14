@@ -170,6 +170,10 @@ class Transaction implements TransactionBase {
 
   void setLastTx(String lastTx) => _lastTx = lastTx;
 
+  void setTarget(String target) => _target = target;
+
+  void setQuantity(BigInt quantity) => _quantity = quantity;
+
   @override
   void setOwner(String owner) => _owner = owner;
 
