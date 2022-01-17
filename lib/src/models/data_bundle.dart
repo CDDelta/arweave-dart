@@ -37,28 +37,31 @@ class DataBundle {
     return buffer.takeBytes();
   }
 
-  Future<Uint8List> asBlobFromPrototypes({
-    required List<DataItemPrototype> items,
+  Future<Uint8List> asBlobFromUploader({
+    required List<DataItemUploader> items,
   }) async {
-    final headers = Uint8List(64 * items.length);
+    final headers = Uint8List(64 * items.length * 2);
     // Use precalculated buffers if provided to
     final binaries = BytesBuilder();
     await Future.wait(items.map((item) async {
       // Sign DataItem
       var index = items.indexOf(item);
-      final dataItem = await item.processAndPrepareDataItem();
-      final id = decodeBase64ToBytes(dataItem.id);
-      // Create header array
-      final header = Uint8List(64);
-      final raw = await dataItem.asBinary();
-      // Set offset
-      header.setAll(0, longTo32ByteArray(raw.length));
-      // Set id
-      header.setAll(32, id);
-      // Add header to array of headers
-      headers.setAll(64 * index, header);
-      // Convert to array for flattening
-      binaries.add(raw.takeBytes());
+      final dataItems = await item.processAndPrepareDataItems();
+      assert(dataItems.length == 2);
+      for (var dataItem in dataItems) {
+        final id = decodeBase64ToBytes(dataItem.id);
+        // Create header array
+        final header = Uint8List(64);
+        final raw = await dataItem.asBinary();
+        // Set offset
+        header.setAll(0, longTo32ByteArray(raw.length));
+        // Set id
+        header.setAll(32, id);
+        // Add header to array of headers
+        headers.setAll(64 * index, header);
+        // Convert to array for flattening
+        binaries.add(raw.takeBytes());
+      }
     }));
 
     final buffer = BytesBuilder();

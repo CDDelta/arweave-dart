@@ -1,6 +1,6 @@
-export 'data-bundle.dart';
-export 'data-item-prototype.dart';
-export 'data-item.dart';
+export 'data_bundle.dart';
+export 'data_item_uploader.dart';
+export 'data_item.dart';
 export 'id.dart';
 export 'tag.dart';
 export 'transaction-base.dart';
