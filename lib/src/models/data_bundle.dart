@@ -37,7 +37,7 @@ class DataBundle {
     return DataBundle(blob: buffer.takeBytes());
   }
 
-  static Future<DataBundle> fromUploaders({
+  static Future<DataBundle> fromHandles({
     required List<DataItemHandle> items,
   }) async {
     final headers = Uint8List(64 * items.length * 2);
@@ -53,6 +53,7 @@ class DataBundle {
         // Create header array
         final header = Uint8List(64);
         final raw = await dataItem.asBinary();
+        dataItem.data = Uint8List(0);
         // Set offset
         header.setAll(0, longTo32ByteArray(raw.length));
         // Set id
