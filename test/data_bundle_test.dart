@@ -84,7 +84,7 @@ void main() async {
       ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
     final items = [dataItemOne, dataItemTwo];
-    final bundle = await DataBundle.asBlob(items: items);
+    final bundle = await DataBundle.fromDataItems(items: items);
     expect(bundle.blob, isNotEmpty);
     items.forEach((dataItem) async {
       expect(await dataItem.verify(), isTrue);
@@ -112,7 +112,7 @@ void main() async {
           ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
     final items = [dataItemOne, dataItemTwo];
-    final bundle = await DataBundle.asBlob(items: items);
+    final bundle = await DataBundle.fromDataItems(items: items);
     expect(bundle.blob, isNotEmpty);
 
     print('Bundle Data Size: ${bundle.blob.lengthInBytes} Bytes ');

@@ -9,7 +9,7 @@ class DataBundle {
 
   DataBundle({required this.blob});
 
-  static Future<DataBundle> asBlob({required List<DataItem> items}) async {
+  static Future<DataBundle> fromDataItems({required List<DataItem> items}) async {
     final headers = Uint8List(64 * items.length);
     // Use precalculated buffers if provided to
     final binaries = BytesBuilder();
