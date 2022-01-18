@@ -5,11 +5,11 @@ import 'package:arweave/arweave.dart';
 import '../../utils.dart';
 
 class DataBundle {
-  late List<DataItem> items;
+  final Uint8List blob;
 
-  DataBundle({this.items = const []});
+  DataBundle({required this.blob});
 
-  Future<Uint8List> asBlob() async {
+  static Future<DataBundle> asBlob({required List<DataItem> items}) async {
     final headers = Uint8List(64 * items.length);
     // Use precalculated buffers if provided to
     final binaries = BytesBuilder();
@@ -34,11 +34,11 @@ class DataBundle {
     buffer.add(longTo32ByteArray(items.length));
     buffer.add(headers);
     buffer.add(binaries.takeBytes());
-    return buffer.takeBytes();
+    return DataBundle(blob: buffer.takeBytes());
   }
 
-  Future<Uint8List> asBlobFromUploader({
-    required List<DataItemUploader> items,
+  static Future<DataBundle> fromUploaders({
+    required List<DataItemHandle> items,
   }) async {
     final headers = Uint8List(64 * items.length * 2);
     // Use precalculated buffers if provided to
@@ -46,7 +46,7 @@ class DataBundle {
     await Future.wait(items.map((item) async {
       // Sign DataItem
       var index = items.indexOf(item);
-      final dataItems = await item.processAndPrepareDataItems();
+      final dataItems = await item.createDataItemsFromFileHandle();
       assert(dataItems.length == 2);
       for (var dataItem in dataItems) {
         final id = decodeBase64ToBytes(dataItem.id);
@@ -68,11 +68,6 @@ class DataBundle {
     buffer.add(longTo32ByteArray(items.length));
     buffer.add(headers);
     buffer.add(binaries.takeBytes());
-    return buffer.takeBytes();
-  }
-
-  Future<bool> verify() async {
-    var verify = await Future.wait(items.map((e) async => await e.verify()));
-    return verify.reduce((value, element) => value &= element);
+    return DataBundle(blob: buffer.takeBytes());
   }
 }

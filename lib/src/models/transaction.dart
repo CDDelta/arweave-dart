@@ -6,9 +6,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
-import 'tag.dart';
-import 'transaction_chunk.dart';
-import 'wallet.dart';
 
 part 'transaction.g.dart';
 

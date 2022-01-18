@@ -1,5 +1,5 @@
 export 'data_bundle.dart';
-export 'data_item_uploader.dart';
+export 'data_item_handle.dart';
 export 'data_item.dart';
 export 'id.dart';
 export 'tag.dart';
