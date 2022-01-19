@@ -1,5 +1,6 @@
 import 'package:arweave/src/models/models.dart';
 
+import '../utils.dart';
 import 'bundle_tag_parser.dart';
 
 int estimateDataItemSize({
@@ -10,7 +11,15 @@ int estimateDataItemSize({
   const targetLength = 1;
   final anchorLength = nonce.isEmpty ? 1 : 1 + 32;
 
-  final serializedTags = serializeTags(tags: tags);
+  final serializedTags = serializeTags(
+      tags: tags
+          .map(
+            (t) => Tag(
+              encodeStringToBase64(t.name),
+              encodeStringToBase64(t.value),
+            ),
+          )
+          .toList());
   final tagsLength = 16 + serializedTags.lengthInBytes;
 
   const arweaveSignerLength = 512;
