@@ -6,9 +6,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../crypto/crypto.dart';
 import '../utils.dart';
-import 'tag.dart';
-import 'transaction_chunk.dart';
-import 'wallet.dart';
 
 part 'transaction.g.dart';
 
@@ -169,6 +166,10 @@ class Transaction implements TransactionBase {
       );
 
   void setLastTx(String lastTx) => _lastTx = lastTx;
+
+  void setTarget(String target) => _target = target;
+
+  void setQuantity(BigInt quantity) => _quantity = quantity;
 
   @override
   void setOwner(String owner) => _owner = owner;

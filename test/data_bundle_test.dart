@@ -83,9 +83,12 @@ void main() async {
       ..addTag('OtherTag', 'Foo')
       ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
-    final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
-    await bundle.asBlob();
-    expect(await bundle.verify(), isTrue);
+    final items = [dataItemOne, dataItemTwo];
+    final bundle = await DataBundle.fromDataItems(items: items);
+    expect(bundle.blob, isNotEmpty);
+    items.forEach((dataItem) async {
+      expect(await dataItem.verify(), isTrue);
+    });
   });
 
   test('create data bundle with large files', () async {
@@ -108,14 +111,17 @@ void main() async {
           ..addTag('OtherTag', 'Foo')
           ..addTag('MyTag', '1');
     await dataItemTwo.sign(wallet);
-    final bundle = DataBundle(items: [dataItemOne, dataItemTwo]);
-    final bundleBlob = await bundle.asBlob();
-    print('Bundle Data Size: ${bundleBlob.lengthInBytes} Bytes ');
+    final items = [dataItemOne, dataItemTwo];
+    final bundle = await DataBundle.fromDataItems(items: items);
+    expect(bundle.blob, isNotEmpty);
+
+    print('Bundle Data Size: ${bundle.blob.lengthInBytes} Bytes ');
 
     print(
         'Time Elapsed to bundle ${(DateTime.now().difference(testStart)).inSeconds} Seconds');
-    final verify = await bundle.verify();
-    expect(testData.length < bundleBlob.length, isTrue);
-    expect(verify, isTrue);
+    expect(testData.length < bundle.blob.length, isTrue);
+    items.forEach((dataItem) async {
+      expect(await dataItem.verify(), isTrue);
+    });
   });
 }

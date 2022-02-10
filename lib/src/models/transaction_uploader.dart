@@ -6,7 +6,6 @@ import 'package:arweave/arweave.dart';
 import 'package:arweave/src/api/api.dart';
 
 import '../utils.dart';
-import 'transaction.dart';
 
 /// Maximum amount of chunks we will upload in the body.
 const MAX_CHUNKS_IN_BODY = 1;
