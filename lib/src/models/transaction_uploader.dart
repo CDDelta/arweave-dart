@@ -141,8 +141,9 @@ class TransactionUploader {
     } else {
       lastResponseError = getResponseError(res);
       if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
-        throw StateError(
-            'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+        print(
+          'Fatal error uploading chunk: $_chunkIndex: $lastResponseError. Retrying...',
+        );
       }
     }
   }
