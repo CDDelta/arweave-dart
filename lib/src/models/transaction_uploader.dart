@@ -131,19 +131,23 @@ class TransactionUploader {
     //  throw StateError('Unable to validate chunk: $_chunkIndex');
 
     // Catch network errors and turn them into objects with status -1 and an error message.
-    final res = await _api.post('chunk', body: json.encode(chunk));
+    try {
+      final res = await _api.post('chunk', body: json.encode(chunk));
 
-    _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
-    lastResponseStatus = res.statusCode;
+      _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
+      lastResponseStatus = res.statusCode;
 
-    if (lastResponseStatus == 200) {
-      _chunkIndex++;
-    } else {
-      lastResponseError = getResponseError(res);
-      if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
-        throw StateError(
-            'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+      if (lastResponseStatus == 200) {
+        _chunkIndex++;
+      } else {
+        lastResponseError = getResponseError(res);
+        if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
+          throw StateError(
+              'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+        }
       }
+    } catch (e) {
+      print(e);
     }
   }
 
