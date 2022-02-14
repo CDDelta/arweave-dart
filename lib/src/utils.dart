@@ -90,17 +90,22 @@ String winstonToAr(BigInt winston) {
 
 /// Safely get the error from an Arweave HTTP response.
 String getResponseError(Response res) {
-  if (res.headers['Content-Type'] == 'application/json') {
-    Map<String, dynamic> errJson = json.decode(res.body);
+  try {
+    if (res.headers['Content-Type'] == 'application/json') {
+      Map<String, dynamic> errJson = json.decode(res.body);
 
-    if (errJson['data'] != null) {
-      return errJson['data'] is Map
-          ? errJson['data']['error']
-          : errJson['data'];
+      if (errJson['data'] != null) {
+        return errJson['data'] is Map
+            ? errJson['data']['error']
+            : errJson['data'];
+      }
     }
-  }
 
-  return res.body;
+    return res.body;
+  } catch (e) {
+    print('Unknown upload error. Retrying...');
+    return 'unknown error';
+  }
 }
 
 Future<String> ownerToAddress(String owner) async => encodeBytesToBase64(
