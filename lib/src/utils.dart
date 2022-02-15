@@ -103,8 +103,8 @@ String getResponseError(Response res) {
 
     return res.body;
   } catch (e) {
-    print('Unknown upload error. Retrying...');
-    return 'unknown error';
+    print('Unknown upload error ${e.toString()}.');
+    return e.toString();
   }
 }
 
