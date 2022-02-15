@@ -136,7 +136,7 @@ class TransactionUploader {
     try {
       res = await _api.post('chunk', body: json.encode(chunk));
     } catch (e) {
-      print("Error posting to /chunk endpoint:, " + e.toString());
+      print("Error posting to /chunk endpoint: " + e.toString());
     }
     if (res != null) {
       _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
