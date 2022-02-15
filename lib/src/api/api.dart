@@ -16,7 +16,10 @@ class ArweaveApi {
       _client.get(_getEndpointUri(endpoint));
 
   Future<http.Response> post(String endpoint, {dynamic body}) =>
-      _client.post(_getEndpointUri(endpoint), body: body);
+      _client.post(_getEndpointUri(endpoint), body: body).catchError((onError) {
+        print('Caught error in post');
+        return http.Response('', 404);
+      });
 
   Uri _getEndpointUri(String endpoint) =>
       Uri.parse('${gatewayUrl.origin}/$endpoint');
