@@ -138,8 +138,8 @@ class TransactionUploader {
     } catch (e) {
       print("Error posting to /chunk endpoint: " + e.toString());
     }
+    _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
     if (res != null) {
-      _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
       lastResponseStatus = res.statusCode;
       if (lastResponseStatus == 200) {
         _chunkIndex++;
