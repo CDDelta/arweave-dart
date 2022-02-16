@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/src/api/api.dart';
+import 'package:http/http.dart';
 
 import '../utils.dart';
 
@@ -131,18 +132,23 @@ class TransactionUploader {
     //  throw StateError('Unable to validate chunk: $_chunkIndex');
 
     // Catch network errors and turn them into objects with status -1 and an error message.
-    final res = await _api.post('chunk', body: json.encode(chunk));
-
+    Response? res;
+    try {
+      res = await _api.post('chunk', body: json.encode(chunk));
+    } catch (e) {
+      print("Error posting to /chunk endpoint: " + e.toString());
+    }
     _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
-    lastResponseStatus = res.statusCode;
-
-    if (lastResponseStatus == 200) {
-      _chunkIndex++;
-    } else {
-      lastResponseError = getResponseError(res);
-      if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
-        throw StateError(
-            'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+    if (res != null) {
+      lastResponseStatus = res.statusCode;
+      if (lastResponseStatus == 200) {
+        _chunkIndex++;
+      } else {
+        lastResponseError = getResponseError(res);
+        if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
+          throw StateError(
+              'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+        }
       }
     }
   }
