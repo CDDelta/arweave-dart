@@ -80,10 +80,9 @@ class ArweaveTransactionsApi {
   }) async* {
     final uploader = await getUploader(transaction, forDataOnly: dataOnly);
 
-    while (!uploader.isComplete) {
-      if (!dryRun) {
-        await uploader.uploadChunk();
-      }
+    if (!dryRun) {
+      yield* uploader.upload();
+    } else {
       yield uploader;
     }
   }
@@ -93,12 +92,6 @@ class ArweaveTransactionsApi {
     Transaction transaction, {
     bool dryRun = false,
   }) async {
-    if (dryRun) {
-      return;
-    }
-    final uploader = await getUploader(transaction);
-    while (!uploader.isComplete) {
-      await uploader.uploadChunk();
-    }
+    await upload(transaction, dryRun: dryRun).drain();
   }
 }

@@ -104,6 +104,7 @@ void main() {
       final transaction = await client.transactions.prepare(
           Transaction.withBlobData(data: data, reward: BigInt.one),
           await getTestWallet());
+
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -117,6 +118,7 @@ void main() {
       final transaction = await client.transactions.prepare(
           Transaction.withBlobData(data: data, reward: BigInt.one),
           await getTestWallet());
+
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -128,6 +130,7 @@ void main() {
       final transaction = await client.transactions.prepare(
           Transaction.withBlobData(data: data, reward: BigInt.one),
           await getTestWallet());
+
       expect(
         transaction.setData(Uint8List.sublistView(data, 1)),
         throwsStateError,
@@ -136,36 +139,50 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
-    test('upload data to transaction already on network', () async {
-      final transaction = await (client.transactions
-          .get('8C6yYu5pWMADLSd65wTnrzgN-9eLj9sFbyVC3prSaFs'));
+    test('successfully seed existing network transaction', () async {
+      final transaction = await client.transactions
+          .get('8C6yYu5pWMADLSd65wTnrzgN-9eLj9sFbyVC3prSaFs');
 
       await transaction!.setData(utf8
           .encode('{"name":"Blockchains & Cryptocurrencies"}') as Uint8List);
 
       expect(
-        client.transactions.upload(transaction, dataOnly: true).drain(),
-        completion(null),
+        client.transactions.upload(transaction, dataOnly: true),
+        emitsInOrder([
+          emits(anything),
+          emitsDone,
+        ]),
       );
     });
 
-    test('upload transaction with serialised uploader', () async {
-      final data = utf8.encode('Hello world!');
-      final wallet = await getTestWallet();
-      final transaction = await client.transactions.prepare(
-        Transaction.withBlobData(data: data as Uint8List),
-        wallet,
+    test('successfully seed existing large network transaction', () async {
+      final txId = 'gAnkEioD7xoP3qx7VepVEp1O0v4L1UgtBV_trM-Ria8';
+      final transaction = await client.transactions.get(txId);
+      final txData = await File("test/fixtures/$txId").readAsBytes();
+
+      await transaction!.setData(txData);
+
+      int lastUploadedChunkCount = 0;
+      double lastProgress = 0;
+
+      expect(
+        client.transactions.upload(transaction, dataOnly: true),
+        emitsInOrder([
+          ...List.filled(393, emits(predicate((TransactionUploader event) {
+            final eventIsInSequence =
+                event.uploadedChunks > lastUploadedChunkCount &&
+                    event.progress > lastProgress;
+
+            lastUploadedChunkCount = event.uploadedChunks;
+            lastProgress = event.progress;
+
+            return eventIsInSequence;
+          }))),
+          emits(predicate((TransactionUploader event) =>
+              event.isComplete && event.progress == 1)),
+          emitsDone,
+        ]),
       );
-
-      await transaction.sign(wallet);
-
-      final uploader = await client.transactions.getUploader(transaction);
-      final reloadedUploader = await TransactionUploader.deserialize(
-          uploader.serialize(), data, client.api);
-
-      // Technically this should fail since the test wallet has no AR but the
-      // HTTP API doesn't return an error so there's nothing we can do about it.
-      expect(reloadedUploader.uploadChunk(), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
     });
