@@ -68,7 +68,7 @@ class TransactionUploader {
       try {
         await retry(() => _uploadChunk(chunkIndex),
             retryIf: (err) => err is! StateError);
-            
+
         chunkUploadCompletionStreamController.add(chunkIndex);
       } catch (err) {
         chunkUploadCompletionStreamController.addError(err);
@@ -86,7 +86,8 @@ class TransactionUploader {
 
     // Start a new chunk upload if there are still any left to upload and
     // notify the stream consumer of chunk upload completion events.
-    yield* chunkUploadCompletionStreamController.stream.map((event) {
+    yield* chunkUploadCompletionStreamController.stream
+        .map((completedChunkIndex) {
       _uploadedChunks++;
 
       if (chunkIndex < totalChunks) {
