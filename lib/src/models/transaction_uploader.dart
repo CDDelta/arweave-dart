@@ -33,7 +33,11 @@ class TransactionUploader {
   int get uploadedChunks => _uploadedChunks;
 
   /// The progress of the current upload ranging from 0 to 1.
-  double get progress => uploadedChunks / totalChunks;
+  ///
+  /// Additionally accounts for the posting of the transaction header, therefore
+  /// data only uploads will start with a progress > 0.
+  double get progress =>
+      ((_txPosted ? 1 : 0) + uploadedChunks) / (1 + totalChunks);
 
   bool _txPosted = false;
   int _uploadedChunks = 0;
@@ -45,6 +49,8 @@ class TransactionUploader {
         _txPosted = forDataOnly {
     if (transaction.chunks == null) {
       throw ArgumentError('Transaction chunks not prepared.');
+    } else if (forDataOnly && totalChunks == 0) {
+      throw ArgumentError('Transaction has no chunks.');
     }
   }
 
@@ -52,7 +58,7 @@ class TransactionUploader {
   /// the status of the upload on every completed chunk upload.
   Stream<TransactionUploader> upload() async* {
     if (!_txPosted) {
-      await _postTransactionHeader();
+      await retry(() => _postTransactionHeader());
 
       yield this;
 
@@ -66,8 +72,7 @@ class TransactionUploader {
 
     Future<void> uploadChunkAndNotifyOfCompletion(int chunkIndex) async {
       try {
-        await retry(() => _uploadChunk(chunkIndex),
-            retryIf: (err) => err is! StateError);
+        await retry(() => _uploadChunk(chunkIndex));
 
         chunkUploadCompletionStreamController.add(chunkIndex);
       } catch (err) {
@@ -102,6 +107,8 @@ class TransactionUploader {
   }
 
   /// Posts the transaction header to Arweave as well as the transaction data, if it can fit in the body.
+  ///
+  /// Throws an [Exception] if the transaction header could not be posted.
   Future<void> _postTransactionHeader() async {
     final uploadInBody = totalChunks <= maxChunksInBody;
     final txJson = _transaction.toJson();
@@ -122,7 +129,7 @@ class TransactionUploader {
         return;
       }
 
-      throw StateError('Unable to upload transaction: ${res.statusCode}');
+      throw Exception('Unable to upload transaction: ${res.statusCode}');
     }
 
     // Post the transaction with no data.
@@ -130,7 +137,7 @@ class TransactionUploader {
     final res = await _api.post('tx', body: json.encode(txJson));
 
     if (!(res.statusCode >= 200 && res.statusCode < 300)) {
-      throw StateError('Unable to upload transaction: ${res.statusCode}');
+      throw Exception('Unable to upload transaction: ${res.statusCode}');
     }
 
     _txPosted = true;
@@ -139,7 +146,7 @@ class TransactionUploader {
   /// Uploads the specified chunk onto Arweave.
   ///
   /// Throws a [StateError] if the chunk being uploaded encounters a fatal error
-  /// during upload.
+  /// during upload and an [Exception] if a non-fatal error is encountered.
   Future<void> _uploadChunk(int chunkIndex) async {
     final chunk = _transaction.getChunk(chunkIndex);
 
@@ -161,10 +168,10 @@ class TransactionUploader {
 
       if (fatalChunkUploadErrors.contains(responseError)) {
         throw StateError(
-            'Fatal error uploading chunk: $chunkIndex: $responseError');
+            'Fatal error uploading chunk: $chunkIndex: ${res.statusCode} $responseError');
       } else {
         throw Exception(
-            'Received non-fatal error while uploading chunk $chunkIndex: $responseError');
+            'Received non-fatal error while uploading chunk $chunkIndex: ${res.statusCode} $responseError');
       }
     }
   }

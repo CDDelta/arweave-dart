@@ -46,7 +46,7 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
-    test('create, sign, and specify reward for AR transaction', () async {
+    test('create, sign, and verify AR transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions.prepare(
@@ -155,6 +155,31 @@ void main() {
       );
     });
 
+    test('successfully upload AR only transaction', () async {
+      final wallet = await getTestWallet();
+
+      final transaction = await client.transactions.prepare(
+        Transaction(
+          target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
+          quantity: utils.arToWinston('1.5'),
+        ),
+        wallet,
+      );
+
+      await transaction.sign(wallet);
+
+      expect(
+        client.transactions.upload(transaction),
+        emitsInOrder([
+          emits(predicate((TransactionUploader event) =>
+              event.isComplete && event.progress == 1)),
+          emitsDone,
+        ]),
+      );
+    }, onPlatform: {
+      'browser': Skip('dart:io unavailable'),
+    });
+
     test('successfully seed existing large network transaction', () async {
       final txId = 'gAnkEioD7xoP3qx7VepVEp1O0v4L1UgtBV_trM-Ria8';
       final transaction = await client.transactions.get(txId);
@@ -183,7 +208,7 @@ void main() {
           emitsDone,
         ]),
       );
-    }, onPlatform: {
+    }, timeout: Timeout(Duration(seconds: 120)), onPlatform: {
       'browser': Skip('dart:io unavailable'),
     });
 
