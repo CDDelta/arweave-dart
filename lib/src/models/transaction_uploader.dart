@@ -125,7 +125,7 @@ class TransactionUploader {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         // This transaction and it's data is uploaded.
         _txPosted = true;
-        _uploadedChunks = maxChunksInBody;
+        _uploadedChunks = totalChunks;
         return;
       }
 
