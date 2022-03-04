@@ -22,8 +22,6 @@ const fatalChunkUploadErrors = [
   'invalid_proof'
 ];
 
-const maxConcurrentChunkUploadCount = 128;
-
 class TransactionUploader {
   final Transaction _transaction;
   final ArweaveApi _api;
@@ -39,11 +37,13 @@ class TransactionUploader {
   double get progress =>
       ((_txPosted ? 1 : 0) + uploadedChunks) / (1 + totalChunks);
 
+  final int maxConcurrentChunkUploadCount;
+
   bool _txPosted = false;
   int _uploadedChunks = 0;
 
   TransactionUploader(Transaction transaction, ArweaveApi api,
-      {bool forDataOnly = false})
+      {this.maxConcurrentChunkUploadCount = 128, bool forDataOnly = false})
       : _transaction = transaction,
         _api = api,
         _txPosted = forDataOnly {
