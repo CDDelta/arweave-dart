@@ -74,9 +74,9 @@ class TransactionUploader {
       try {
         await retry(
           () => _uploadChunk(chunkIndex),
-          onRetry: (p0) {
+          onRetry: (exception) {
             print(
-              'Retrying for chunk $chunkIndex on exception ${p0.toString()}',
+              'Retrying for chunk $chunkIndex on exception ${exception.toString()}',
             );
           },
         );
