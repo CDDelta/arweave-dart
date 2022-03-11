@@ -72,10 +72,18 @@ class TransactionUploader {
 
     Future<void> uploadChunkAndNotifyOfCompletion(int chunkIndex) async {
       try {
-        await retry(() => _uploadChunk(chunkIndex));
+        await retry(
+          () => _uploadChunk(chunkIndex),
+          onRetry: (exception) {
+            print(
+              'Retrying for chunk $chunkIndex on exception ${exception.toString()}',
+            );
+          },
+        );
 
         chunkUploadCompletionStreamController.add(chunkIndex);
       } catch (err) {
+        print('Chunk upload failed at $chunkIndex');
         chunkUploadCompletionStreamController.addError(err);
       }
     }
