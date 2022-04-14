@@ -54,7 +54,6 @@ class DataBundle {
         (handle) async {
           // Sign DataItem
           final dataItems = await handle.getDataItems();
-          assert(dataItems.length == 2);
           for (var dataItem in dataItems) {
             final id = decodeBase64ToBytes(dataItem.id);
             // Create header array
