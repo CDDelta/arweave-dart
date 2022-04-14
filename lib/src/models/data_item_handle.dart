@@ -1,5 +1,6 @@
 import 'models.dart';
 
 abstract class DataItemHandle {
-  Future<List<DataItem>> createDataItemsFromFileHandle();
+  Future<List<DataItem>> getDataItems();
+  int get dataItemCount;
 }
