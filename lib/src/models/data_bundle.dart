@@ -9,8 +9,9 @@ class DataBundle {
 
   DataBundle({required this.blob});
 
-  static Future<DataBundle> fromDataItems(
-      {required List<DataItem> items}) async {
+  static Future<DataBundle> fromDataItems({
+    required List<DataItem> items,
+  }) async {
     final headers = Uint8List(64 * items.length);
     // Use precalculated buffers if provided to
     final binaries = BytesBuilder();
@@ -41,34 +42,40 @@ class DataBundle {
   static Future<DataBundle> fromHandles({
     required List<DataItemHandle> handles,
   }) async {
-    final headers = Uint8List(64 * handles.length * 2);
+    final noOfDataItems = handles
+        .map((handle) => handle.dataItemCount)
+        .reduce((sum, current) => sum += current);
+    final headers = Uint8List(64 * noOfDataItems);
     // Use precalculated buffers if provided to
     var dataItemIndex = 0;
     final binaries = BytesBuilder();
-    await Future.wait(handles.map((handle) async {
-      // Sign DataItem
-      final dataItems = await handle.createDataItemsFromFileHandle();
-      assert(dataItems.length == 2);
-      for (var dataItem in dataItems) {
-        final id = decodeBase64ToBytes(dataItem.id);
-        // Create header array
-        final header = Uint8List(64);
-        final raw = await dataItem.asBinary();
-        dataItem.data = Uint8List(0);
-        // Set offset
-        header.setAll(0, longTo32ByteArray(raw.length));
-        // Set id
-        header.setAll(32, id);
-        // Add header to array of headers
-        headers.setAll(64 * dataItemIndex, header);
-        dataItemIndex++;
-        // Convert to array for flattening
-        binaries.add(raw.takeBytes());
-      }
-    }));
+    await Future.wait(
+      handles.map(
+        (handle) async {
+          // Sign DataItem
+          final dataItems = await handle.getDataItems();
+          for (var dataItem in dataItems) {
+            final id = decodeBase64ToBytes(dataItem.id);
+            // Create header array
+            final header = Uint8List(64);
+            final raw = await dataItem.asBinary();
+            dataItem.data = Uint8List(0);
+            // Set offset
+            header.setAll(0, longTo32ByteArray(raw.length));
+            // Set id
+            header.setAll(32, id);
+            // Add header to array of headers
+            headers.setAll(64 * dataItemIndex, header);
+            dataItemIndex++;
+            // Convert to array for flattening
+            binaries.add(raw.takeBytes());
+          }
+        },
+      ),
+    );
 
     final buffer = BytesBuilder();
-    buffer.add(longTo32ByteArray(handles.length * 2));
+    buffer.add(longTo32ByteArray(noOfDataItems));
     buffer.add(headers);
     buffer.add(binaries.takeBytes());
     return DataBundle(blob: buffer.takeBytes());

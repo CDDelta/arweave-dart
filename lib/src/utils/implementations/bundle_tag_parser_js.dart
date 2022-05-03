@@ -15,12 +15,12 @@ external List<BundleTag> deserializeTagsFromBuffer(var buffer);
 
 Uint8List serializeTags({required List<Tag> tags}) {
   final decodedTags = <Tag>[];
-  tags.forEach((tag) {
+  for (var tag in tags) {
     decodedTags.add(Tag(
       decodeBase64ToString(tag.name),
       decodeBase64ToString(tag.value),
     ));
-  });
+  }
   final data = serializeTagsToBuffer(decodedTags
       .map((tag) => BundleTag(name: tag.name, value: tag.value))
       .toList());
