@@ -30,14 +30,6 @@ void main() async {
             'VGh8QjtOuGuptxg08MAejTQpuEKdo8zs_5JNTRUSB_Q',
       };
 
-      testBaseline.forEach((key, value) async {
-        final subdomain = toB32(fromB64Url(value));
-        if (key == subdomain) {
-          print('Test success for $value');
-        } else {
-          print('Test failed for $value. expected $key got $subdomain');
-        }
-      });
       testBaseline.forEach(
           (key, value) => expect(key, equals(toB32(fromB64Url(value)))));
     });
