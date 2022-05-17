@@ -86,9 +86,9 @@ void main() async {
     final items = [dataItemOne, dataItemTwo];
     final bundle = await DataBundle.fromDataItems(items: items);
     expect(bundle.blob, isNotEmpty);
-    items.forEach((dataItem) async {
+    for (var dataItem in items) {
       expect(await dataItem.verify(), isTrue);
-    });
+    }
   });
 
   test('create data bundle with large files', () async {
@@ -120,8 +120,8 @@ void main() async {
     print(
         'Time Elapsed to bundle ${(DateTime.now().difference(testStart)).inSeconds} Seconds');
     expect(testData.length < bundle.blob.length, isTrue);
-    items.forEach((dataItem) async {
+    for (var dataItem in items) {
       expect(await dataItem.verify(), isTrue);
-    });
+    }
   });
 }
