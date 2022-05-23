@@ -1,21 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
-import 'package:arweave/src/api/api.dart';
+import 'package:retry/retry.dart';
 
+import '../api/api.dart';
+import '../crypto/crypto.dart';
 import '../utils.dart';
-import 'transaction.dart';
 
 /// Maximum amount of chunks we will upload in the body.
-const MAX_CHUNKS_IN_BODY = 1;
-
-/// Amount we will delay on receiving an error response but do want to continue.
-const ERROR_DELAY = 1000 * 40;
+const maxChunksInBody = 1;
 
 /// Errors from /chunk we should never try and continue on.
-const FATAL_CHUNK_UPLOAD_ERRORS = [
+const fatalChunkUploadErrors = [
   'invalid_json',
   'chunk_too_big',
   'data_path_too_big',
@@ -26,189 +23,164 @@ const FATAL_CHUNK_UPLOAD_ERRORS = [
 ];
 
 class TransactionUploader {
-  int _chunkIndex = 0;
-  bool _txPosted = false;
-  int _lastRequestTimeEnd = 0;
-  int _totalErrors = 0;
-
-  int lastResponseStatus = 0;
-  String lastResponseError = '';
-
   final Transaction _transaction;
   final ArweaveApi _api;
-  final Random _random = Random();
+
+  bool get isComplete => _txPosted && uploadedChunks >= totalChunks;
+  int get totalChunks => _transaction.chunks!.chunks.length;
+  int get uploadedChunks => _uploadedChunks;
+
+  /// The progress of the current upload ranging from 0 to 1.
+  ///
+  /// Additionally accounts for the posting of the transaction header, therefore
+  /// data only uploads will start with a progress > 0.
+  double get progress =>
+      ((_txPosted ? 1 : 0) + uploadedChunks) / (1 + totalChunks);
+
+  final int maxConcurrentChunkUploadCount;
+
+  bool _txPosted = false;
+  int _uploadedChunks = 0;
 
   TransactionUploader(Transaction transaction, ArweaveApi api,
-      {bool forDataOnly = false})
+      {this.maxConcurrentChunkUploadCount = 128, bool forDataOnly = false})
       : _transaction = transaction,
         _api = api,
         _txPosted = forDataOnly {
     if (transaction.chunks == null) {
       throw ArgumentError('Transaction chunks not prepared.');
+    } else if (forDataOnly && totalChunks == 0) {
+      throw ArgumentError('Transaction has no chunks.');
     }
   }
 
-  TransactionUploader._({
-    required ArweaveApi api,
-    required Transaction transaction,
-    int? chunkIndex,
-    bool? txPosted,
-    int? lastRequestTimeEnd,
-    int? lastResponseStatus,
-    String? lastResponseError,
-  })  : _api = api,
-        _transaction = transaction {
-    if (chunkIndex != null) {
-      _chunkIndex = chunkIndex;
-    }
-    if (txPosted != null) {
-      _txPosted = txPosted;
-    }
-    if (lastRequestTimeEnd != null) {
-      _lastRequestTimeEnd = lastRequestTimeEnd;
-    }
-    if (lastResponseStatus != null) {
-      this.lastResponseStatus = lastResponseStatus;
-    }
-    if (lastResponseError != null) {
-      this.lastResponseError = lastResponseError;
-    }
-  }
-
-  bool get isComplete =>
-      _txPosted && _chunkIndex >= _transaction.chunks!.chunks.length;
-  int get totalChunks => _transaction.chunks!.chunks.length;
-  int get uploadedChunks => _chunkIndex;
-
-  /// The progress of the current upload ranging from 0 to 1.
-  double get progress => uploadedChunks / totalChunks;
-
-  /// Uploads a chunk of the transaction.
-  /// On the first call this posts the transaction
-  /// itself and on any subsequent calls uploads the
-  /// next chunk until it completes.
-  Future<void> uploadChunk() async {
-    if (isComplete) throw StateError('Upload is already complete.');
-
-    if (lastResponseError.isNotEmpty) {
-      _totalErrors++;
-    } else {
-      _totalErrors = 0;
-    }
-
-    // We have been trying for about an hour receiving an
-    // error every time, so eventually bail.
-    if (_totalErrors == 100) {
-      throw StateError(
-          'Unable to complete upload: $lastResponseStatus: $lastResponseError');
-    }
-
-    var delay = lastResponseError.isEmpty
-        ? 0
-        : max(
-            _lastRequestTimeEnd +
-                ERROR_DELAY -
-                DateTime.now().millisecondsSinceEpoch,
-            ERROR_DELAY);
-
-    if (delay > 0) {
-      // Jitter delay because networks, subtract up to 30% from 40 seconds
-      delay = delay - (delay * _random.nextDouble() * 0.30).toInt();
-      await Future.delayed(Duration(milliseconds: delay));
-    }
-
-    lastResponseError = '';
-
+  /// Uploads the transaction in full, returning a stream of events signaling
+  /// the status of the upload on every completed chunk upload.
+  Stream<TransactionUploader> upload() async* {
     if (!_txPosted) {
-      await _postTransaction();
-      return;
-    }
+      await retry(() => _postTransactionHeader());
 
-    final chunk = _transaction.getChunk(_chunkIndex);
+      yield this;
 
-    // TODO: Validate chunks
-    // final chunkValid = await validatePath(this.transaction.chunks!.data_root, parseInt(chunk.offset), 0, parseInt(chunk.data_size), ArweaveUtils.b64UrlToBuffer(chunk.data_path))
-    // if (!chunkValid)
-    //  throw StateError('Unable to validate chunk: $_chunkIndex');
-
-    // Catch network errors and turn them into objects with status -1 and an error message.
-    final res = await _api.post('chunk', body: json.encode(chunk));
-
-    _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
-    lastResponseStatus = res.statusCode;
-
-    if (lastResponseStatus == 200) {
-      _chunkIndex++;
-    } else {
-      lastResponseError = getResponseError(res);
-      if (FATAL_CHUNK_UPLOAD_ERRORS.contains(lastResponseError)) {
-        throw StateError(
-            'Fatal error uploading chunk: $_chunkIndex: $lastResponseError');
+      if (isComplete) {
+        return;
       }
     }
+
+    final chunkUploadCompletionStreamController = StreamController<int>();
+    int chunkIndex = 0;
+
+    Future<void> uploadChunkAndNotifyOfCompletion(int chunkIndex) async {
+      try {
+        await retry(
+          () => _uploadChunk(chunkIndex),
+          onRetry: (exception) {
+            print(
+              'Retrying for chunk $chunkIndex on exception ${exception.toString()}',
+            );
+          },
+        );
+
+        chunkUploadCompletionStreamController.add(chunkIndex);
+      } catch (err) {
+        print('Chunk upload failed at $chunkIndex');
+        chunkUploadCompletionStreamController.addError(err);
+      }
+    }
+
+    // Initiate as many chunk uploads as we can in parallel at the start.
+    chunkUploadCompletionStreamController.onListen = () {
+      while (chunkIndex < totalChunks &&
+          chunkIndex < maxConcurrentChunkUploadCount) {
+        uploadChunkAndNotifyOfCompletion(chunkIndex);
+        chunkIndex++;
+      }
+    };
+
+    // Start a new chunk upload if there are still any left to upload and
+    // notify the stream consumer of chunk upload completion events.
+    yield* chunkUploadCompletionStreamController.stream
+        .map((completedChunkIndex) {
+      _uploadedChunks++;
+
+      if (chunkIndex < totalChunks) {
+        uploadChunkAndNotifyOfCompletion(chunkIndex);
+        chunkIndex++;
+      } else if (isComplete) {
+        chunkUploadCompletionStreamController.close();
+      }
+
+      return this;
+    });
   }
 
-  Future<void> _postTransaction() async {
-    final uploadInBody = totalChunks <= MAX_CHUNKS_IN_BODY;
+  /// Posts the transaction header to Arweave as well as the transaction data, if it can fit in the body.
+  ///
+  /// Throws an [Exception] if the transaction header could not be posted.
+  Future<void> _postTransactionHeader() async {
+    final uploadInBody = totalChunks <= maxChunksInBody;
     final txJson = _transaction.toJson();
 
     if (uploadInBody) {
-      // TODO: Make async
-      txJson['data'] = encodeBytesToBase64(_transaction.data);
-      final res = await _api.post('tx', body: json.encode(txJson));
+      if (_transaction.tags.contains(Tag('Bundle-Format', 'binary'))) {
+        txJson['data'] = _transaction.data.buffer;
+      } else {
+        txJson['data'] = encodeBytesToBase64(_transaction.data);
+      }
 
-      _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
-      lastResponseStatus = res.statusCode;
+      final res = await _api.post('tx', body: json.encode(txJson));
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         // This transaction and it's data is uploaded.
         _txPosted = true;
-        _chunkIndex = MAX_CHUNKS_IN_BODY;
+        _uploadedChunks = totalChunks;
         return;
       }
 
-      throw StateError('Unable to upload transaction: ${res.statusCode}');
+      throw Exception('Unable to upload transaction: ${res.statusCode}');
     }
 
     // Post the transaction with no data.
     txJson.remove('data');
     final res = await _api.post('tx', body: json.encode(txJson));
 
-    _lastRequestTimeEnd = DateTime.now().millisecondsSinceEpoch;
-    lastResponseStatus = res.statusCode;
-
     if (!(res.statusCode >= 200 && res.statusCode < 300)) {
-      throw StateError('Unable to upload transaction: ${res.statusCode}');
+      throw Exception('Unable to upload transaction: ${res.statusCode}');
     }
 
     _txPosted = true;
   }
 
-  static Future<TransactionUploader> deserialize(
-      Map<String, dynamic> json, Uint8List data, ArweaveApi api) async {
-    final transaction = json['transaction'] != null
-        ? Transaction.fromJson(json['transaction'])
-        : null;
+  /// Uploads the specified chunk onto Arweave.
+  ///
+  /// Throws a [StateError] if the chunk being uploaded encounters a fatal error
+  /// during upload and an [Exception] if a non-fatal error is encountered.
+  Future<void> _uploadChunk(int chunkIndex) async {
+    final chunk = _transaction.getChunk(chunkIndex);
 
-    await transaction!.setData(data);
+    final chunkValid = await validatePath(
+        _transaction.chunks!.dataRoot,
+        int.parse(chunk.offset),
+        0,
+        int.parse(chunk.dataSize),
+        decodeBase64ToBytes(chunk.dataPath));
 
-    return TransactionUploader._(
-      api: api,
-      chunkIndex: json['chunkIndex'] as int,
-      txPosted: json['txPosted'],
-      transaction: transaction,
-      lastRequestTimeEnd: json['lastRequestTimeEnd'],
-      lastResponseStatus: json['lastResponseStatus'],
-      lastResponseError: json['lastResponseError'],
-    );
+    if (!chunkValid) {
+      throw StateError('Unable to validate chunk: $chunkIndex');
+    }
+
+    final res = await _api.post('chunk', body: json.encode(chunk));
+
+    if (res.statusCode != 200) {
+      final responseError = getResponseError(res);
+
+      if (fatalChunkUploadErrors.contains(responseError)) {
+        throw StateError(
+            'Fatal error uploading chunk: $chunkIndex: ${res.statusCode} $responseError');
+      } else {
+        throw Exception(
+            'Received non-fatal error while uploading chunk $chunkIndex: ${res.statusCode} $responseError');
+      }
+    }
   }
-
-  Map<String, dynamic> serialize() => <String, dynamic>{
-        'chunkIndex': _chunkIndex,
-        'txPosted': _txPosted,
-        'transaction': _transaction.toJson()..['data'] = null,
-        'lastRequestTimeEnd': _lastRequestTimeEnd,
-        'lastResponseStatus': lastResponseStatus,
-        'lastResponseError': lastResponseError,
-      };
 }
