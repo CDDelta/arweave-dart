@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.8.2"
+  base32:
+    dependency: "direct main"
+    description:
+      name: base32
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
   boolean_selector:
     dependency: transitive
     description:

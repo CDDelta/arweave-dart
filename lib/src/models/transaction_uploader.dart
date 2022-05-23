@@ -136,7 +136,6 @@ class TransactionUploader {
         _uploadedChunks = totalChunks;
         return;
       }
-
       throw Exception('Unable to upload transaction: ${res.statusCode}');
     }
 
