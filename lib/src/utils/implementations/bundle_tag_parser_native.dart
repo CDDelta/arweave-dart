@@ -43,13 +43,12 @@ Uint8List _serializeString(String string) {
   );
 }
 
-/// based on https://referencesource.microsoft.com/#mscorlib/system/io/binarywriter.cs,2daa1d14ff1877bd
 Uint8List _serializeLong(int long) {
   var zigZag = (long << 1) ^ (long >> 63);
 
   final buffer = <int>[];
   while (zigZag >= 0x80) {
-    buffer.add(zigZag | 0x80);
+    buffer.add((zigZag & 0x7f) | (1 << 7));
     zigZag >>= 7;
   }
   buffer.add(zigZag);
