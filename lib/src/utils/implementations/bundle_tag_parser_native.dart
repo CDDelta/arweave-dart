@@ -12,10 +12,10 @@ Uint8List serializeTags({required List<Tag> tags}) {
       decodeBase64ToString(tag.value),
     ));
   }
-  final arvoTags = decodedTags.map(_serializeTag);
-  final arvoTagArray = _serializeArray(arvoTags);
+  final avroTags = decodedTags.map(_serializeTag);
+  final avroTagArray = _serializeArray(avroTags);
 
-  return arvoTagArray;
+  return avroTagArray;
 }
 
 Uint8List _serializeTag(Tag tag) {
