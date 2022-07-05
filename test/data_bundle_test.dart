@@ -1,16 +1,58 @@
 @TestOn('browser')
+@JS()
+library tagparser;
+
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/src/crypto/crypto.dart';
-import 'package:arweave/src/utils/implementations/bundle_tag_parser_js.dart';
+import 'package:arweave/src/utils/bundle_tag_parser.dart';
 import 'package:arweave/utils.dart';
+import 'package:js/js.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/test_wallet.dart';
 import 'snapshots/data_bundle_test_snaphot.dart';
 import 'utils.dart' show generateByteList;
+
+// Implement deserializeTags from official Avro JS library to test Dart Native serialize
+@JS()
+@anonymous
+class BundleTag {
+  external String get name;
+  external String get value;
+
+  // Must have an unnamed factory constructor with named arguments.
+  external factory BundleTag({
+    String name,
+    String value,
+  });
+}
+
+class WrongTagBufferException implements Exception {}
+
+@JS()
+external List<BundleTag> deserializeTagsFromBuffer(var buffer);
+
+List<Tag> deserializeTags({var buffer}) {
+  try {
+    final tags = deserializeTagsFromBuffer(buffer);
+    final decodedTags = <Tag>[];
+    for (var tag in tags) {
+      decodedTags.add(Tag(
+        encodeBytesToBase64(
+            tag.name.split(',').map((e) => int.parse(e)).toList()),
+        encodeBytesToBase64(
+            tag.value.split(',').map((e) => int.parse(e)).toList()),
+      ));
+    }
+
+    return decodedTags;
+  } catch (e) {
+    throw WrongTagBufferException();
+  }
+}
 
 void main() async {
   group('DataItem:', () {
