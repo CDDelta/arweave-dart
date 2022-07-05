@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 
 import 'fixtures/test_wallet.dart';
 import 'snapshots/data_bundle_test_snaphot.dart';
+import 'utils.dart' show generateByteList;
 
 void main() async {
   group('DataItem:', () {
@@ -75,11 +76,9 @@ void main() async {
 
   test('create data bundle with large-ish files', () async {
     final wallet = getTestWallet();
-    final testData = utf8.encode(
-        List.generate(5000 * pow(2, 5) as int, (index) => 'A')
-            .reduce((acc, next) => acc += next)) as Uint8List;
+    final testData = generateByteList(5);
     print('Test Data Item Size: ${testData.lengthInBytes} Bytes ');
-    expect(await deepHash([testData]), equals(testFileHashSmaller));
+    expect(await deepHash([testData]), equals(testFileHash));
     final testStart = DateTime.now();
     final dataItemOne =
         DataItem.withBlobData(owner: await wallet.getOwner(), data: testData)
@@ -100,7 +99,7 @@ void main() async {
     print('Bundle Data Size: ${bundle.blob.lengthInBytes} Bytes ');
 
     print(
-        'Time Elapsed to bundle ${(DateTime.now().difference(testStart)).inSeconds} Seconds');
+        'Time Elapsed to bundle ${(DateTime.now().difference(testStart)).inMilliseconds}ms');
     expect(testData.length < bundle.blob.length, isTrue);
     for (var dataItem in items) {
       expect(await dataItem.verify(), isTrue);
