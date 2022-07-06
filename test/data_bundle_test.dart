@@ -1,58 +1,15 @@
 @TestOn('browser')
-@JS()
-library tagparser;
 
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
 import 'package:arweave/src/crypto/crypto.dart';
-import 'package:arweave/src/utils/bundle_tag_parser.dart';
-import 'package:arweave/utils.dart';
-import 'package:js/js.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/test_wallet.dart';
 import 'snapshots/data_bundle_test_snaphot.dart';
 import 'utils.dart' show generateByteList;
-
-// Implement deserializeTags from official Avro JS library to test Dart Native serialize
-@JS()
-@anonymous
-class BundleTag {
-  external String get name;
-  external String get value;
-
-  // Must have an unnamed factory constructor with named arguments.
-  external factory BundleTag({
-    String name,
-    String value,
-  });
-}
-
-class WrongTagBufferException implements Exception {}
-
-@JS()
-external List<BundleTag> deserializeTagsFromBuffer(var buffer);
-
-List<Tag> deserializeTags({var buffer}) {
-  try {
-    final tags = deserializeTagsFromBuffer(buffer);
-    final decodedTags = <Tag>[];
-    for (var tag in tags) {
-      decodedTags.add(Tag(
-        encodeBytesToBase64(
-            tag.name.split(',').map((e) => int.parse(e)).toList()),
-        encodeBytesToBase64(
-            tag.value.split(',').map((e) => int.parse(e)).toList()),
-      ));
-    }
-
-    return decodedTags;
-  } catch (e) {
-    throw WrongTagBufferException();
-  }
-}
 
 void main() async {
   group('DataItem:', () {
@@ -84,28 +41,6 @@ void main() async {
 
       expect(await dataItem.verify(), isFalse);
     });
-  });
-
-  test('check if avro serializes tags correctly', () {
-    final buffer = serializeTags(tags: testTagsSnapshot);
-    expect(buffer, equals(testTagsBufferSnapshot));
-  });
-
-  test('check if avro fails serialization when wrong data is given', () {
-    final testTags = [
-      Tag(encodeStringToBase64('wrong'), encodeStringToBase64('wrong'))
-    ];
-    final buffer = serializeTags(tags: testTags);
-
-    expect(
-      () => deserializeTags(buffer: [Uint8List.fromList(buffer), 0]),
-      throwsException,
-    );
-  });
-
-  test('check if avro deserializes tags correctly', () {
-    final tags = deserializeTags(buffer: testTagsBufferSnapshot);
-    expect(tags, equals(testTagsSnapshot));
   });
 
   test('create data bundle', () async {
