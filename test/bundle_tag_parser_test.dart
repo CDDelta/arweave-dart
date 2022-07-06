@@ -12,7 +12,7 @@ import 'deserialize_tags.dart';
 
 void main() {
   group('serializeTags function', () {
-    test('check if avro serializes tags correctly', () {
+    test('serializes snapshot tags correctly', () {
       final buffer = serializeTags(tags: testTagsSnapshot);
       expect(buffer, equals(testTagsBufferSnapshot));
     });
