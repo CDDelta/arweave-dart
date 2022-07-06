@@ -11,7 +11,7 @@ import 'snapshots/data_bundle_test_snaphot.dart';
 import 'deserialize_tags.dart';
 
 void main() {
-  group('bundle tag parser', () {
+  group('serializeTags function', () {
     test('check if avro serializes tags correctly', () {
       final buffer = serializeTags(tags: testTagsSnapshot);
       expect(buffer, equals(testTagsBufferSnapshot));
