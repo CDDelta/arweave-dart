@@ -25,13 +25,13 @@ Uint8List _serializeTag(Tag tag) {
 }
 
 Uint8List _serializeArray(Iterable<Uint8List> array) {
-  final concatBuffer = <int>[];
+  final concatBuffer = BytesBuilder();
   for (final element in array) {
-    concatBuffer.addAll(element);
+    concatBuffer.add(element);
   }
 
   return Uint8List.fromList(
-    _serializeLong(array.length) + concatBuffer + [0],
+    _serializeLong(array.length) + concatBuffer.takeBytes() + [0],
   );
 }
 
@@ -46,12 +46,12 @@ Uint8List _serializeString(String string) {
 Uint8List _serializeLong(int long) {
   var zigZag = (long << 1) ^ (long >> 63);
 
-  final buffer = <int>[];
+  final buffer = BytesBuilder();
   while (zigZag >= 0x80) {
-    buffer.add((zigZag & 0x7f) | (1 << 7));
+    buffer.addByte(zigZag | 0x80);
     zigZag >>= 7;
   }
-  buffer.add(zigZag);
+  buffer.addByte(zigZag);
 
-  return Uint8List.fromList(buffer);
+  return buffer.takeBytes();
 }
