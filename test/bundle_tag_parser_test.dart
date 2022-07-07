@@ -16,7 +16,9 @@ void main() {
       final buffer = serializeTags(tags: testTagsSnapshot);
       expect(buffer, equals(testTagsBufferSnapshot));
     });
+  });
 
+  group('deserializeTags function', () {
     test('throws an exception when bad input data is provided', () {
       final testTags = [
         Tag(encodeStringToBase64('wrong'), encodeStringToBase64('wrong'))
@@ -30,7 +32,7 @@ void main() {
       );
     });
 
-    test('check if avro deserializes tags correctly', () {
+    test('correctly deserializes snapshot data', () {
       final tags = deserializeTags(buffer: testTagsBufferSnapshot);
       expect(tags, equals(testTagsSnapshot));
     });
