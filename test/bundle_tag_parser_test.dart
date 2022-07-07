@@ -17,15 +17,16 @@ void main() {
       expect(buffer, equals(testTagsBufferSnapshot));
     });
 
-    test('check if avro fails serialization when wrong data is given', () {
+    test('throws an exception when bad input data is provided', () {
       final testTags = [
         Tag(encodeStringToBase64('wrong'), encodeStringToBase64('wrong'))
       ];
       final buffer = serializeTags(tags: testTags);
+      final badTagBuffer = [Uint8List.fromList(buffer), 0];
 
       expect(
-        () => deserializeTags(buffer: [Uint8List.fromList(buffer), 0]),
-        throwsException,
+        () => deserializeTags(buffer: badTagBuffer),
+        throwsA(isA<WrongTagBufferException>()),
       );
     });
 
