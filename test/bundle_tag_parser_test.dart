@@ -16,12 +16,24 @@ void main() {
       final buffer = serializeTags(tags: testTagsSnapshot);
       expect(buffer, equals(testTagsBufferSnapshot));
     });
+
+    test(
+        'throws an exception when not base64 encoded strings are used to create a tag',
+        () {
+      final tags = [Tag('not encoded', 'tag')];
+
+      expect(
+        () => serializeTags(tags: tags),
+        throwsA(isA<FormatException>()),
+      );
+    });
   });
 
   group('deserializeTags function', () {
     test('throws an exception when bad input data is provided', () {
       final testTags = [
-        Tag(encodeStringToBase64('wrong'), encodeStringToBase64('wrong'))
+        Tag(encodeStringToBase64('random-tag'),
+            encodeStringToBase64('random-tag'))
       ];
       final buffer = serializeTags(tags: testTags);
       final badTagBuffer = [Uint8List.fromList(buffer), 0];
