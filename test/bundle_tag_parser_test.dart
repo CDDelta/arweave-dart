@@ -30,7 +30,9 @@ void main() {
   });
 
   group('deserializeTags function', () {
-    test('throws an exception when bad input data is provided', () {
+    test(
+        'throws an exception when input data is not Uint8List from base64Url encoded string',
+        () {
       final testTags = [
         Tag(encodeStringToBase64('random-tag'),
             encodeStringToBase64('random-tag'))
