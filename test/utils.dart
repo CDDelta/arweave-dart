@@ -22,3 +22,14 @@ Uint8List randomBytes(int length) {
   }
   return bytes;
 }
+
+Uint8List generateByteList(int mb) {
+  final size = mb * 1000 * pow(2, 10) as int;
+  var list = StringBuffer();
+
+  for (var i = 0; i < size; i++) {
+    list.write('A');
+  }
+
+  return utf8.encode(list.toString()) as Uint8List;
+}
