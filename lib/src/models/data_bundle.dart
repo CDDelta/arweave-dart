@@ -42,6 +42,7 @@ class DataBundle {
 
   static Future<DataBundle> fromHandles({
     required List<DataItemHandle> handles,
+    bool parallelize = true,
   }) async {
     log('Get DataBundle from handles...');
     log('Number of handles: ${handles.length}');
@@ -54,7 +55,7 @@ class DataBundle {
     var dataItemIndex = 0;
     final binaries = BytesBuilder();
 
-    await Future.forEach<DataItemHandle>(handles, (handle) async {
+    Future<void> getDataItems(DataItemHandle handle) async {
       log('current ${handle.hashCode}');
       // Sign DataItem
       log('Getting DataItems');
@@ -97,7 +98,16 @@ class DataBundle {
 
         log('Added binaries from ${dataItem.id}');
       }
-    });
+    }
+
+    if (parallelize) {
+      final futures =
+          handles.map((handle) async => getDataItems(handle)).toList();
+
+      await Future.wait<void>(futures);
+    } else {
+      await Future.forEach<DataItemHandle>(handles, getDataItems);
+    }
 
     log('DataBundle from handles finished');
     log('Mouting buffer....');
