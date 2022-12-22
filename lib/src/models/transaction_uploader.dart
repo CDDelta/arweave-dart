@@ -155,7 +155,7 @@ class TransactionUploader {
   /// Throws a [StateError] if the chunk being uploaded encounters a fatal error
   /// during upload and an [Exception] if a non-fatal error is encountered.
   Future<void> _uploadChunk(int chunkIndex) async {
-    final chunk = _transaction.getChunk(chunkIndex);
+    final chunk = await _transaction.getChunk(chunkIndex);
 
     final chunkValid = await validatePath(
         _transaction.chunks!.dataRoot,

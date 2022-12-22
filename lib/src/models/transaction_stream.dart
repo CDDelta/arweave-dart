@@ -7,13 +7,22 @@ import 'package:json_annotation/json_annotation.dart';
 import '../crypto/crypto.dart';
 import '../utils.dart';
 
-part 'transaction.g.dart';
+part 'transaction_stream.g.dart';
+
+typedef DataStreamGenerator = Stream<Uint8List> Function([int? start, int? end]);
 
 String _bigIntToString(BigInt v) => v.toString();
 BigInt _stringToBigInt(String v) => BigInt.parse(v);
+Future<Uint8List> _bufferStream(Stream<Uint8List> stream) async {
+  final buffer = Uint8List(0);
+  await for (final data in stream) {
+    buffer.addAll(data);
+  }
+  return Uint8List.fromList(buffer);
+}
 
 @JsonSerializable()
-class Transaction implements TransactionBase {
+class TransactionStream implements Transaction {
   @JsonKey(defaultValue: 1)
   final int format;
 
@@ -45,8 +54,12 @@ class Transaction implements TransactionBase {
   ///
   /// This data is persisted unencoded to avoid having to convert it back from Base64 when signing.
   @override
-  Uint8List get data => _data;
-  Uint8List _data;
+  Uint8List get data => throw UnimplementedError('Cannot access data from a stream transaction');
+  // Uint8List _data;
+
+  @JsonKey(ignore: true)
+  DataStreamGenerator get dataStreamGenerator => _dataStreamGenerator;
+  DataStreamGenerator _dataStreamGenerator;
 
   @JsonKey(name: 'data_size')
   String get dataSize => _dataSize;
@@ -70,9 +83,9 @@ class Transaction implements TransactionBase {
 
   /// This constructor is reserved for JSON serialisation.
   ///
-  /// [Transaction.withJsonData()] and [Transaction.withBlobData()] are the recommended ways to construct data transactions.
+  /// [TransactionStream.withJsonData()] and [TransactionStream.withBlobData()] are the recommended ways to construct data transactions.
   /// This constructor will not compute the data size or encode incoming data to Base64 for you.
-  Transaction({
+  TransactionStream({
     this.format = 2,
     String? id,
     String? lastTx,
@@ -80,17 +93,15 @@ class Transaction implements TransactionBase {
     List<Tag>? tags,
     String? target,
     BigInt? quantity,
-    String? data,
-    Uint8List? dataBytes,
+    DataStreamGenerator? dataStreamGenerator,
     String? dataSize,
     String? dataRoot,
     BigInt? reward,
     String? signature,
   })  : _target = target ?? '',
         _quantity = quantity ?? BigInt.zero,
-        _data = data != null
-            ? decodeBase64ToBytes(data)
-            : (dataBytes ?? Uint8List(0)),
+        _dataStreamGenerator = dataStreamGenerator ?? 
+          (([int? s, int? e]) => Stream.value(Uint8List(0))),
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _owner = owner,
@@ -108,90 +119,79 @@ class Transaction implements TransactionBase {
     _tags = tags != null ? [...tags] : [];
   }
 
-  /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
-  factory Transaction.withDataBundle({
-    String? owner,
-    List<Tag>? tags,
-    String? target,
-    BigInt? quantity,
-    required Uint8List bundleBlob,
-    BigInt? reward,
-  }) =>
-      Transaction.withBlobData(
-        owner: owner,
-        tags: tags,
-        target: target,
-        quantity: quantity,
-        data: bundleBlob,
-        reward: reward,
-      )
-        ..addTag('Bundle-Format', 'binary')
-        ..addTag('Bundle-Version', '2.0.0');
+  // /// Constructs a [Transaction] with the specified [DataBundle], computed data size, and appropriate bundle tags.
+  // factory TransactionStream.withDataBundle({
+  //   String? owner,
+  //   List<Tag>? tags,
+  //   String? target,
+  //   BigInt? quantity,
+  //   required Uint8List bundleBlob,
+  //   BigInt? reward,
+  // }) =>
+  //     TransactionStream.withBlobData(
+  //       owner: owner,
+  //       tags: tags,
+  //       target: target,
+  //       quantity: quantity,
+  //       data: bundleBlob,
+  //       reward: reward,
+  //     )
+  //       ..addTag('Bundle-Format', 'binary')
+  //       ..addTag('Bundle-Version', '2.0.0');
 
-  /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
-  factory Transaction.withJsonData({
-    String? owner,
-    List<Tag>? tags,
-    String? target,
-    BigInt? quantity,
-    required Object data,
-    BigInt? reward,
-  }) =>
-      Transaction.withBlobData(
-        owner: owner,
-        tags: tags,
-        target: target,
-        quantity: quantity,
-        data: utf8.encode(json.encode(data)) as Uint8List,
-        reward: reward,
-      )..addTag('Content-Type', 'application/json');
+  // /// Constructs a [Transaction] with the specified JSON data, computed data size, and Content-Type tag.
+  // factory TransactionStream.withJsonData({
+  //   String? owner,
+  //   List<Tag>? tags,
+  //   String? target,
+  //   BigInt? quantity,
+  //   required Object data,
+  //   BigInt? reward,
+  // }) =>
+  //     TransactionStream.withBlobData(
+  //       owner: owner,
+  //       tags: tags,
+  //       target: target,
+  //       quantity: quantity,
+  //       data: utf8.encode(json.encode(data)) as Uint8List,
+  //       reward: reward,
+  //     )..addTag('Content-Type', 'application/json');
 
   /// Constructs a [Transaction] with the specified blob data and computed data size.
-  factory Transaction.withBlobData({
+  factory TransactionStream.withBlobData({
     String? owner,
     List<Tag>? tags,
     String? target,
     BigInt? quantity,
-    required Uint8List data,
+    required DataStreamGenerator dataStreamGenerator,
+    required int dataSize,
     BigInt? reward,
   }) =>
-      Transaction(
+      TransactionStream(
         owner: owner,
         tags: tags,
         target: target,
         quantity: quantity,
-        dataBytes: data,
-        dataSize: data.lengthInBytes.toString(),
+        dataStreamGenerator: dataStreamGenerator,
+        dataSize: dataSize.toString(),
         reward: reward,
       );
 
+  @override
   void setLastTx(String lastTx) => _lastTx = lastTx;
 
+  @override
   void setTarget(String target) => _target = target;
 
+  @override
   void setQuantity(BigInt quantity) => _quantity = quantity;
 
   @override
   void setOwner(String owner) => _owner = owner;
 
-  /// Sets the data and data size of this [Transaction].
-  ///
-  /// Also chunks and validates the incoming data for format 2 transactions.
+  @override
   Future<void> setData(Uint8List data) async {
-    _data = data;
-    _dataSize = data.lengthInBytes.toString();
-
-    if (format == 2) {
-      final existingDataRoot = _dataRoot;
-      _chunks = null;
-
-      await prepareChunks();
-
-      if (existingDataRoot != dataRoot) {
-        throw StateError(
-            'Incoming data does not match data transaction was prepared with.');
-      }
-    }
+    throw UnimplementedError('Cannot set data on a stream transaction');
   }
 
   @override
@@ -204,35 +204,8 @@ class Transaction implements TransactionBase {
     );
   }
 
+  @override
   void setReward(BigInt reward) => _reward = reward;
-
-  Future<void> prepareChunks() async {
-    if (chunks != null) return;
-
-    if (data.isNotEmpty) {
-      _chunks = await generateTransactionChunks(data);
-      _dataRoot = encodeBytesToBase64(chunks!.dataRoot);
-    } else {
-      _chunks = TransactionChunksWithProofs(Uint8List(0), [], []);
-    }
-  }
-
-  /// Returns a chunk in a format suitable for posting to /chunk.
-  Future<TransactionChunk> getChunk(int index) async {
-    if (chunks == null) throw StateError('Chunks have not been prepared.');
-
-    final proof = chunks!.proofs[index];
-    final chunk = chunks!.chunks[index];
-
-    return TransactionChunk(
-      dataRoot: dataRoot,
-      dataSize: dataSize,
-      dataPath: encodeBytesToBase64(proof.proof),
-      offset: proof.offset.toString(),
-      chunk: encodeBytesToBase64(
-          Uint8List.sublistView(data, chunk.minByteRange, chunk.maxByteRange)),
-    );
-  }
 
   @override
   Future<Uint8List> getSignatureData() async {
@@ -275,7 +248,56 @@ class Transaction implements TransactionBase {
     }
   }
 
+  /// Sets the data and data size of this [Transaction].
+  ///
+  /// Also chunks and validates the incoming data for format 2 transactions.
+  Future<void> setStreamGenerator(DataStreamGenerator dataStreamGenerator, int dataSize) async {
+    _dataStreamGenerator = dataStreamGenerator;
+    _dataSize = dataSize.toString();
+
+    if (format == 2) {
+      final existingDataRoot = _dataRoot;
+      _chunks = null;
+
+      await prepareChunks();
+
+      if (existingDataRoot != dataRoot) {
+        throw StateError(
+            'Incoming data does not match data transaction was prepared with.');
+      }
+    }
+  }
+
   @override
+  Future<void> prepareChunks() async {
+    if (chunks != null) return;
+
+    final dataStream = dataStreamGenerator();
+    _chunks = await generateTransactionChunksFromStream(dataStream);
+    _dataRoot = encodeBytesToBase64(chunks!.dataRoot);
+  }
+
+  /// Returns a chunk in a format suitable for posting to /chunk.
+  @override
+  Future<TransactionChunk> getChunk(int index) async {
+    if (chunks == null) throw StateError('Chunks have not been prepared.');
+
+    final proof = chunks!.proofs[index];
+    final chunk = chunks!.chunks[index];
+
+    final chunkStream = dataStreamGenerator(chunk.minByteRange, chunk.maxByteRange);
+    final chunkData = await _bufferStream(chunkStream);
+
+    return TransactionChunk(
+      dataRoot: dataRoot,
+      dataSize: dataSize,
+      dataPath: encodeBytesToBase64(proof.proof),
+      offset: proof.offset.toString(),
+      chunk: encodeBytesToBase64(chunkData),
+    );
+  }
+
+    @override
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
@@ -308,9 +330,10 @@ class Transaction implements TransactionBase {
     }
   }
 
-  factory Transaction.fromJson(Map<String, dynamic> json) =>
-      _$TransactionFromJson(json);
+  factory TransactionStream.fromJson(Map<String, dynamic> json) =>
+      _$TransactionStreamFromJson(json);
 
   /// Encodes the [Transaction] as JSON with the `data` as the original unencoded [Uint8List].
-  Map<String, dynamic> toJson() => _$TransactionToJson(this);
+  @override
+  Map<String, dynamic> toJson() => _$TransactionStreamToJson(this);
 }

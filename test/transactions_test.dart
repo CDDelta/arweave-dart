@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/models/transaction_stream.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
 
@@ -216,5 +217,64 @@ void main() {
       final transaction = await (client.transactions.get(liveDataTxId));
       expect(await transaction!.verify(), isTrue);
     });
+
+    group('stream', (() {
+      test('create, sign, and verify data transaction', () async {
+        final wallet = await getTestWallet();
+
+        const fileName = 'test/fixtures/lotsofdata.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
+
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            wallet);
+
+        transaction
+          ..addTag('test-tag-1', 'test-value-1')
+          ..addTag('test-tag-2', 'test-value-2')
+          ..addTag('test-tag-3', 'test-value-3');
+
+        // expect(utf8.decode(transaction.data), equals('test'));
+        expect(transaction.lastTx, matches(transactionFieldPattern));
+        expect(transaction.reward.toInt(), greaterThan(0));
+
+        await transaction.sign(wallet);
+
+        expect(transaction.signature, matches(signaturePattern));
+        expect(transaction.id, matches(digestPattern));
+
+        expect(await transaction.verify(), isTrue);
+
+        transaction.addTag('k', 'v');
+        expect(await transaction.verify(), isFalse);
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+
+      test('successfully validate data from 1mb.bin set on prepared transaction',
+          () async {
+        const fileName = 'test/fixtures/1mb.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
+
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            await getTestWallet());
+
+        expect(transaction.setStreamGenerator(
+            fileStreamMeta.dataStreamGenerator,
+            fileStreamMeta.dataSize),
+          completion(null));
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+    }));
   });
 }

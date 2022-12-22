@@ -36,8 +36,8 @@ class ArweaveTransactionsApi {
   ///
   /// Chunks the transaction data, sets the transaction anchor, reward,
   /// and the transaction owner if a wallet is specified,
-  Future<Transaction> prepare(
-    Transaction transaction,
+  Future<T> prepare<T extends Transaction>(
+    T transaction,
     Wallet wallet,
   ) async {
     if (transaction.format == 1) {
