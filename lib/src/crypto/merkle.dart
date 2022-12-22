@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:async/async.dart';
 import 'package:meta/meta.dart';
 
 import 'crypto.dart';
@@ -128,6 +129,114 @@ Future<List<_Chunk>> chunkData(Uint8List data) async {
   chunks.add(_Chunk(await _sha256(rest), cursor, cursor + rest.lengthInBytes));
 
   return chunks;
+}
+
+/// Generates the data root, chunks & proofs needed for a transaction.
+///
+/// This also checks if the last chunk is a zero-length
+/// chunk and discards that chunk and proof if so.
+/// (we do not need to upload this zero length chunk)
+Future<TransactionChunksWithProofs> generateTransactionChunksFromStream(
+    Stream<Uint8List> stream) async {
+  final chunks = await chunkDataFromStream(stream);
+  final leaves = await _generateLeaves(chunks);
+  final root = await _buildLayers(leaves);
+  final proofs = generateProofs(root);
+
+  // Discard the last chunk & proof if it's zero length.
+  if (chunks.last.maxByteRange - chunks.last.minByteRange == 0) {
+    chunks.removeLast();
+    proofs.removeLast();
+  }
+
+  return TransactionChunksWithProofs(root.id as Uint8List, chunks, proofs);
+}
+
+/// Takes the input stream and chunks it into (mostly) equal sized chunks.
+/// The last chunk will be a bit smaller as it contains the remainder
+/// from the chunking process.
+@visibleForTesting
+Future<List<_Chunk>> chunkDataFromStream(Stream<Uint8List> stream) async {
+  final List<_Chunk> chunkList = [];
+
+  Future<_Chunk> addChunk(int chunkDataOffset, Uint8List chunkData) async {
+    final dataHash = await _sha256(chunkData);
+
+    final chunk = _Chunk(
+      Uint8List.fromList(dataHash),
+      chunkDataOffset,
+      chunkDataOffset + chunkData.length,
+    );
+
+    chunkList.add(chunk);
+    return chunk;
+  }
+
+  var chunkDataOffset = 0;
+  var expectChunkGenerationCompleted = false;
+  Uint8List? previousDataChunk;
+
+  final chunkReader = ChunkedStreamReader(stream);
+  try {
+    while (true) {
+      final chunkData = await chunkReader.readBytes(MAX_CHUNK_SIZE);
+      if (chunkData.isEmpty) {
+        break;
+      } else {
+        if (expectChunkGenerationCompleted) {
+          throw Exception('Expected chunk generation to have completed.');
+        }
+
+        if (chunkData.length >= MIN_CHUNK_SIZE && chunkData.length <= MAX_CHUNK_SIZE) {
+          await addChunk(
+            chunkDataOffset,
+            chunkData,
+          );
+        } else if (chunkData.length < MIN_CHUNK_SIZE) {
+          if (previousDataChunk != null) {
+            // If this final chunk is smaller than the minimum chunk size, rebalance this final chunk and
+            // the previous chunk to keep the final chunk size above the minimum threshold.
+            final remainingBytes = Uint8List.fromList(
+              previousDataChunk + chunkData,
+            );
+            final rebalancedSizeForPreviousChunk = (remainingBytes.length / 2).ceil();
+
+            final previousChunk = chunkList.removeLast();
+            final rebalancedPreviousChunk = await addChunk(
+              previousChunk.minByteRange,
+              remainingBytes.sublist(0, rebalancedSizeForPreviousChunk),
+            );
+
+            await addChunk(
+              rebalancedPreviousChunk.maxByteRange,
+              remainingBytes.sublist(rebalancedSizeForPreviousChunk)
+            );
+          } else {
+            // This entire stream should be smaller than the minimum chunk size, just add the chunk in.
+            await addChunk(
+              chunkDataOffset,
+              chunkData
+            );
+          }
+
+          expectChunkGenerationCompleted = true;
+        } else if (chunkData.length > MAX_CHUNK_SIZE) {
+          throw Exception('Encountered chunk larger than max chunk size.');
+        }
+
+        chunkDataOffset += chunkData.length;
+        previousDataChunk = chunkData;
+      }
+    }
+  } finally {
+    await chunkReader.cancel();
+  }
+
+  if (previousDataChunk?.length == MAX_CHUNK_SIZE) {
+    await addChunk(chunkDataOffset, Uint8List(0));
+  }
+
+  return chunkList;
 }
 
 Future<List<_LeafNode>> _generateLeaves(List<_Chunk> chunks) async =>
