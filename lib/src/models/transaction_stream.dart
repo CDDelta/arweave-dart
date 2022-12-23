@@ -215,19 +215,7 @@ class TransactionStream implements Transaction {
   Future<Uint8List> getSignatureData() async {
     switch (format) {
       case 1:
-        return Uint8List.fromList(
-          decodeBase64ToBytes(owner!) +
-              decodeBase64ToBytes(target) +
-              data +
-              utf8.encode(quantity.toString()) +
-              utf8.encode(reward.toString()) +
-              decodeBase64ToBytes(lastTx!) +
-              tags
-                  .expand((t) =>
-                      decodeBase64ToBytes(t.name) +
-                      decodeBase64ToBytes(t.value))
-                  .toList(),
-        );
+        throw Exception('Format 1 transactions are not supported!');
       case 2:
         return deepHash([
           utf8.encode(format.toString()),
