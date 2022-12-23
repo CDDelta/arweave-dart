@@ -14,7 +14,7 @@ typedef DataStreamGenerator = Stream<Uint8List> Function([int? start, int? end])
 String _bigIntToString(BigInt v) => v.toString();
 BigInt _stringToBigInt(String v) => BigInt.parse(v);
 Future<Uint8List> _bufferStream(Stream<Uint8List> stream) async {
-  final buffer = Uint8List(0);
+  final buffer = <int>[];
   await for (final data in stream) {
     buffer.addAll(data);
   }
@@ -23,6 +23,9 @@ Future<Uint8List> _bufferStream(Stream<Uint8List> stream) async {
 
 @JsonSerializable()
 class TransactionStream implements Transaction {
+  @override
+  bool get syncData => false;
+
   @JsonKey(defaultValue: 1)
   final int format;
 
@@ -191,7 +194,8 @@ class TransactionStream implements Transaction {
 
   @override
   Future<void> setData(Uint8List data) async {
-    throw UnimplementedError('Cannot set data on a stream transaction');
+    _dataStreamGenerator = ([int? s, int? e]) => Stream.value(Uint8List.sublistView(data, s ?? 0, e));
+    _dataSize = data.length.toString();
   }
 
   @override
@@ -251,7 +255,7 @@ class TransactionStream implements Transaction {
   /// Sets the data and data size of this [Transaction].
   ///
   /// Also chunks and validates the incoming data for format 2 transactions.
-  Future<void> setStreamGenerator(DataStreamGenerator dataStreamGenerator, int dataSize) async {
+  Future<void> setDataStreamGenerator(DataStreamGenerator dataStreamGenerator, int dataSize) async {
     _dataStreamGenerator = dataStreamGenerator;
     _dataSize = dataSize.toString();
 

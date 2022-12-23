@@ -118,7 +118,7 @@ class TransactionUploader {
   ///
   /// Throws an [Exception] if the transaction header could not be posted.
   Future<void> _postTransactionHeader() async {
-    final uploadInBody = totalChunks <= maxChunksInBody;
+    final uploadInBody = _transaction.syncData && totalChunks <= maxChunksInBody;
     final txJson = _transaction.toJson();
 
     if (uploadInBody) {

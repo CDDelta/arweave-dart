@@ -14,6 +14,8 @@ BigInt _stringToBigInt(String v) => BigInt.parse(v);
 
 @JsonSerializable()
 class Transaction implements TransactionBase {
+  bool get syncData => true;
+
   @JsonKey(defaultValue: 1)
   final int format;
 

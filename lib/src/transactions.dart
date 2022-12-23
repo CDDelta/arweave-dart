@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:arweave/src/models/transaction_stream.dart';
+
 import 'api/api.dart';
 import 'models/models.dart';
 
@@ -21,11 +23,18 @@ class ArweaveTransactionsApi {
   /// Get a transaction by its ID.
   ///
   /// The data field is not included for transaction formats 2 and above, perform a seperate `getData(id)` request to retrieve the data.
-  Future<Transaction?> get(String id) async {
+  Future<T?> get<T extends Transaction>(String id) async {
     final res = await _api.get('tx/$id');
 
     if (res.statusCode == 200) {
-      return Transaction.fromJson(json.decode(res.body));
+      switch (T) {
+        case Transaction:
+          return Transaction.fromJson(jsonDecode(res.body)) as T;
+        case TransactionStream:
+          return TransactionStream.fromJson(jsonDecode(res.body)) as T;
+        default:
+          throw ArgumentError('Unsupported transaction type: $T');
+      }
     }
 
     // TODO: Throw on other status codes
