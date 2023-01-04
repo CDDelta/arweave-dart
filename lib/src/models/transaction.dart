@@ -236,6 +236,15 @@ class Transaction implements TransactionBase {
     );
   }
 
+  /// Emits all chunk in order in a format suitable for posting to /chunk.
+  Stream<TransactionChunk> getChunks() async* {
+    if (chunks == null) throw StateError('Chunks have not been prepared.');
+
+    for (var i = 0; i < chunks!.chunks.length; i++) {
+      yield await getChunk(i);
+    }
+  }
+
   @override
   Future<Uint8List> getSignatureData() async {
     switch (format) {

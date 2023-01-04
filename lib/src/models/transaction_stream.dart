@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:async/async.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../crypto/crypto.dart';
@@ -9,17 +10,10 @@ import '../utils.dart';
 
 part 'transaction_stream.g.dart';
 
-typedef DataStreamGenerator = Stream<Uint8List> Function([int? start, int? end]);
+typedef DataStreamGenerator = Stream<Uint8List> Function();
 
 String _bigIntToString(BigInt v) => v.toString();
 BigInt _stringToBigInt(String v) => BigInt.parse(v);
-Future<Uint8List> _bufferStream(Stream<Uint8List> stream) async {
-  final buffer = <int>[];
-  await for (final data in stream) {
-    buffer.addAll(data);
-  }
-  return Uint8List.fromList(buffer);
-}
 
 @JsonSerializable()
 class TransactionStream implements Transaction {
@@ -104,7 +98,7 @@ class TransactionStream implements Transaction {
   })  : _target = target ?? '',
         _quantity = quantity ?? BigInt.zero,
         _dataStreamGenerator = dataStreamGenerator ?? 
-          (([int? s, int? e]) => Stream.value(Uint8List(0))),
+          (() => Stream.value(Uint8List(0))),
         _dataRoot = dataRoot ?? '',
         _reward = reward ?? BigInt.zero,
         _owner = owner,
@@ -272,24 +266,36 @@ class TransactionStream implements Transaction {
   /// Returns a chunk in a format suitable for posting to /chunk.
   @override
   Future<TransactionChunk> getChunk(int index) async {
-    if (chunks == null) throw StateError('Chunks have not been prepared.');
-
-    final proof = chunks!.proofs[index];
-    final chunk = chunks!.chunks[index];
-
-    final chunkStream = dataStreamGenerator(chunk.minByteRange, chunk.maxByteRange);
-    final chunkData = await _bufferStream(chunkStream);
-
-    return TransactionChunk(
-      dataRoot: dataRoot,
-      dataSize: dataSize,
-      dataPath: encodeBytesToBase64(proof.proof),
-      offset: proof.offset.toString(),
-      chunk: encodeBytesToBase64(chunkData),
-    );
+    throw UnsupportedError('TransactionStream does not support getChunk');
   }
 
-    @override
+  /// Emits all chunks in order in a format suitable for posting to /chunk.
+  @override
+  Stream<TransactionChunk> getChunks() async* {
+    if (chunks == null) throw StateError('Chunks have not been prepared.');
+
+    final chunkDataStream = dataStreamGenerator();
+    final chunker = ChunkedStreamReader(chunkDataStream);
+    
+    for (var i = 0; i < chunks!.chunks.length; i++) {
+      final chunk = chunks!.chunks[i];
+      final proof = chunks!.proofs[i];
+
+      final chunkSize = chunk.maxByteRange - chunk.minByteRange;
+      final chunkData = await chunker.readBytes(chunkSize);
+
+      yield TransactionChunk(
+        dataRoot: dataRoot,
+        dataSize: dataSize,
+        dataPath: encodeBytesToBase64(proof.proof),
+        offset: proof.offset.toString(),
+        chunk: encodeBytesToBase64(chunkData),
+      );
+    }
+    await chunker.cancel();
+  }
+
+  @override
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
     final rawSignature = await wallet.sign(signatureData);
