@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:arweave/src/api/sandbox.dart'
-    show b64UrlToBytes, bytesToB32String, getSandboxSubdomain;
+import 'package:arweave/src/api/sandbox.dart' as sandbox;
 import 'package:test/test.dart';
 
 import 'sandbox_test_utils.dart' as sandbox_test_utils;
@@ -29,15 +28,34 @@ import 'sandbox_test_utils.dart' as sandbox_test_utils;
 // };
 
 void main() {
-  group('fromB64Url method', () {
-    test('takes a base64Url and returns the bytes of it', () {
+  group('b64UrlToB64 method', () {
+    test('takes a base64Url and returns a base64', () {
       final input = 'x0r3HMmsWeoicM81PFQI9DONnUt-XjLgEKK3DsoDL_M';
-      final expected = sandbox_test_utils.b64UrlToBytes(input);
-      final actual = b64UrlToBytes(input);
+      final expected = sandbox_test_utils.b64UrlToB64(input);
+      final actual = sandbox.b64UrlToB64(input);
       expect(actual, expected);
     });
   });
-  group('toB32 method', () {
+
+  group('b64ToBytes method', () {
+    test('takes a base64 and returns the bytes of it', () {
+      final input = 'x0r3HMmsWeoicM81PFQI9DONnUt-XjLgEKK3DsoDL_M';
+      final expected = sandbox_test_utils.b64ToBytes(input);
+      final actual = sandbox.b64ToBytes(input);
+      expect(actual, expected);
+    });
+  });
+
+  group('b64UrlToBytes method', () {
+    test('takes a base64Url and returns the bytes of it', () {
+      final input = 'x0r3HMmsWeoicM81PFQI9DONnUt-XjLgEKK3DsoDL_M';
+      final expected = sandbox_test_utils.b64UrlToBytes(input);
+      final actual = sandbox.b64UrlToBytes(input);
+      expect(actual, expected);
+    });
+  });
+
+  group('bytesToB32String method', () {
     test('takes bytes and returns the base32 string', () {
       final input = Uint8List.fromList(
         [
@@ -76,15 +94,16 @@ void main() {
         ],
       );
       final expected = sandbox_test_utils.bytesToB32String(input);
-      final actual = bytesToB32String(input);
+      final actual = sandbox.bytesToB32String(input);
       expect(actual, expected);
     });
   });
+
   group('getSandboxedSubdomain method', () {
     test('should return the correct sandbox subdomain', () {
       final input = 'x0r3HMmsWeoicM81PFQI9DONnUt-XjLgEKK3DsoDL_M';
       final expected = sandbox_test_utils.getSandboxSubdomain(input);
-      final actual = getSandboxSubdomain(input);
+      final actual = sandbox.getSandboxSubdomain(input);
       expect(actual, expected);
     });
   });
