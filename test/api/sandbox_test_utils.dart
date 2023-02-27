@@ -11,7 +11,7 @@ String getSandboxSubdomain(String txId) {
 
 Uint8List b64UrlToBytes(String base64Url) {
   final base64 = b64UrlToB64(base64Url);
-  final bytes = b64ToUint8List(base64);
+  final bytes = b64ToBytes(base64);
   return bytes;
 }
 
@@ -22,7 +22,7 @@ String b64UrlToB64(String base64Url) {
   return b64Encoded;
 }
 
-Uint8List b64ToUint8List(String base64) {
+Uint8List b64ToBytes(String base64) {
   final paddingLength = nextMultipleOf4(base64.length) - base64.length;
   final bytes = convert.base64.decode('$base64${'=' * paddingLength}');
   return bytes;

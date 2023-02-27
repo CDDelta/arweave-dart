@@ -10,7 +10,7 @@ void main() {
   group('fromB64Url method', () {
     test('takes a base64Url and returns the bytes of it', () {
       final input = 'x0r3HMmsWeoicM81PFQI9DONnUt-XjLgEKK3DsoDL_M';
-      final expected = sandbox_test_utils.b64ToUint8List(input);
+      final expected = sandbox_test_utils.b64UrlToBytes(input);
       final actual = fromB64Url(input);
       expect(actual, expected);
     });
