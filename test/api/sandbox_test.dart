@@ -340,6 +340,20 @@ final List<DataRepresentations> expectations = [
 ];
 
 void main() {
+  group('nextMultipleOf4 method', () {
+    test('returns the same number if it is already a multiple', () {
+      final actual_1 = sandbox.nextMultipleOf4(0);
+      final actual_2 = sandbox.nextMultipleOf4(4);
+      expect(actual_1, 0);
+      expect(actual_2, 4);
+    });
+
+    test('returns the next multiple of 4 if it is not', () {
+      final actual = sandbox.nextMultipleOf4(1);
+      expect(actual, 4);
+    });
+  });
+
   group('b64UrlToB64 method', () {
     test('takes a base64Url and returns a base64', () {
       for (final expectation in expectations) {
