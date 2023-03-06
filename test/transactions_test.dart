@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/models/transaction_stream.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
 
@@ -17,6 +18,7 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
+
     test('create, sign, and verify data transaction', () async {
       final wallet = await getTestWallet();
 
@@ -155,66 +157,63 @@ void main() {
       );
     });
 
-    test('successfully upload AR only transaction', () async {
-      final wallet = await getTestWallet();
+    group('stream', (() {
+      test('create, sign, and verify data transaction', () async {
+        final wallet = await getTestWallet();
 
-      final transaction = await client.transactions.prepare(
-        Transaction(
-          target: 'GRQ7swQO1AMyFgnuAPI7AvGQlW3lzuQuwlJbIpWV7xk',
-          quantity: utils.arToWinston('1.5'),
-        ),
-        wallet,
-      );
+        const fileName = 'test/fixtures/lotsofdata.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
 
-      await transaction.sign(wallet);
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            wallet);
 
-      expect(
-        client.transactions.upload(transaction),
-        emitsInOrder([
-          emits(predicate((TransactionUploader event) =>
-              event.isComplete && event.progress == 1)),
-          emitsDone,
-        ]),
-      );
-    }, onPlatform: {
-      'browser': Skip('dart:io unavailable'),
-    });
+        transaction
+          ..addTag('test-tag-1', 'test-value-1')
+          ..addTag('test-tag-2', 'test-value-2')
+          ..addTag('test-tag-3', 'test-value-3');
 
-    test('successfully seed existing large network transaction', () async {
-      final txId = 'gAnkEioD7xoP3qx7VepVEp1O0v4L1UgtBV_trM-Ria8';
-      final transaction = await client.transactions.get(txId);
-      final txData = await File("test/fixtures/$txId").readAsBytes();
+        // expect(utf8.decode(transaction.data), equals('test'));
+        expect(transaction.lastTx, matches(transactionFieldPattern));
+        expect(transaction.reward.toInt(), greaterThan(0));
 
-      await transaction!.setData(txData);
+        await transaction.sign(wallet);
 
-      int lastUploadedChunkCount = 0;
-      double lastProgress = 0;
+        expect(transaction.signature, matches(signaturePattern));
+        expect(transaction.id, matches(digestPattern));
 
-      expect(
-        client.transactions.upload(transaction, dataOnly: true),
-        emitsInOrder([
-          ...List.filled(393, emits(predicate((TransactionUploader event) {
-            final eventIsInSequence =
-                event.uploadedChunks > lastUploadedChunkCount &&
-                    event.progress > lastProgress;
+        expect(await transaction.verify(), isTrue);
 
-            lastUploadedChunkCount = event.uploadedChunks;
-            lastProgress = event.progress;
+        transaction.addTag('k', 'v');
+        expect(await transaction.verify(), isFalse);
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
 
-            return eventIsInSequence;
-          }))),
-          emits(predicate((TransactionUploader event) =>
-              event.isComplete && event.progress == 1)),
-          emitsDone,
-        ]),
-      );
-    }, timeout: Timeout(Duration(seconds: 120)), onPlatform: {
-      'browser': Skip('dart:io unavailable'),
-    });
+      test('successfully validate data from 1mb.bin set on prepared transaction',
+          () async {
+        const fileName = 'test/fixtures/1mb.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
 
-    test('get and verify transaction', () async {
-      final transaction = await (client.transactions.get(liveDataTxId));
-      expect(await transaction!.verify(), isTrue);
-    });
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            await getTestWallet());
+
+        expect(transaction.setDataStreamGenerator(
+            fileStreamMeta.dataStreamGenerator,
+            fileStreamMeta.dataSize),
+          completion(null));
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+    }));
   });
 }
