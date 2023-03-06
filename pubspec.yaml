@@ -1,6 +1,6 @@
 name: arweave
 description: ""
-version: 3.5.0
+version: 3.5.1
 environment:
   sdk: ">=2.14.0 <3.0.0"
 
