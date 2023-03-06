@@ -19,6 +19,7 @@ BigInt decodeBase64ToBigInt(String base64) =>
 
 BigInt decodeBytesToBigInt(List<int> bytes) {
   var result = BigInt.zero;
+
   for (var i = 0; i < bytes.length; i++) {
     result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
   }
@@ -99,8 +100,89 @@ String getResponseError(Response res) {
     }
   }
 
-  return res.body ?? 'unknown';
+  return res.body;
 }
 
 Future<String> ownerToAddress(String owner) async => encodeBytesToBase64(
     await sha256.hash(decodeBase64ToBytes(owner)).then((res) => res.bytes));
+
+Uint8List longTo32ByteArray(int long) {
+  // we want to represent the input as a 8-bytes array
+  final byteArray = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ];
+
+  for (var index = 0; index < byteArray.length; index++) {
+    final byte = long & 0xff;
+    byteArray[index] = byte;
+    long = (long - byte) ~/ 256;
+  }
+
+  return Uint8List.fromList(byteArray);
+}
+
+Uint8List shortTo2ByteArray(int long) {
+  if (long > (2 ^ (32 - 1))) throw Exception('Short too long');
+
+  var byteArray = [0, 0];
+
+  for (var index = 0; index < byteArray.length; index++) {
+    final byte = long & 0xff;
+    byteArray[index] = byte;
+    long = (long - byte) ~/ 256;
+  }
+
+  return Uint8List.fromList(byteArray);
+}
+
+int byteArrayToLong(Uint8List byteArray) {
+  var value = 0;
+  for (var i = byteArray.length - 1; i >= 0; i--) {
+    value = value * 256 + byteArray[i];
+  }
+  return value;
+}
+
+Uint8List longTo8ByteArray(int long) {
+  // we want to represent the input as a 8-bytes array
+  final byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
+
+  for (var index = 0; index < byteArray.length; index++) {
+    final byte = long & 0xff;
+    byteArray[index] = byte;
+    long = (long - byte) ~/ 256;
+  }
+
+  return Uint8List.fromList(byteArray);
+}

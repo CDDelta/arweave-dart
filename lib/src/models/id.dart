@@ -9,7 +9,7 @@ class ArweaveId {
   String text;
   String avatarDataUri;
 
-  ArweaveId({this.name, this.url, this.text, this.avatarDataUri});
+  ArweaveId({required this.name, required this.url, required this.text, required this.avatarDataUri});
 
   factory ArweaveId.fromJson(Map<String, dynamic> json) =>
       _$ArweaveIdFromJson(json);

@@ -13,8 +13,13 @@ class TransactionChunk {
   final String offset;
   final String chunk;
 
-  TransactionChunk(
-      {this.dataRoot, this.dataSize, this.dataPath, this.offset, this.chunk});
+  TransactionChunk({
+    required this.dataRoot,
+    required this.dataSize,
+    required this.dataPath,
+    required this.offset,
+    required this.chunk,
+  });
 
   factory TransactionChunk.fromJson(Map<String, dynamic> json) =>
       _$TransactionChunkFromJson(json);
@@ -26,7 +31,7 @@ class TransactionOffsetResponse {
   final String size;
   final String offset;
 
-  TransactionOffsetResponse({this.size, this.offset});
+  TransactionOffsetResponse({required this.size, required this.offset});
 
   factory TransactionOffsetResponse.fromJson(Map<String, dynamic> json) =>
       _$TransactionOffsetResponseFromJson(json);
@@ -41,7 +46,8 @@ class TransactionChunkResponse {
   @JsonKey(name: 'tx_path')
   final String txPath;
 
-  TransactionChunkResponse({this.chunk, this.dataPath, this.txPath});
+  TransactionChunkResponse(
+      {required this.chunk, required this.dataPath, required this.txPath});
 
   factory TransactionChunkResponse.fromJson(Map<String, dynamic> json) =>
       _$TransactionChunkResponseFromJson(json);

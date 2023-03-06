@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arweave/arweave.dart';
+import 'package:arweave/src/models/transaction_stream.dart';
 import 'package:arweave/utils.dart' as utils;
 import 'package:test/test.dart';
 
@@ -17,11 +18,13 @@ void main() {
     final transactionFieldPattern =
         RegExp(r'^[a-z0-9-_]{64}$', caseSensitive: false);
     final signaturePattern = RegExp(r'^[a-z0-9-_]+$', caseSensitive: false);
+
     test('create, sign, and verify data transaction', () async {
       final wallet = await getTestWallet();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: utf8.encode('test')), wallet);
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: utf8.encode('test') as Uint8List),
+          wallet);
 
       transaction
         ..addTag('test-tag-1', 'test-value-1')
@@ -45,7 +48,7 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
-    test('create, sign, and specify reward for AR transaction', () async {
+    test('create, sign, and verify AR transaction', () async {
       final wallet = await getTestWallet();
 
       final transaction = await client.transactions.prepare(
@@ -100,8 +103,10 @@ void main() {
         () async {
       final data = await File('test/fixtures/1mb.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
+
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -112,8 +117,10 @@ void main() {
         () async {
       final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
+
       expect(transaction.setData(data), completion(null));
     }, onPlatform: {
       'browser': Skip('dart:io unavailable'),
@@ -122,8 +129,10 @@ void main() {
     test('error when invalid data is set on prepared transaction', () async {
       final data = await File('test/fixtures/lotsofdata.bin').readAsBytes();
 
-      final transaction = await client.transactions
-          .prepare(Transaction.withBlobData(data: data, reward: BigInt.one));
+      final transaction = await client.transactions.prepare(
+          Transaction.withBlobData(data: data, reward: BigInt.one),
+          await getTestWallet());
+
       expect(
         transaction.setData(Uint8List.sublistView(data, 1)),
         throwsStateError,
@@ -132,43 +141,79 @@ void main() {
       'browser': Skip('dart:io unavailable'),
     });
 
-    test('upload data to transaction already on network', () async {
+    test('successfully seed existing network transaction', () async {
       final transaction = await client.transactions
           .get('8C6yYu5pWMADLSd65wTnrzgN-9eLj9sFbyVC3prSaFs');
 
-      await transaction
-          .setData(utf8.encode('{"name":"Blockchains & Cryptocurrencies"}'));
+      await transaction!.setData(utf8
+          .encode('{"name":"Blockchains & Cryptocurrencies"}') as Uint8List);
 
       expect(
-        client.transactions.upload(transaction, dataOnly: true).drain(),
-        completion(null),
+        client.transactions.upload(transaction, dataOnly: true),
+        emitsInOrder([
+          emits(anything),
+          emitsDone,
+        ]),
       );
     });
 
-    test('upload transaction with serialised uploader', () async {
-      final data = utf8.encode('Hello world!');
-      final wallet = await getTestWallet();
-      final transaction = await client.transactions.prepare(
-        Transaction.withBlobData(data: data),
-        wallet,
-      );
+    group('stream', (() {
+      test('create, sign, and verify data transaction', () async {
+        final wallet = await getTestWallet();
 
-      await transaction.sign(wallet);
+        const fileName = 'test/fixtures/lotsofdata.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
 
-      final uploader = await client.transactions.getUploader(transaction);
-      final reloadedUploader = await TransactionUploader.deserialize(
-          uploader.serialize(), data, client.api);
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            wallet);
 
-      // Technically this should fail since the test wallet has no AR but the
-      // HTTP API doesn't return an error so there's nothing we can do about it.
-      expect(reloadedUploader.uploadChunk(), completion(null));
-    }, onPlatform: {
-      'browser': Skip('dart:io unavailable'),
-    });
+        transaction
+          ..addTag('test-tag-1', 'test-value-1')
+          ..addTag('test-tag-2', 'test-value-2')
+          ..addTag('test-tag-3', 'test-value-3');
 
-    test('get and verify transaction', () async {
-      final transaction = await client.transactions.get(liveDataTxId);
-      expect(await transaction.verify(), isTrue);
-    });
+        // expect(utf8.decode(transaction.data), equals('test'));
+        expect(transaction.lastTx, matches(transactionFieldPattern));
+        expect(transaction.reward.toInt(), greaterThan(0));
+
+        await transaction.sign(wallet);
+
+        expect(transaction.signature, matches(signaturePattern));
+        expect(transaction.id, matches(digestPattern));
+
+        expect(await transaction.verify(), isTrue);
+
+        transaction.addTag('k', 'v');
+        expect(await transaction.verify(), isFalse);
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+
+      test('successfully validate data from 1mb.bin set on prepared transaction',
+          () async {
+        const fileName = 'test/fixtures/1mb.bin';
+        final fileStreamMeta = await getFileStreamMeta(fileName);
+
+        final transaction = await client.transactions.prepare(
+            TransactionStream.withBlobData(
+              dataStreamGenerator: fileStreamMeta.dataStreamGenerator,
+              dataSize: fileStreamMeta.dataSize,
+              reward: BigInt.one
+            ),
+            await getTestWallet());
+
+        expect(transaction.setDataStreamGenerator(
+            fileStreamMeta.dataStreamGenerator,
+            fileStreamMeta.dataSize),
+          completion(null));
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+    }));
   });
 }

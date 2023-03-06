@@ -11,8 +11,8 @@ import '../crypto/crypto.dart';
 import '../utils.dart';
 
 class Wallet {
-  RsaKeyPair _keyPair;
-  Wallet({KeyPair keyPair}) : _keyPair = keyPair;
+  RsaKeyPair? _keyPair;
+  Wallet({KeyPair? keyPair}) : _keyPair = keyPair as RsaKeyPair?;
 
   static Future<Wallet> generate() async {
     final secureRandom = FortunaRandom();
@@ -41,21 +41,21 @@ class Wallet {
 
     return Wallet(
       keyPair: RsaKeyPairData(
-        e: encodeBigIntToBytes(privK.publicExponent),
-        n: encodeBigIntToBytes(privK.modulus),
-        d: encodeBigIntToBytes(privK.privateExponent),
-        p: encodeBigIntToBytes(privK.p),
-        q: encodeBigIntToBytes(privK.q),
+        e: encodeBigIntToBytes(privK.publicExponent!),
+        n: encodeBigIntToBytes(privK.modulus!),
+        d: encodeBigIntToBytes(privK.privateExponent!),
+        p: encodeBigIntToBytes(privK.p!),
+        q: encodeBigIntToBytes(privK.q!),
       ),
     );
   }
 
   Future<String> getOwner() async => encodeBytesToBase64(
-      await _keyPair.extractPublicKey().then((res) => res.n));
+      await _keyPair!.extractPublicKey().then((res) => res.n));
   Future<String> getAddress() async => ownerToAddress(await getOwner());
 
   Future<Uint8List> sign(Uint8List message) async =>
-      rsaPssSign(message: message, keyPair: _keyPair);
+      rsaPssSign(message: message, keyPair: _keyPair!);
 
   factory Wallet.fromJwk(Map<String, dynamic> jwk) {
     // Normalize the JWK so that it can be decoded by 'cryptography'.
@@ -70,7 +70,7 @@ class Wallet {
     return Wallet(keyPair: Jwk.fromJson(jwk).toKeyPair());
   }
 
-  Map<String, dynamic> toJwk() => Jwk.fromKeyPair(_keyPair).toJson().map(
+  Map<String, dynamic> toJwk() => Jwk.fromKeyPair(_keyPair!).toJson().map(
       // Denormalize the JWK into the expected form.
       (key, value) => MapEntry(key, (value as String).replaceAll('=', '')));
 }
