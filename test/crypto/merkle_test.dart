@@ -83,5 +83,56 @@ void main() async {
       expect(chunk1Size, equals(chunk2Size + 1));
       expect(chunk2Size, greaterThanOrEqualTo(MIN_CHUNK_SIZE));
     });
+
+    group('stream', () {
+      test(
+          'chunk stream data larger than the max chunk size with one extra zero length chunk',
+          () async {
+        final data = randomBytes(MAX_CHUNK_SIZE * 4);
+        final dataStream = Stream.value(data);
+        final chunks = await chunkDataFromStream(dataStream);
+
+        expect(chunks.length, equals(5));
+
+        for (final chunk in chunks.take(4)) {
+          expect(chunk.maxByteRange - chunk.minByteRange, equals(MAX_CHUNK_SIZE));
+        }
+
+        expect(chunks.last.maxByteRange - chunks.last.minByteRange, equals(0));
+      });
+
+      test(
+          'chunk stream data while adjusting the last two chunks to avoid chunks smaller than the minimum chunk size',
+          () async {
+        final data = randomBytes(MAX_CHUNK_SIZE + MIN_CHUNK_SIZE - 1);
+        final dataStream = Stream.value(data);
+        final chunks = await chunkDataFromStream(dataStream);
+
+        expect(chunks.length, equals(2));
+
+        final chunk1Size = chunks[0].maxByteRange - chunks[0].minByteRange;
+        final chunk2Size = chunks[1].maxByteRange - chunks[1].minByteRange;
+
+        expect(chunk1Size, greaterThan(MIN_CHUNK_SIZE));
+        expect(chunk1Size, equals(chunk2Size + 1));
+        expect(chunk2Size, greaterThanOrEqualTo(MIN_CHUNK_SIZE));
+      });
+
+      test('data root from Stream matches data root from Uint8List', () async {
+        final filePath = 'test/fixtures/lotsofdata.bin';
+        final file = File(filePath);
+        
+        final fileStream = file.openRead();
+        final dataStream = fileStream.asyncMap((data) => data as Uint8List);
+        final chunksWithProofsAsync = await generateTransactionChunksFromStream(dataStream);
+
+        final fileData = file.readAsBytesSync();
+        final chunksWithProofsSync = await generateTransactionChunks(fileData);
+
+        expect(chunksWithProofsAsync.dataRoot, equals(chunksWithProofsSync.dataRoot));
+      }, onPlatform: {
+        'browser': Skip('dart:io unavailable'),
+      });
+    });
   });
 }
